@@ -1,0 +1,48 @@
+# --- OS / Editor ---
+**/.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# --- Docker / build toolchain (local-only, not published) ---
+Dockerfile
+.dockerignore
+compose.yaml
+
+# --- Build scripts (local-only) ---
+# prepare-posts.js / compress-images.js drive the local build pipeline but are
+# not part of the published site. NOTE: must live OUTSIDE Hexo's scripts/ dir,
+# otherwise Hexo auto-loads them as plugins and they misfire on every command
+# (e.g. creating a stray '-f' directory, reading argv as a target path).
+input/blog_configs/build-scripts/
+input/blog_configs/scripts/
+input/blog_configs/package-lock.json
+input/blog_configs/.github/
+
+# --- Project notes (not part of the blog) ---
+TODO.md
+prompt.md
+
+# --- Node / Hexo build artifacts ---
+node_modules/
+input/blog_configs/node_modules/
+input/blog_configs/db.json
+input/blog_configs/.cache/
+input/blog_configs/source/_posts/
+input/blog_configs/source/assets/
+public/
+.deploy*/
+_multiconfig.yml
+
+# --- Local-only: raw markdown source (NOT version-controlled) ---
+# The Yuque markdown export (~2.5GB) stays local. The built site is published
+# from the gh-pages branch instead.
+input/markdown/
+
+# --- Local build output is published to gh-pages, not tracked on main ---
+output/
+
+# --- Secrets / local env ---
+.env
+.env.*

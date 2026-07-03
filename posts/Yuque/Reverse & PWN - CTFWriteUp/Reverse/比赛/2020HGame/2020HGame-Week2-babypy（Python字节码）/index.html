@@ -1,0 +1,344 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2020HGame-Week2-babypy（Python字节码） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2020HGame-Week2-babypy（Python字节码）（整理）Python字节码详解 打开所下载的Python字节码文件，字节码如下： 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061In [1]: from">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2020HGame-Week2-babypy（Python字节码）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/Reverse%20&%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-babypy%EF%BC%88Python%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="2020HGame-Week2-babypy（Python字节码）（整理）Python字节码详解 打开所下载的Python字节码文件，字节码如下： 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061In [1]: from">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-06/800/450">
+<meta property="article:published_time" content="2020-04-20T06:59:53.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.486Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-06/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "2020HGame-Week2-babypy（Python字节码）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/Reverse%20&%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-babypy%EF%BC%88Python%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-06/800/450",
+  "datePublished": "2020-04-20T06:59:53.000Z",
+  "dateModified": "2026-07-03T14:46:15.486Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-babypy%EF%BC%88Python%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2020HGame-Week2-babypy（Python字节码）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-06/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">2020HGame-Week2-babypy（Python字节码）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">2020HGame-Week2-babypy（Python字节码）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-04-20T06:59:53.000Z" title="发表于 2020-04-20 14:59:53">2020-04-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.486Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Reverse-PWN-CTFWriteUp/">Reverse &amp; PWN - CTFWriteUp</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Reverse-PWN-CTFWriteUp/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="2020HGame-Week2-babypy（Python字节码）"><a href="#2020HGame-Week2-babypy（Python字节码）" class="headerlink" title="2020HGame-Week2-babypy（Python字节码）"></a>2020HGame-Week2-babypy（Python字节码）</h1><p><a target="_blank" rel="noopener" href="https://www.yuque.com/cyberangel/rg9gdm/vebs87?view=doc_embed">（整理）Python字节码详解</a></p>
+<p>打开所下载的Python字节码文件，字节码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">In [<span class="number">1</span>]: <span class="keyword">from</span> secret <span class="keyword">import</span> flag, encrypt</span><br><span class="line"></span><br><span class="line">In [<span class="number">2</span>]: encrypt(flag)</span><br><span class="line">Out[<span class="number">2</span>]: <span class="string">&#x27;7d037d045717722d62114e6a5b044f2c184c3f44214c2d4a22&#x27;</span></span><br><span class="line"></span><br><span class="line">In [<span class="number">3</span>]: <span class="keyword">import</span> dis</span><br><span class="line"></span><br><span class="line">In [<span class="number">4</span>]: dis.dis(encrypt)</span><br><span class="line">  <span class="number">4</span>           <span class="number">0</span> LOAD_FAST                <span class="number">0</span> (OOo)</span><br><span class="line">              <span class="number">2</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">              <span class="number">4</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">              <span class="number">6</span> LOAD_CONST               <span class="number">1</span> (-<span class="number">1</span>)</span><br><span class="line">              <span class="number">8</span> BUILD_SLICE              <span class="number">3</span></span><br><span class="line">             <span class="number">10</span> BINARY_SUBSCR</span><br><span class="line">             <span class="number">12</span> STORE_FAST               <span class="number">1</span> (O0O)</span><br><span class="line"></span><br><span class="line">  <span class="number">5</span>          <span class="number">14</span> LOAD_GLOBAL              <span class="number">0</span> (<span class="built_in">list</span>)</span><br><span class="line">             <span class="number">16</span> LOAD_FAST                <span class="number">1</span> (O0O)</span><br><span class="line">             <span class="number">18</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">             <span class="number">20</span> STORE_FAST               <span class="number">2</span> (O0o)</span><br><span class="line"></span><br><span class="line">  <span class="number">6</span>          <span class="number">22</span> SETUP_LOOP              <span class="number">50</span> (to <span class="number">74</span>)</span><br><span class="line">             <span class="number">24</span> LOAD_GLOBAL              <span class="number">1</span> (<span class="built_in">range</span>)</span><br><span class="line">             <span class="number">26</span> LOAD_CONST               <span class="number">2</span> (<span class="number">1</span>)</span><br><span class="line">             <span class="number">28</span> LOAD_GLOBAL              <span class="number">2</span> (<span class="built_in">len</span>)</span><br><span class="line">             <span class="number">30</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">             <span class="number">32</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">             <span class="number">34</span> CALL_FUNCTION            <span class="number">2</span></span><br><span class="line">             <span class="number">36</span> GET_ITER</span><br><span class="line">        &gt;&gt;   <span class="number">38</span> FOR_ITER                <span class="number">32</span> (to <span class="number">72</span>)</span><br><span class="line">             <span class="number">40</span> STORE_FAST               <span class="number">3</span> (O0)</span><br><span class="line"></span><br><span class="line">  <span class="number">7</span>          <span class="number">42</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">             <span class="number">44</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">             <span class="number">46</span> LOAD_CONST               <span class="number">2</span> (<span class="number">1</span>)</span><br><span class="line">             <span class="number">48</span> BINARY_SUBTRACT</span><br><span class="line">             <span class="number">50</span> BINARY_SUBSCR</span><br><span class="line">             <span class="number">52</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">             <span class="number">54</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">             <span class="number">56</span> BINARY_SUBSCR</span><br><span class="line">             <span class="number">58</span> BINARY_XOR</span><br><span class="line">             <span class="number">60</span> STORE_FAST               <span class="number">4</span> (Oo)</span><br><span class="line"></span><br><span class="line">  <span class="number">8</span>          <span class="number">62</span> LOAD_FAST                <span class="number">4</span> (Oo)</span><br><span class="line">             <span class="number">64</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">             <span class="number">66</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">             <span class="number">68</span> STORE_SUBSCR</span><br><span class="line">             <span class="number">70</span> JUMP_ABSOLUTE           <span class="number">38</span></span><br><span class="line">        &gt;&gt;   <span class="number">72</span> POP_BLOCK</span><br><span class="line"></span><br><span class="line">  <span class="number">9</span>     &gt;&gt;   <span class="number">74</span> LOAD_GLOBAL              <span class="number">3</span> (<span class="built_in">bytes</span>)</span><br><span class="line">             <span class="number">76</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">             <span class="number">78</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">             <span class="number">80</span> STORE_FAST               <span class="number">5</span> (O)</span><br><span class="line"></span><br><span class="line"> <span class="number">10</span>          <span class="number">82</span> LOAD_FAST                <span class="number">5</span> (O)</span><br><span class="line">             <span class="number">84</span> LOAD_METHOD              <span class="number">4</span> (<span class="built_in">hex</span>)</span><br><span class="line">             <span class="number">86</span> CALL_METHOD              <span class="number">0</span></span><br><span class="line">             <span class="number">88</span> RETURN_VALUE</span><br><span class="line"></span><br><span class="line">In [<span class="number">5</span>]: exit()</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们一点一点看，一点一点还原，首先先来看：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">4</span>           <span class="number">0</span> LOAD_FAST                <span class="number">0</span> (OOo)</span><br><span class="line">            <span class="number">2</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">            <span class="number">4</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">            <span class="number">6</span> LOAD_CONST               <span class="number">1</span> (-<span class="number">1</span>)</span><br><span class="line">            <span class="number">8</span> BUILD_SLICE              <span class="number">3</span>           <span class="comment">#创建了一个切片</span></span><br><span class="line">           <span class="number">10</span> BINARY_SUBSCR                        <span class="comment">#读取切片中的值</span></span><br><span class="line">           <span class="number">12</span> STORE_FAST               <span class="number">1</span> (O0O)     <span class="comment">#保存值到局部变量中</span></span><br></pre></td></tr></table></figure>
+
+<p>利用文章进行速查：</p>
+<blockquote>
+<p>源码行号  |  指令<strong>偏移量</strong>  | 指令符号 | 指令参数  |  实际参数值</p>
+</blockquote>
+<p>说明此段字节码在源码中的位置为第4行，我们将出现的指令符号摘录出来：</p>
+<p>LOAD_FAST：一般用于加载<span style="color: #F5222D">局部变量</span>的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p>LOAD_CONST：<span style="color: #333333">加载</span><strong><span style="color: #F5222D">const 变</span>****<span style="color: #F5222D">量</span></strong><span style="color: #333333">，比如数值，字符串等等， 一般用于传递给函数作为参数</span></p>
+<p>BUILD_SLICE：用于<span style="color: #F5222D">创建切片</span>， 对于 list ， tuple ， 字符串都可以使用slice 的方式进行访问</p>
+<p>BINARY_SUBSCR : **<span style="color: #F5222D">读取</span>**slice 的值</p>
+<p>STORE_FAST ：一般用于保存值到<span style="color: #F5222D">局部变量</span></p>
+<p>那么这句话的用意就十分明显了：它应该是切片的值赋给了某一个局部变量，因此其源码为：O0O&#x3D;OOo[::-1]</p>
+<p>简单不？我们继续：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">5</span>          <span class="number">14</span> LOAD_GLOBAL              <span class="number">0</span> (<span class="built_in">list</span>)</span><br><span class="line">           <span class="number">16</span> LOAD_FAST                <span class="number">1</span> (O0O)</span><br><span class="line">           <span class="number">18</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">           <span class="number">20</span> STORE_FAST               <span class="number">2</span> (O0o)</span><br></pre></td></tr></table></figure>
+
+<p>这是位置在第5行的源码，出现的指令符号有：</p>
+<p>LOAD_GLOBAL ： 用来加载<span style="color: #F5222D">全局变量</span>， 包括制定**<span style="color: #F5222D">函数名</span>**，类名，模块名等全局符号</p>
+<p>LOAD_FAST ：一般用于**<span style="color: #F5222D">加载局部变量</span>**的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p>CALL_FUNCTION：<span style="color: #F5222D">调用函数</span></p>
+<p>STORE_FAST：一般用于保存值到<span style="color: #F5222D">局部变量</span></p>
+<p>好，这行代码的用意也就清楚了，它调用了某一个函数，并将其返回值赋值给了某一个变量，我们还原出它的源码：</p>
+<p>O0o &#x3D; list(O0O)</p>
+<p>这里出现了“CALL_FUNCTION”该“CALL_FUNCTION”指令的参数为2，表示Python需要从栈顶部弹出两个位置参数；</p>
+<p>从上面两个例子我们可以得出一个结论：<strong>从上到下，先（还原）右后左</strong></p>
+<p>我们继续：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">6</span>          <span class="number">22</span> SETUP_LOOP              <span class="number">50</span> (to <span class="number">74</span>)   <span class="comment">#循环开始处，74表示循环结束点</span></span><br><span class="line">           <span class="number">24</span> LOAD_GLOBAL              <span class="number">1</span> (<span class="built_in">range</span>)</span><br><span class="line">           <span class="number">26</span> LOAD_CONST               <span class="number">2</span> (<span class="number">1</span>)</span><br><span class="line">           <span class="number">28</span> LOAD_GLOBAL              <span class="number">2</span> (<span class="built_in">len</span>)</span><br><span class="line">           <span class="number">30</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">           <span class="number">32</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">           <span class="number">34</span> CALL_FUNCTION            <span class="number">2</span></span><br><span class="line">           <span class="number">36</span> GET_ITER</span><br><span class="line">      &gt;&gt;   <span class="number">38</span> FOR_ITER                <span class="number">32</span> (to <span class="number">72</span>)   <span class="comment">#// “&gt;&gt;&quot; 表示循环切入点</span></span><br><span class="line">           <span class="number">40</span> STORE_FAST               <span class="number">3</span> (O0)</span><br></pre></td></tr></table></figure>
+
+<p>SETUP_LOOP ：用于开始一个<strong>循环</strong>。</p>
+<p>LOAD_GLOBAL ： 用来加载<span style="color: #F5222D">全局变量</span>， 包括制定函数名，类名，模块名等全局符号</p>
+<p>LOAD_CONST ：加载<span style="color: #F5222D">const 变量</span>，比如数值，字符串等等， 一般用于传递给函数作为参数</p>
+<p>LOAD_GLOBAL ： 用来加载<span style="color: #F5222D">全局变量</span>， 包括制定函数名，类名，模块名等全局符号</p>
+<p>LOAD_FAST ：一般用于加载<span style="color: #F5222D">局部变量</span>的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p>CALL_FUNCTION：<strong><span style="color: #F5222D">调用函数</span></strong></p>
+<p>GET_ITER，FOR_ITER：<span style="color: #F5222D">range</span>的循环迭代iter</p>
+<p>STORE_FAST ：一般用于<span style="color: #F5222D">保存</span>值到**<span style="color: #F5222D">局部变量</span>**</p>
+<p>显而易见，由于有range的提示，很轻松的将字节码翻译为源码：range O0 in (1,len(O0o))</p>
+<p>注意括号（实际参数值）里的内容</p>
+<p>我们继续：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">7</span>          <span class="number">42</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">           <span class="number">44</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">           <span class="number">46</span> LOAD_CONST               <span class="number">2</span> (<span class="number">1</span>)</span><br><span class="line">           <span class="number">48</span> BINARY_SUBTRACT</span><br><span class="line">           <span class="number">50</span> BINARY_SUBSCR</span><br><span class="line">           <span class="number">52</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">           <span class="number">54</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">           <span class="number">56</span> BINARY_SUBSCR</span><br><span class="line">           <span class="number">58</span> BINARY_XOR</span><br><span class="line">           <span class="number">60</span> STORE_FAST               <span class="number">4</span> (Oo)</span><br></pre></td></tr></table></figure>
+
+<p>LOAD_FAST ：一般用于<span style="color: #F5222D">加载局部变量</span>的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p>LOAD_CONST ：加载**<span style="color: #F5222D">const 变量</span>**，比如数值，字符串等等， 一般用于传递给函数作为参数</p>
+<p>BINARY_SUBTRACT：“SUBTRACT”：<span style="color: #F5222D">减法，减去</span></p>
+<p>BINARY_SUBSCR : 读取slice的值**<span style="color: #F5222D">（切片）</span>**</p>
+<p>BINARY_XOR：进行<strong>异或</strong></p>
+<p>STORE_FAST：一般用于保存值到局部变量</p>
+<p>由于在指令中出现了XOR，说明这是一个异或，还有SUBTRACT的汉语意思为“减法”。既然当中出现了**<span style="color: #F5222D">切片</span>**，我们可以知道它们出现的位置：<span style="color: #d4d4d4"> </span>Oo &#x3D; O0o O0 O0o O0，再补充一下就好了：<span style="color: #d4d4d4">  </span>Oo &#x3D; O0o[O0-1] ^ O0o[O0]</p>
+<blockquote>
+<p><strong><span style="color: #d4d4d4">请注意出现的切片</span></strong></p>
+</blockquote>
+<p>马上就完成了，我们继续：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">8</span>          <span class="number">62</span> LOAD_FAST                <span class="number">4</span> (Oo)</span><br><span class="line">           <span class="number">64</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">           <span class="number">66</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">           <span class="number">68</span> STORE_SUBSCR</span><br><span class="line">           <span class="number">70</span> JUMP_ABSOLUTE           <span class="number">38</span>        <span class="comment"># 逻辑上，循环在此处结束</span></span><br><span class="line">      &gt;&gt;   <span class="number">72</span> POP_BLOCK</span><br></pre></td></tr></table></figure>
+
+<p>LOAD_FAST ：一般用于加载<span style="color: #F5222D">局部变量</span>的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p>BINARY_SUBSCR : 读取<span style="color: #F5222D">slice</span> 的值</p>
+<p>JUMP_ABSOLUTE: <span style="color: #F5222D">结束循环</span></p>
+<p>POP_BLOCK：块出栈（pop 出栈）</p>
+<p>废话就不在说了，还原位置：<span style="color: #d4d4d4"> </span>O0o O0 Oo，补充内容得到：<span style="color: #d4d4d4"> </span>O0o[O0] &#x3D; Oo</p>
+<blockquote>
+<p>在这里容易还原错误，最后在可以将已还原的代码在还原成字节码检查一下就行了（文章最后再说方法）。</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">9</span>     &gt;&gt;   <span class="number">74</span> LOAD_GLOBAL              <span class="number">3</span> (<span class="built_in">bytes</span>)</span><br><span class="line">           <span class="number">76</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">           <span class="number">78</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">           <span class="number">80</span> STORE_FAST               <span class="number">5</span> (O)</span><br></pre></td></tr></table></figure>
+
+<p>LOAD_GLOBAL ： 用来加载全局变量， 包括制定<span style="color: #F5222D">函数名</span>，类名，模块名等全局符号</p>
+<p>LOAD_FAST ：一般用于加载局部变量的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p>CALL_FUNCTION：调用函数</p>
+<p>STORE_FAST ：一般用于保存值到局部变量</p>
+<p>很容易我们还原得到：O&#x3D;bytes(O0o)</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">10</span>          <span class="number">82</span> LOAD_FAST                <span class="number">5</span> (O)</span><br><span class="line">            <span class="number">84</span> LOAD_METHOD              <span class="number">4</span> (<span class="built_in">hex</span>)</span><br><span class="line">            <span class="number">86</span> CALL_METHOD              <span class="number">0</span></span><br><span class="line">            <span class="number">88</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<p>LOAD_FAST ：一般用于加载**<span style="color: #F5222D">局部变量</span>**的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p>LOAD_METHOD、CALL_METHOD：与hex对象有关</p>
+<p>RETURN_VALUE：函数结束，返回值。</p>
+<p>还原得到：return O.hex()</p>
+<blockquote>
+<p>定义函数的部分（def…）不会转换为字节码，只能根据RETURN_VALUE来判断函数的开始和结束</p>
+</blockquote>
+<p>7行代码已经还原完毕，为了讲解其他内容方便起见，我们利用出题人的源代码来进行说明：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> dis <span class="string">&#x27;&#x27;&#x27;不会转换为字节码&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encrypt</span>(<span class="params">OOo</span>): <span class="string">&#x27;&#x27;&#x27;不会转换为字节码&#x27;&#x27;&#x27;</span></span><br><span class="line">   O0O = OOo[::-<span class="number">1</span>]</span><br><span class="line">   O0o = <span class="built_in">list</span>(O0O)</span><br><span class="line">   <span class="keyword">for</span> O0 <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">len</span>(O0o)):</span><br><span class="line">      Oo = O0o[O0-<span class="number">1</span>] ^ O0o[O0] </span><br><span class="line">      O0o[O0] = Oo</span><br><span class="line">   O = <span class="built_in">bytes</span>(O0o) </span><br><span class="line">   <span class="keyword">return</span> O.<span class="built_in">hex</span>()</span><br><span class="line"><span class="built_in">print</span>(dis.dis(encrypt))<span class="string">&#x27;&#x27;&#x27;不会转换为字节码&#x27;&#x27;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>print(dis.dis(encrypt))：打印字节码</p>
+</blockquote>
+<p>执行上述代码可以得到：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"> <span class="number">4</span>           <span class="number">0</span> LOAD_FAST                <span class="number">0</span> (OOo)</span><br><span class="line">             <span class="number">2</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">             <span class="number">4</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">             <span class="number">6</span> LOAD_CONST               <span class="number">1</span> (-<span class="number">1</span>)  </span><br><span class="line">             <span class="number">8</span> BUILD_SLICE              <span class="number">3</span>       </span><br><span class="line">            <span class="number">10</span> BINARY_SUBSCR</span><br><span class="line">            <span class="number">12</span> STORE_FAST               <span class="number">1</span> (O0O) </span><br><span class="line"></span><br><span class="line"> <span class="number">5</span>          <span class="number">14</span> LOAD_GLOBAL              <span class="number">0</span> (<span class="built_in">list</span>)</span><br><span class="line">            <span class="number">16</span> LOAD_FAST                <span class="number">1</span> (O0O)</span><br><span class="line">            <span class="number">18</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">            <span class="number">20</span> STORE_FAST               <span class="number">2</span> (O0o)</span><br><span class="line"></span><br><span class="line"> <span class="number">6</span>          <span class="number">22</span> LOAD_GLOBAL              <span class="number">1</span> (<span class="built_in">range</span>)</span><br><span class="line">            <span class="number">24</span> LOAD_CONST               <span class="number">2</span> (<span class="number">1</span>)</span><br><span class="line">            <span class="number">26</span> LOAD_GLOBAL              <span class="number">2</span> (<span class="built_in">len</span>)</span><br><span class="line">            <span class="number">28</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">            <span class="number">30</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">            <span class="number">32</span> CALL_FUNCTION            <span class="number">2</span></span><br><span class="line">            <span class="number">34</span> GET_ITER</span><br><span class="line">       &gt;&gt;   <span class="number">36</span> FOR_ITER                <span class="number">32</span> (to <span class="number">70</span>)</span><br><span class="line">            <span class="number">38</span> STORE_FAST               <span class="number">3</span> (O0)</span><br><span class="line"></span><br><span class="line"> <span class="number">7</span>          <span class="number">40</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">            <span class="number">42</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">            <span class="number">44</span> LOAD_CONST               <span class="number">2</span> (<span class="number">1</span>)</span><br><span class="line">            <span class="number">46</span> BINARY_SUBTRACT</span><br><span class="line">            <span class="number">48</span> BINARY_SUBSCR</span><br><span class="line">            <span class="number">50</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">            <span class="number">52</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">            <span class="number">54</span> BINARY_SUBSCR</span><br><span class="line">            <span class="number">56</span> BINARY_XOR</span><br><span class="line">            <span class="number">58</span> STORE_FAST               <span class="number">4</span> (Oo)</span><br><span class="line"></span><br><span class="line"> <span class="number">8</span>          <span class="number">60</span> LOAD_FAST                <span class="number">4</span> (Oo)</span><br><span class="line">            <span class="number">62</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">            <span class="number">64</span> LOAD_FAST                <span class="number">3</span> (O0)</span><br><span class="line">            <span class="number">66</span> STORE_SUBSCR</span><br><span class="line">            <span class="number">68</span> JUMP_ABSOLUTE           <span class="number">36</span></span><br><span class="line"></span><br><span class="line"> <span class="number">9</span>     &gt;&gt;   <span class="number">70</span> LOAD_GLOBAL              <span class="number">3</span> (<span class="built_in">bytes</span>)</span><br><span class="line">            <span class="number">72</span> LOAD_FAST                <span class="number">2</span> (O0o)</span><br><span class="line">            <span class="number">74</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">            <span class="number">76</span> STORE_FAST               <span class="number">5</span> (O)</span><br><span class="line"></span><br><span class="line"><span class="number">10</span>          <span class="number">78</span> LOAD_FAST                <span class="number">5</span> (O)</span><br><span class="line">            <span class="number">80</span> LOAD_METHOD              <span class="number">4</span> (<span class="built_in">hex</span>)</span><br><span class="line">            <span class="number">82</span> CALL_METHOD              <span class="number">0</span></span><br><span class="line">            <span class="number">84</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<p>是不是一模一样？前面我们还跳过了一些代码，回头看看它：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">In [<span class="number">1</span>]: <span class="keyword">from</span> secret <span class="keyword">import</span> flag, encrypt</span><br><span class="line"></span><br><span class="line">In [<span class="number">2</span>]: encrypt(flag)</span><br><span class="line">Out[<span class="number">2</span>]: <span class="string">&#x27;7d037d045717722d62114e6a5b044f2c184c3f44214c2d4a22&#x27;</span></span><br><span class="line"></span><br><span class="line">In [<span class="number">3</span>]: <span class="keyword">import</span> dis</span><br><span class="line"></span><br><span class="line">In [<span class="number">4</span>]: dis.dis(encrypt)</span><br></pre></td></tr></table></figure>
+
+<p>其它的都不重要，我们知道代码对’7d037d045717722d62114e6a5b044f2c184c3f44214c2d4a22’（OOo）进行了加密就行了</p>
+<p>接下来就变成了一道“easy”的密码学题目。</p>
+<p>根据还原出来的源码和加密之后的字符串，可以写出解密代码，有：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">cipher = <span class="string">&#x27;7D037D045717722D62114E6A5B044F2C184C3F44214C2D4A22&#x27;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">decrypt</span>(<span class="params">cipher</span>):</span><br><span class="line">   b = <span class="built_in">bytes</span>.fromhex(cipher) </span><br><span class="line">   c = <span class="built_in">bytearray</span>(b)</span><br><span class="line">   <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">len</span>(b)):</span><br><span class="line">      x = b[i] ^ b[i-<span class="number">1</span>]</span><br><span class="line">      c[i] = x </span><br><span class="line">   c.reverse() </span><br><span class="line">   <span class="keyword">return</span> c.decode()</span><br><span class="line"><span class="built_in">print</span>(decrypt(cipher))</span><br><span class="line"><span class="comment"># HGAME&#123;ST4CK_1$_SO_E@SY~~&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>flag：HGAME{ST4CK_1$_SO_E@SY~~}</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-babypy%EF%BC%88Python%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-babypy%EF%BC%88Python%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-06/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/%EF%BC%9F%EF%BC%9F/login%EF%BC%88shift+e%EF%BC%89/" title="login（shift+e）"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">login（shift+e）</div></div><div class="info-2"><div class="info-item-1">login（shift+e）查壳之后，无壳，将文件载入到IDA中，来到main函数（部分注释如下）  进入函数sub_4006F6中：  双击进入main函数的s2字符串中：  选中char s2的所有数据，shift+e提取数据：  写个脚本逆向就好了： 12345678910111213141516171819#include &lt;stdio.h&gt;#include &lt;windows.h&gt;int main()&#123;    char a2[] = &quot;kakalll&quot;;    unsigned char a1[] =        &#123;            13, 13, 10, 6, 23, 13, 10, 91, 89, 92,            4, 94, 15, 94, 92, 7, 94, 2, 93, 93,            85, 15, 83, 15, 5, 90, 13, 90, 10, 89,            89, 82, 91, 92, 8, 15, 86, 22&#125;;   ...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/%EF%BC%88%E6%95%B4%E7%90%86%EF%BC%89Python%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%A6%E8%A7%A3/" title="（整理）Python字节码详解"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">（整理）Python字节码详解</div></div><div class="info-2"><div class="info-item-1">（整理）Python字节码详解参考资料：https://www.imooc.com/article/details/id/29111 https://www.cnblogs.com/yinguohai/p/11152366.html https://www.cnblogs.com/yinguohai/p/11158492.html https://docs.python.org/3.7/library/dis.html（官方文档） 例题：2020HGame-Week2-babypy（Python字节码） 零、速查：转化后的字节码格式如下：  源码行号  |  指令偏移量  | 指令符号 | 指令参数  |  实际参数值  变量 — _const LOAD_CONST ：加载const 变量，比如数值，字符串等等， 一般用于传递给函数作为参数 局部变量 — _FAST LOAD_FAST ：一般用于加载局部变量的值，也就是读取值，用于计算或者函数调用传传等 STORE_FAST ：一般用于保存值到局部变量 全局变量 — _GLOBAL LOAD_GLOBAL ： 用来加载全局变量，...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#2020HGame-Week2-babypy%EF%BC%88Python%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">2020HGame-Week2-babypy（Python字节码）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Bugku-凯撒部长的奖励（凯撒加密） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Bugku-凯撒部长的奖励（凯撒加密）嗯，是凯撒加密： MSW{byly_Cm_sIol_lYqUlx_yhdIs_Cn_Wuymul_il_wuff_bcg_pCwnIl_cm_u_Yrwyffyhn_guh_cz_sio_quhn_ni_ayn_bcm_chzilguncihm_sio_wuh_dich_om}  按照题目，不妨用工具“CTFcrackTools”试一下解密吧： NTX{czm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Bugku-凯撒部长的奖励（凯撒加密）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E5%87%AF%E6%92%92%E9%83%A8%E9%95%BF%E7%9A%84%E5%A5%96%E5%8A%B1%EF%BC%88%E5%87%AF%E6%92%92%E5%8A%A0%E5%AF%86%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="Bugku-凯撒部长的奖励（凯撒加密）嗯，是凯撒加密： MSW{byly_Cm_sIol_lYqUlx_yhdIs_Cn_Wuymul_il_wuff_bcg_pCwnIl_cm_u_Yrwyffyhn_guh_cz_sio_quhn_ni_ayn_bcm_chzilguncihm_sio_wuh_dich_om}  按照题目，不妨用工具“CTFcrackTools”试一下解密吧： NTX{czm">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-01/800/450">
+<meta property="article:published_time" content="2019-11-09T11:30:29.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:14.684Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-01/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Bugku-凯撒部长的奖励（凯撒加密）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E5%87%AF%E6%92%92%E9%83%A8%E9%95%BF%E7%9A%84%E5%A5%96%E5%8A%B1%EF%BC%88%E5%87%AF%E6%92%92%E5%8A%A0%E5%AF%86%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-01/800/450",
+  "datePublished": "2019-11-09T11:30:29.000Z",
+  "dateModified": "2026-07-03T14:46:14.684Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E5%87%AF%E6%92%92%E9%83%A8%E9%95%BF%E7%9A%84%E5%A5%96%E5%8A%B1%EF%BC%88%E5%87%AF%E6%92%92%E5%8A%A0%E5%AF%86%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Bugku-凯撒部长的奖励（凯撒加密）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-01/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Bugku-凯撒部长的奖励（凯撒加密）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Bugku-凯撒部长的奖励（凯撒加密）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-11-09T11:30:29.000Z" title="发表于 2019-11-09 19:30:29">2019-11-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:14.684Z" title="更新于 2026-07-03 22:46:14">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/%E5%88%B7%E9%A2%98/">刷题</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">221</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>1分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Bugku-凯撒部长的奖励（凯撒加密）"><a href="#Bugku-凯撒部长的奖励（凯撒加密）" class="headerlink" title="Bugku-凯撒部长的奖励（凯撒加密）"></a>Bugku-凯撒部长的奖励（凯撒加密）</h1><p>嗯，是凯撒加密：</p>
+<p><span style="color: #212529">MSW{byly_Cm_sIol_lYqUlx_yhdIs_Cn_Wuymul_il_wuff_bcg_pCwnIl_cm_u_Yrwyffyhn_guh_cz_sio_quhn_ni_ayn_bcm_chzilguncihm_sio_wuh_dich_om}</span></p>
+<p><img src="/assets/posts/bugku-1wjku0y/assets/1573299589977-e85485f2-9e76-41b4-aeac-5c27fdf7663d.png" alt="QQ截图20191109193941.png"></p>
+<p><span style="color: #212529">按照题目，不妨用工具“</span>CTFcrackTools<span style="color: #212529">”试一下解密吧：</span></p>
+<p><span style="color: #212529"></span>NTX{czmz_Dn_tJpm_mZrVmy_zieJt_Do_Xvznvm_jm_xvgg_cdh_qDxoJm_dn_v_Zsxzggzio_hvi_da_tjp_rvio_oj_bzo_cdn_diajmhvodjin_tjp_xvi_ejdi_pn}</p>
+<p>OUY{dana_Eo_uKqn_nAsWnz_ajfKu_Ep_Ywaown_kn_ywhh_dei_rEypKn_eo_w_Atyahhajp_iwj_eb_ukq_swjp_pk_cap_deo_ejbkniwpekjo_ukq_ywj_fkej_qo}</p>
+<p>PVZ{ebob_Fp_vLro_oBtXoa_bkgLv_Fq_Zxbpxo_lo_zxii_efj_sFzqLo_fp_x_Buzbiibkq_jxk_fc_vlr_txkq_ql_dbq_efp_fkclojxqflkp_vlr_zxk_glfk_rp}</p>
+<p>QWA{fcpc_Gq_wMsp_pCuYpb_clhMw_Gr_Aycqyp_mp_ayjj_fgk_tGarMp_gq_y_Cvacjjclr_kyl_gd_wms_uylr_rm_ecr_fgq_gldmpkyrgmlq_wms_ayl_hmgl_sq}</p>
+<p>RXB{gdqd_Hr_xNtq_qDvZqc_dmiNx_Hs_Bzdrzq_nq_bzkk_ghl_uHbsNq_hr_z_Dwbdkkdms_lzm_he_xnt_vzms_sn_fds_ghr_hmenqlzshnmr_xnt_bzm_inhm_tr}</p>
+<p>SYC{here_Is_yOur_rEwArd_enjOy_It_Caesar_or_call_him_vIctOr_is_a_Excellent_man_if_you_want_to_get_his_informations_you_can_join_us}</p>
+<p>TZD{ifsf_Jt_zPvs_sFxBse_fokPz_Ju_Dbftbs_ps_dbmm_ijn_wJduPs_jt_b_Fydfmmfou_nbo_jg_zpv_xbou_up_hfu_ijt_jogpsnbujpot_zpv_dbo_kpjo_vt}</p>
+<p>UAE{jgtg_Ku_aQwt_tGyCtf_gplQa_Kv_Ecguct_qt_ecnn_jko_xKevQt_ku_c_Gzegnngpv_ocp_kh_aqw_ycpv_vq_igv_jku_kphqtocvkqpu_aqw_ecp_lqkp_wu}</p>
+<p>VBF{khuh_Lv_bRxu_uHzDug_hqmRb_Lw_Fdhvdu_ru_fdoo_klp_yLfwRu_lv_d_Hafhoohqw_pdq_li_brx_zdqw_wr_jhw_klv_lqirupdwlrqv_brx_fdq_mrlq_xv}</p>
+<p>WCG{livi_Mw_cSyv_vIaEvh_irnSc_Mx_Geiwev_sv_gepp_lmq_zMgxSv_mw_e_Ibgippirx_qer_mj_csy_aerx_xs_kix_lmw_mrjsvqexmsrw_csy_ger_nsmr_yw}</p>
+<p>XDH{mjwj_Nx_dTzw_wJbFwi_jsoTd_Ny_Hfjxfw_tw_hfqq_mnr_aNhyTw_nx_f_Jchjqqjsy_rfs_nk_dtz_bfsy_yt_ljy_mnx_nsktwrfyntsx_dtz_hfs_otns_zx}</p>
+<p>YEI{nkxk_Oy_eUax_xKcGxj_ktpUe_Oz_Igkygx_ux_igrr_nos_bOizUx_oy_g_Kdikrrktz_sgt_ol_eua_cgtz_zu_mkz_noy_otluxsgzouty_eua_igt_puot_ay}</p>
+<p>ZFJ{olyl_Pz_fVby_yLdHyk_luqVf_Pa_Jhlzhy_vy_jhss_opt_cPjaVy_pz_h_Lejlsslua_thu_pm_fvb_dhua_av_nla_opz_pumvythapvuz_fvb_jhu_qvpu_bz}</p>
+<p>AGK{pmzm_Qa_gWcz_zMeIzl_mvrWg_Qb_Kimaiz_wz_kitt_pqu_dQkbWz_qa_i_Mfkmttmvb_uiv_qn_gwc_eivb_bw_omb_pqa_qvnwzuibqwva_gwc_kiv_rwqv_ca}</p>
+<p>BHL{qnan_Rb_hXda_aNfJam_nwsXh_Rc_Ljnbja_xa_ljuu_qrv_eRlcXa_rb_j_Nglnuunwc_vjw_ro_hxd_fjwc_cx_pnc_qrb_rwoxavjcrxwb_hxd_ljw_sxrw_db}</p>
+<p>CIM{robo_Sc_iYeb_bOgKbn_oxtYi_Sd_Mkockb_yb_mkvv_rsw_fSmdYb_sc_k_Ohmovvoxd_wkx_sp_iye_gkxd_dy_qod_rsc_sxpybwkdsyxc_iye_mkx_tysx_ec}</p>
+<p>DJN{spcp_Td_jZfc_cPhLco_pyuZj_Te_Nlpdlc_zc_nlww_stx_gTneZc_td_l_Pinpwwpye_xly_tq_jzf_hlye_ez_rpe_std_tyqzcxletzyd_jzf_nly_uzty_fd}</p>
+<p>EKO{tqdq_Ue_kAgd_dQiMdp_qzvAk_Uf_Omqemd_ad_omxx_tuy_hUofAd_ue_m_Qjoqxxqzf_ymz_ur_kag_imzf_fa_sqf_tue_uzradymfuaze_kag_omz_vauz_ge}</p>
+<p>FLP{urer_Vf_lBhe_eRjNeq_rawBl_Vg_Pnrfne_be_pnyy_uvz_iVpgBe_vf_n_Rkpryyrag_zna_vs_lbh_jnag_gb_trg_uvf_vasbezngvbaf_lbh_pna_wbva_hf}</p>
+<p>GMQ{vsfs_Wg_mCif_fSkOfr_sbxCm_Wh_Qosgof_cf_qozz_vwa_jWqhCf_wg_o_Slqszzsbh_aob_wt_mci_kobh_hc_ush_vwg_wbtcfaohwcbg_mci_qob_xcwb_ig}</p>
+<p>HNR{wtgt_Xh_nDjg_gTlPgs_tcyDn_Xi_Rpthpg_dg_rpaa_wxb_kXriDg_xh_p_Tmrtaatci_bpc_xu_ndj_lpci_id_vti_wxh_xcudgbpixdch_ndj_rpc_ydxc_jh}</p>
+<p>IOS{xuhu_Yi_oEkh_hUmQht_udzEo_Yj_Squiqh_eh_sqbb_xyc_lYsjEh_yi_q_Unsubbudj_cqd_yv_oek_mqdj_je_wuj_xyi_ydvehcqjyedi_oek_sqd_zeyd_ki}</p>
+<p>JPT{yviv_Zj_pFli_iVnRiu_veaFp_Zk_Trvjri_fi_trcc_yzd_mZtkFi_zj_r_Votvccvek_dre_zw_pfl_nrek_kf_xvk_yzj_zewfidrkzfej_pfl_tre_afze_lj}</p>
+<p>KQU{zwjw_Ak_qGmj_jWoSjv_wfbGq_Al_Uswksj_gj_usdd_zae_nAulGj_ak_s_Wpuwddwfl_esf_ax_qgm_osfl_lg_ywl_zak_afxgjeslagfk_qgm_usf_bgaf_mk}</p>
+<p>LRV{axkx_Bl_rHnk_kXpTkw_xgcHr_Bm_Vtxltk_hk_vtee_abf_oBvmHk_bl_t_Xqvxeexgm_ftg_by_rhn_ptgm_mh_zxm_abl_bgyhkftmbhgl_rhn_vtg_chbg_nl}</p>
+<p>MSW{byly_Cm_sIol_lYqUlx_yhdIs_Cn_Wuymul_il_wuff_bcg_pCwnIl_cm_u_Yrwyffyhn_guh_cz_sio_quhn_ni_ayn_bcm_chzilguncihm_sio_wuh_dich_om}</p>
+<p>这么多选哪一个呢？（自闭了），在仔细观察一下题目，题目这么长，不可能没有用吧？！</p>
+<p><span style="color: #212529">就在8月，超师傅出色地完成了上级的特遣任务，凯撒部长准备给超师傅一份特殊的奖励，兴高采烈的超师傅却只收到一长串莫名的密文，超师傅看到英语字串便满脸黑线，帮他拿到这份价值不菲的奖励吧。 密文……</span></p>
+<p><span style="color: #212529"></span></p>
+<p><span style="color: #212529">翻译得到：（flag）</span>SYC{here_Is_yOur_rEwArd_enjOy_It_Caesar_or_call_him_vIctOr_is_a_Excellent_man_if_you_want_to_get_his_informations_you_can_join_us}</p>
+<p>我再自闭一会儿……</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E5%87%AF%E6%92%92%E9%83%A8%E9%95%BF%E7%9A%84%E5%A5%96%E5%8A%B1%EF%BC%88%E5%87%AF%E6%92%92%E5%8A%A0%E5%AF%86%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E5%87%AF%E6%92%92%E9%83%A8%E9%95%BF%E7%9A%84%E5%A5%96%E5%8A%B1%EF%BC%88%E5%87%AF%E6%92%92%E5%8A%A0%E5%AF%86%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-01/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E8%B4%9D%E6%96%AF%E5%AE%B6%E6%97%8F%EF%BC%88Base%2091%EF%BC%89/" title="Bugku-贝斯家族（Base 91）"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Bugku-贝斯家族（Base 91）</div></div><div class="info-2"><div class="info-item-1">Bugku-贝斯家族（Base 91）呜呜呜呜……中国的base 91解密网址好像都得掏钱…… 复制一下别人的write up吧（来自：https://blog.csdn.net/Qiu79658768/article/details/81489778） 1@iH&lt;,&#123;bdR2H;i6*Tm,Wx2izpx2!  解：base91 解码。http://ctf.ssleye.com/base91.html 得到：flag{554a5058c9021c76} </div></div></div></a><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E6%89%98%E9%A9%AC%E6%96%AF.%E6%9D%B0%E6%96%90%E9%80%8A%EF%BC%88%E6%9D%B0%E6%96%90%E9%80%8A%E8%BD%AC%E8%BD%AE%E5%8A%A0%E5%AF%86%EF%BC%89/" title="Bugku-托马斯.杰斐逊（杰斐逊转轮加密）"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Bugku-托马斯.杰斐逊（杰斐逊转轮加密）</div></div><div class="info-2"><div class="info-item-1">Bugku-托马斯.杰斐逊（杰斐逊转轮加密） 没见过这个密码，百度上查了一下这个人，  了解转轮加密方式后 得到  发现倒数第六列,有bugku这几个词，所以flag{XSXSBUGKUADMIN} 发现不对，就换成小写 flag{xsxsbugkuadmin} 网上资料： 做CTF的crypto，经常会遇到一些加密解密，杰弗逊加密也是考察频率较高的一种加密方式 像今年的ISCC CTF中就有一条转轮加密题目： 加密表： 1: &lt; ZWAXJGDLUBVIQHKYPNTCRMOSFE &lt; 2: &lt; KPBELNACZDTRXMJQOYHGVSFUWI &lt; 3: &lt; BDMAIZVRNSJUWFHTEQGYXPLOCK &lt; 4: &lt; RPLNDVHGFCUKTEBSXQYIZMJWAO &lt; 5: &lt; IHFRLABEUOTSGJVDKCPMNZQWXY &lt; 6: &lt; AMKGHIWPNYCJBFZDRUSLOQXVET &lt; 7: &lt; GWTHSPYBXIZULVKMRAFDCEONJQ &lt; 8: &...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Bugku-%E5%87%AF%E6%92%92%E9%83%A8%E9%95%BF%E7%9A%84%E5%A5%96%E5%8A%B1%EF%BC%88%E5%87%AF%E6%92%92%E5%8A%A0%E5%AF%86%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">Bugku-凯撒部长的奖励（凯撒加密）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

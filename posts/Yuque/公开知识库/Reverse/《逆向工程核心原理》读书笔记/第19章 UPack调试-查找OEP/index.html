@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第19章 UPack调试-查找OEP | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第19章 UPack调试-查找OEP本章将调试UPack压缩的记事本（notepad upack.exe）文件以查找OEP。UPack会对PE文件头进行独特变形，但并未应用反调试技术（Anti-Debugging），调试起来并不费劲。 19.1OllyDbg 运行错误由于UPack会将IMAGE OPTIONAL HEADER中的NumberOfRvaAndSizes值设置为A（默认值为10），所">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第19章 UPack调试-查找OEP">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC19%E7%AB%A0%20UPack%E8%B0%83%E8%AF%95-%E6%9F%A5%E6%89%BEOEP/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第19章 UPack调试-查找OEP本章将调试UPack压缩的记事本（notepad upack.exe）文件以查找OEP。UPack会对PE文件头进行独特变形，但并未应用反调试技术（Anti-Debugging），调试起来并不费劲。 19.1OllyDbg 运行错误由于UPack会将IMAGE OPTIONAL HEADER中的NumberOfRvaAndSizes值设置为A（默认值为10），所">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-06/800/450">
+<meta property="article:published_time" content="2020-02-11T07:20:07.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.326Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-06/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第19章 UPack调试-查找OEP",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC19%E7%AB%A0%20UPack%E8%B0%83%E8%AF%95-%E6%9F%A5%E6%89%BEOEP/",
+  "image": "https://picsum.photos/seed/blog-cover-06/800/450",
+  "datePublished": "2020-02-11T07:20:07.000Z",
+  "dateModified": "2026-07-03T14:46:17.326Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC19%E7%AB%A0%20UPack%E8%B0%83%E8%AF%95-%E6%9F%A5%E6%89%BEOEP/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第19章 UPack调试-查找OEP',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-06/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第19章 UPack调试-查找OEP</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第19章 UPack调试-查找OEP</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-11T07:20:07.000Z" title="发表于 2020-02-11 15:20:07">2020-02-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.326Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第19章-UPack调试-查找OEP"><a href="#第19章-UPack调试-查找OEP" class="headerlink" title="第19章 UPack调试-查找OEP"></a>第19章 UPack调试-查找OEP</h1><p>本章将调试UPack压缩的记事本（notepad upack.exe）文件以查找OEP。UPack会对PE文件头进行独特变形，但并未应用反调试技术（Anti-Debugging），调试起来并不费劲。</p>
+<h2 id="19-1OllyDbg-运行错误"><a href="#19-1OllyDbg-运行错误" class="headerlink" title="19.1OllyDbg 运行错误"></a>19.1OllyDbg 运行错误</h2><p>由于UPack会将IMAGE OPTIONAL HEADER中的<span style="color: #F5222D">NumberOfRvaAndSizes值设置为A（默认值为10）</span>，所以使用OlyDbg打开notepad_upack.exe文件时，初始检查过程中会弹出错误消息对话框，如图19-1所示。</p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581405888599-e139860a-5697-4b7f-9d3c-a94ed715ff6c.png" alt="QQ截图20200211152436.png"></p>
+<p>图19-1OllyDbg的错误消息框</p>
+<p>这不是什么非常严重的错误，按“确认”按钮关闭该对话框。上面这个错误导致OllyDbg无法转到EP位置，停留在ntdll.dll区域，如图19-2所示。</p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581407400814-1ba08e94-02bd-4e25-bf32-8ca1a81a3adb.png" alt="QQ截图20200211154949.png"></p>
+<p>该现象是由OllyDbg的Bug（或者严格的PE检查）引起的，所以需要强制设置EP。首先要查找EP位于何处。下面使用Stud PE查找EP的虚拟地址。</p>
+<p>如图19-3所示，ImageBase为01000000，EP的RVA为1018，经过计算可知EP的VA值为01001018。在OllyDbg的代码窗口中转到01001018地址处，使用New origin here命令强制更改EIP寄存器中的值，如图19-4所示。</p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581407662463-4a75e9ff-6643-4d4d-a2fa-a400a083a297.png" alt="QQ截图20200211155323.png"></p>
+<p>图19-3 Stud_PE</p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581407821459-477d4bda-5d97-4382-ac55-1892f27860f2.png" alt="QQ截图20200211155650.png"></p>
+<p>执行New origin here命令时会弹出警告消息框，单击“确定”按钮，接下来就可以正常调试了。</p>
+<p><span style="color: #F5222D">注意：新版调试器不会出现上述问题</span></p>
+<h2 id="19-2解码循环"><a href="#19-2解码循环" class="headerlink" title="19.2解码循环"></a>19.2解码循环</h2><p><strong>所有压缩器中都存在解码循环（Decoding Loop)。如果明白压缩&#x2F;解压算法本身就是由许多条件分支语句和循环构成的，那么可能就会理解为何解码循环看上去如此复杂。</strong></p>
+<p>调试这样的解码循环时，应适当跳过条件分支语句以跳出某个循环。有些情况下循环较为复杂，无法迅速把握。调试中要仔细观察寄存器，注意相应值被写入哪些地址（其实这也需要丰富的经验）。</p>
+<p><strong><span style="color: #F5222D">UPack把压缩后的数据放到第二个节区，再运行解码循环将这些数据解压缩后放到第一个节区。</span>下面从EP代码开始调试，如图19-5所示。</strong></p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581408313212-abe2aafe-2ea9-4723-9b06-8acb39a3706f.png" alt="QQ截图20200211160504.png"></p>
+<p>前2条指令用于从010011B0地址<strong>读取4个字节</strong>，然后保存到EAX。EAX拥有值0100739D，它是原本notepad的OEP（分析一下<strong>LODS DWORD PTR DS:[ES]指令可知，该指令从ESI所指的地址处读取4字节存储到EAX寄存器</strong>）。事实上，如果事先知道该值是OEP，那么可以直接设置硬件析点，再按F9键运行，就会在OEP处暂停。</p>
+<p>提示——————————————————————————————————————</p>
+<p>代码逆向技术人员谈及设置断点后运行时，常常使用“<strong>挂断点跑程序</strong>”这样的表达。</p>
+<p>我们的目标是提高调试水平，所以继续调试（如果早已熟悉，挂上断点跑程序即可）。经过一阵调试后，会出现图19-6所示的函数调用代码。</p>
+<hr>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581408634743-777b7660-4867-42b6-8f4c-29b05912f1ff.png" alt="QQ截图20200211161022.png"></p>
+<p>此时ESI的值为0101FCCB，该地址就是decode）函数的地址，后面会反复调用执行该函数。接下来略看一下decode）函数（101FCCB），如图19-7所示。</p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581408721915-681c555e-631c-42e9-a509-1c7277cde6d4.png" alt="QQ截图20200211161154.png"></p>
+<p>仅从这部分来看，还搞不清楚这段代码的用途。使用Steplnto（F7）命令继续跟踪调试，遇到图19-8所示的代码。</p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581408787111-f491e14b-643e-43a7-979f-de9c00cfd768.png" alt="QQ截图20200211161256.png"></p>
+<p>0101FE57与0101FE5D地址处有“向EDI所指位置写入内容”的指令。此时EDI值指向第一个节区中的地址。**也就是说，这些命令会先执行解压缩操作，然后写入实际内存。**在0101FE5E与0101FE61地址处通过CMP&#x2F;JB指令继续执行循环，直到EDI值为01014B5A（[ESI+34]-01014B5A）。地址0101FE61即是解码循环的结束部分。实际上，在循环反复执行时跟踪，可以随时看到向EDI所指地址写入了什么值。</p>
+<h2 id="19-3设置IAT"><a href="#19-3设置IAT" class="headerlink" title="19.3设置IAT"></a>19.3设置IAT</h2><p><strong>一般而言，压缩器执行完解码循环后会根据原文件重新组织IAT。UPack也有类似过程，请看图19-9。</strong></p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581408955981-b44e12b7-cd13-49da-885d-baeb172e38dd.png" alt="QQ截图20200211161545.png"></p>
+<p>如图19-9所示，<strong>UPack会使用导入的2个函数（LoadLibraryA与GetProcAddress)边执行循环边构建原本notepad的IAT（先获取notepad中导入函数的实际内存地址，再写入原IAT区域）</strong>。该过程结束后，由0101FEAF地址处的RETN命令将运行转到OEP处，如图19-10所示。</p>
+<p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581409094548-4a94f1b0-da5a-4943-8a57-8476b4ea48d8.png" alt="QQ截图20200211161805.png"></p>
+<p>各位辛苦了。虽然分析Upack压缩的PE文件头难度比较大，但调试却相对容易得多。希望各立反复翻看这部分内容，不断调试，直到熟练掌握。</p>
+<h2 id="19-4小结"><a href="#19-4小结" class="headerlink" title="19.4小结"></a>19.4小结</h2><p><img src="/assets/posts/19-upack-oep-xvvn9y/assets/1581409171269-9e801c8f-f62f-4bb9-8944-e66887ebeede.png" alt="QQ截图20200211161920.png"></p>
+<p>出处：UPack制作者-dwing’s homepage</p>
+<p>本章讲解了有关UPack PE文件头分析与调试的内容。除UPack外，还有许多其他压缩器，之所以花费大量的时间与精力分析UPack完全是因为我个人的学习体会（经验）。</p>
+<p>我学完PE知识后，以为已经完全掌握了PE文件格式的相关知识，但接触UPack后才发现，原来PE还有另一片新天地。也认识到，PE规范始终只是个规范而已，实际实现会受PE装载器的开发者左右，要针对不同版本的OS实际测试才行。希望各位也能拥有与我类似的经验与感受，所以本章详细讲解了UPack。当然，所讲内容未完全涵盖PE文件头的“打补丁”操作。但是我可以自信地告诉大家：只要征服了UPack，以后不论遇到哪种变形的PE文件头都能应付自如。只要熟练掌握了PE文件头中使用了哪些值、未使用哪些值，就能轻松分析各种变形后的PE文件头（这是我的个人经验）。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC19%E7%AB%A0%20UPack%E8%B0%83%E8%AF%95-%E6%9F%A5%E6%89%BEOEP/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC19%E7%AB%A0%20UPack%E8%B0%83%E8%AF%95-%E6%9F%A5%E6%89%BEOEP/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-06/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC20%E7%AB%A0%E2%80%9C%E5%86%85%E5%B5%8C%E8%A1%A5%E4%B8%81%E2%80%9D/" title="第20章“内嵌补丁”"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第20章“内嵌补丁”</div></div><div class="info-2"><div class="info-item-1">第20章“内嵌补丁”练习对加密文件、运行时解压缩文件“打补丁”时，经常使用“内嵌补丁”（Inline Patch)技术，本章将通过示例让读者了解、学习。 20.1内嵌补丁“内嵌补丁”是“内嵌代码补丁”（Inline Code Patch)的简称，难以直接修改指定代码时，插入并运行被称为“洞穴代码”（Code Cave)的补丁代码后，对程序打补丁。常用于对象程序经过运行时压缩（或加密处理）而难以直接修改的情况。详细说明参见图20-1。  图20-1左图描述的是典型的运行时压缩代码（或者加密代码）。EP代码先将加密的OEP代码解密，然后再跳转到OEP代码处。若要打补丁的代码存在于经过加密的OEP区域是很难打补丁的（即使知道代码所在位置也是如此），因为解码过程中可能会解出完全不同的结果。 解决上述问题的简单方法就是如图20-1中右图所示，在文件中另外设置被称为“洞穴代码”的“补丁代码”，EP代码解密后修改JMP指令，运行洞穴代码。在洞穴代码中执行补丁代码后（由于已经解密OEP，故可以这样修改），再跳转到OEP处。也就是说，每次运行时（运行另外的补丁代码）都要对进程内存的代码打补丁，所以...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC18%E7%AB%A0%20UPack%20PE%E6%96%87%E4%BB%B6%E5%A4%B4%E8%AF%A6%E7%BB%86%E5%88%86%E6%9E%90/" title="第18章 UPack PE文件头详细分析"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第18章 UPack PE文件头详细分析</div></div><div class="info-2"><div class="info-item-1">第18章 UPack PE文件头详细分析UPack（Ultimate PE压缩器）是一款PE文件的运行时压缩器，其特点是用一种非常独特的方式对PE头进行变形。UPack会引起诸多现有PE分析程序错误，因此各制作者（公司）不得不重新修改、调整程序。也就是说，UPack使用了一些划时代的技术方法，详细分析UPack可以把对PE头的认识提升到一个新层次。本章将完全颠覆大家之前对PE头的了解，在学习更多知识的同时，进一步感受代码逆向分析的乐趣与激情。 18.1 UPack说明UPack是一个名叫dwing的中国人编写的PE压缩器。 网址：http://wex.cn/dwing/mycomp.htm Upack0.39Final：http://wex.cn/dwing/download/upack039.7z UPack的制作者对PE头有深刻认识，由其对 Windows OS PE装载器的详细分析就可以推测出来。许多PE压缩器中, UPack都以对PE头的独特变形技法而闻名。初次查看 UPack压缩的文件PE头时,经常会产生“这是什么啊？这能运行吗？”等疑问,其独特的变形技术可窥一斑。 U...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC19%E7%AB%A0-UPack%E8%B0%83%E8%AF%95-%E6%9F%A5%E6%89%BEOEP"><span class="toc-number">1.</span> <span class="toc-text">第19章 UPack调试-查找OEP</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#19-1OllyDbg-%E8%BF%90%E8%A1%8C%E9%94%99%E8%AF%AF"><span class="toc-number">1.1.</span> <span class="toc-text">19.1OllyDbg 运行错误</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#19-2%E8%A7%A3%E7%A0%81%E5%BE%AA%E7%8E%AF"><span class="toc-number">1.2.</span> <span class="toc-text">19.2解码循环</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#19-3%E8%AE%BE%E7%BD%AEIAT"><span class="toc-number">1.3.</span> <span class="toc-text">19.3设置IAT</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#19-4%E5%B0%8F%E7%BB%93"><span class="toc-number">1.4.</span> <span class="toc-text">19.4小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

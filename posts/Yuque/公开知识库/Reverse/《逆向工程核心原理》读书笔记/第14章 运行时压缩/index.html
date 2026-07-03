@@ -1,0 +1,334 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第14章 运行时压缩 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第14章 运行时压缩运行时压缩器（Run-Time Packer)是软件逆向分析学的常见主题。为了理解好它，需要掌握有关PE文件格式、操作系统的基本知识（进程、内存、DLL等），同时也要了解有关压缩&#x2F;解压缩算法的基本内容。其中许多部分已经在前面讲解过了，学习运行时压缩能够进一步帮助大家把前面学过的逆向分析知识系统化，做到融会贯通。 14.1数据压缩大家对于数据压缩都比较熟悉，下面简单梳理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第14章 运行时压缩">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC14%E7%AB%A0%20%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第14章 运行时压缩运行时压缩器（Run-Time Packer)是软件逆向分析学的常见主题。为了理解好它，需要掌握有关PE文件格式、操作系统的基本知识（进程、内存、DLL等），同时也要了解有关压缩&#x2F;解压缩算法的基本内容。其中许多部分已经在前面讲解过了，学习运行时压缩能够进一步帮助大家把前面学过的逆向分析知识系统化，做到融会贯通。 14.1数据压缩大家对于数据压缩都比较熟悉，下面简单梳理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-07/800/450">
+<meta property="article:published_time" content="2020-02-10T02:38:27.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.254Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-07/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第14章 运行时压缩",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC14%E7%AB%A0%20%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9/",
+  "image": "https://picsum.photos/seed/blog-cover-07/800/450",
+  "datePublished": "2020-02-10T02:38:27.000Z",
+  "dateModified": "2026-07-03T14:46:17.254Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC14%E7%AB%A0%20%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第14章 运行时压缩',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-07/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第14章 运行时压缩</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第14章 运行时压缩</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-10T02:38:27.000Z" title="发表于 2020-02-10 10:38:27">2020-02-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.254Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第14章-运行时压缩"><a href="#第14章-运行时压缩" class="headerlink" title="第14章 运行时压缩"></a>第14章 运行时压缩</h1><p>运行时压缩器（Run-Time Packer)是软件逆向分析学的常见主题。为了理解好它，需要掌握有关PE文件格式、操作系统的基本知识（进程、内存、DLL等），同时也要了解有关压缩&#x2F;解压缩算法的基本内容。其中许多部分已经在前面讲解过了，学习运行时压缩能够进一步帮助大家把前面学过的逆向分析知识系统化，做到融会贯通。</p>
+<h2 id="14-1数据压缩"><a href="#14-1数据压缩" class="headerlink" title="14.1数据压缩"></a>14.1数据压缩</h2><p>大家对于数据压缩都比较熟悉，下面简单梳理一下相关知识。数据压缩（Data Compression)是计算机工程的主要研究内容，经过数十年发展已经有了深入研究，今后还会不断出现更多、更好的算法。</p>
+<p>如果日常生活中能够非常容易地压缩某个物体该多么方便啊！也就不再需要仓库、停车场、集装箱了，当然，得能压缩才行。而在数码世界，（只要不是压缩过的信息）任何信息都能轻松压缩。</p>
+<p>不论哪种形态的文件（数据）都是由二进制（0或1）组成的，只要使用合适的压缩算法，就能缩减其大小。<strong>经过压缩的文件若能100%恢复，则称该压缩为“</strong><span style="color: #F5222D">无损压缩</span><strong>”（Lossless DataCompression)；若不能恢复原状，则称该压缩为“</strong><span style="color: #F5222D">有损压缩</span><strong>”（Loss Data Compression)。</strong></p>
+<h3 id="14-1-1无损压缩"><a href="#14-1-1无损压缩" class="headerlink" title="14.1.1无损压缩"></a>14.1.1无损压缩</h3><p>无损压缩用来缩减文件（数据）的大小，压缩后的文件更易保管、移动。使用经过压缩的文件之前，需要先对文件解压缩（此过程中应该保证数据完整性）。</p>
+<p>各位肯定用过类似7-zip、“面包房”的压缩程序，用它们压缩文件就是无损压缩算法。最具代表性的无损压缩算法有Run-Length、Lempel-Ziv、Huffman等。此外还有许多其他压缩算法，它们都是在上面3种压缩算法的基础上改造而成的。只要准确理解了上面3种，就能轻松掌握其他各种压缩算法。ZIP、RAR等是具有代表性的压缩文件格式，它们最根本的压缩理念也是Run-Length、Lempel-Ziv、Huffman，然后应用了一些各自特有的技术（压缩率、压缩&#x2F;解压时间）。</p>
+<h3 id="14-1-2有损压缩"><a href="#14-1-2有损压缩" class="headerlink" title="14.1.2有损压缩"></a>14.1.2有损压缩</h3><p>相反，有损压缩允许压缩文件（数据）时损失一定信息，以此换取高压缩率。压缩多媒体文件（jpg、mp3、mp4)时，大部分都使用这种有损压缩方式。从压缩特性来看，有损压缩的数据解压缩后不能完全恢复原始数据。人类的肉眼与听觉几乎无法察觉到这些多媒体文件在压缩中损失的数据。经过有损压缩后，虽然压缩文件与原文件（从数据层面上看）存在差异，但重要的是人们几乎区分不出这种微小的差别。以mp3文件为例，mp3的核心算法通过删除超越人类听觉范围（20~20000Hz)的波长区段来缩减（不需要的）数据大小。</p>
+<h2 id="14-2运行时压缩器"><a href="#14-2运行时压缩器" class="headerlink" title="14.2运行时压缩器"></a>14.2运行时压缩器</h2><p>顾名思义，运行时压缩器是针对可执行（PE，Portable Executable)文件而言的，可执行文件内部含有解压缩代码，<strong>文件在运行瞬间于内存中解压缩后执行</strong>。</p>
+<p>运行时压缩文件也是PE文件，内部含有原PE文件与解码程序。**在程序的EP代码中执行解码程序，同时在内存中解压缩后执行。**表14-1列出了运行时压缩与普通ZIP压缩的不同点。</p>
+<p><img src="/assets/posts/14-p216fr/assets/1581302708698-db15ff99-8e3e-42ee-a145-f78a86175330.png" alt="QQ截图20200210104500.png"></p>
+<p><strong>与普通压缩器相比，运行时压缩器的一个明显不同是“PE文件的可运行性”。</strong></p>
+<p>把普通PE文件创建成运行时压缩文件的实用程序称为“<span style="color: #F5222D">压缩器”（Packer)</span>，经反逆向（Anti-Reversing)技术特别处理的压缩器称为<span style="color: #F5222D">保护器（Protector)</span>。</p>
+<h3 id="14-2-1压缩器"><a href="#14-2-1压缩器" class="headerlink" title="14.2.1压缩器"></a>14.2.1压缩器</h3><p>PE压缩器是指可执行文件的压缩器，准确一点应该称为“<strong>运行时压缩器</strong>”，它是PE文件的专用压缩器。</p>
+<p><strong>#1.使用目的</strong></p>
+<ul>
+<li>缩减PE文件的大小</li>
+</ul>
+<p>文件尺寸小是其突出的优点之一，更便于网络传输与保存。</p>
+<ul>
+<li>隐藏PE文件内部代码与资源</li>
+</ul>
+<p>使用压缩器的另一个原因在于，它可以隐藏PE文件内的代码及资源（字符串、API名称字符串）等。压缩后的数据以难以辨识的二进制文件保存，从文件本身来看，这能有效隐藏内部代码与资源（<strong>当然解压缩后可以通过内存的Dump窗口查看</strong>）。</p>
+<p><strong>#2.使用现状</strong></p>
+<p>运行时压缩的概念早在DOS时代就出现了，可当时并未广泛使用。因为那时的PC速度不怎么快，每次执行文件时，解压缩的过程会引起很大的系统开销。而现在的PC速度已经变得非常快，用户不能明显察觉运行时压缩文件与源文件在执行时间上的差别。因此，现在的实用程序、“打补丁”文件、普通程序等都广泛应用运行时压缩。</p>
+<p><strong>#3.压缩器种类</strong></p>
+<p>下面介绍几个有名的压缩器。PE压缩器大致可分为两类：一类是单纯用于压缩普通PE文件的压缩器；另一类是对源文件进行较大变形、严重破坏PE头、意图稍嫌不纯的压缩器。这里说的“意图不纯的压缩器”是指专门用于恶意程序（如：Virtus、Trojan、Worm等）的压缩器。</p>
+<p>本书中出现的“纯粹与不纯粹”的划分标准基于我的经验以及<a target="_blank" rel="noopener" href="http://www.virustotal.com网站诊断的结果./">www.virustotal.com网站诊断的结果。</a></p>
+<p><img src="/assets/posts/14-p216fr/assets/1581302993590-2ee03860-5ed8-4f5d-935e-04143796a334.png" alt="QQ截图20200210104945.png"></p>
+<h3 id="14-2-2保护器"><a href="#14-2-2保护器" class="headerlink" title="14.2.2保护器"></a>14.2.2保护器</h3><p>PE保护器是一类保护PE文件免受代码逆向分析的实用程序。它们不像普通的压缩器一样仅对PE文件进行运行时压缩，而应用了多种防止代码逆向分析的技术（反调试、反模拟、代码混乱、多态代码、垃圾代码、调试器监视等）。这类保护器使压缩后的PE文件尺寸反而比源文件要大一些，调试起来非常难。</p>
+<p>详细分析保护器需要丰富的逆向分析经验。当然，网络上提供了各种解除保护器的技巧，运气好的话，即便是新手也可能顺利找到源文件的<strong>OEP（Original Entry Point，原始入口点）</strong>，但大多数情况没这么幸运。</p>
+<p><strong>#1.使用目的·</strong></p>
+<ul>
+<li>防止破解相信没人愿意自己编写的程序被非法破解并使用。此时使用保护器可有效保护PE文件。</li>
+<li>保护代码与资源保护器不仅可以保护PE文件本身，还可在文件运行时保护进程内存，防止打开Dump窗口。因此，使用保护器可以比较安全地保护程序自身的代码与资源。</li>
+</ul>
+<p><strong>#2.使用现状</strong></p>
+<p>这类保护器大量应用于对破解很敏感的安全程序。比如安装在线游戏时会自动安装安全保护程序，游戏安全保护程序就是为了防止游戏“破解工具”运行的。</p>
+<p>恶意的游戏破解者总是想方设法破解游戏的安全保护程序，因为破解成功后他们可以利用“游戏内核”获取金钱回报。所以，安全保护程序为了防止恶意破解而使用各种保护器来保护自己（不断更换保护器会让游戏破解者们发疯）。</p>
+<p>另一方面，常见的恶性代码（Trojan、Worm)中也大量使用保护器来防止（或降低）杀毒软件的检测。有些保护器还能提供“多变的代码”，每次都会生成不同形态（但功能相同）的代码，这给病毒诊断带来很大困难。</p>
+<p><strong>#3.保护器种类</strong></p>
+<p>保护器种类多样，有公用程序、商业程序，还有专门供恶意代码使用的保护器。</p>
+<p><img src="/assets/posts/14-p216fr/assets/1581303253286-671003bd-dead-4ee1-b380-eb982a835d89.png" alt="QQ截图20200210105402.png"></p>
+<p>提示—————————————————————————————————————–</p>
+<p>压缩器与保护器在代码逆向分析学习中占有非常重要的地位。**开始分析PE文件时必须先转到PE文件的OEP处才行，**这就要求分析者拥有大量相关知识。此外，分析压缩器与保护器本身也能学到很多，对提高逆向分析技术有很大帮助。保护器中使用的反调试技术往往水平非常高，需要具备关于CPU与OS的精深知识。</p>
+<hr>
+<h2 id="14-3运行时压缩测试"><a href="#14-3运行时压缩测试" class="headerlink" title="14.3运行时压缩测试"></a>14.3运行时压缩测试</h2><p>本节将以notepad.exe为例进行运行时压缩测试。</p>
+<p>提示——————————————————————————————————————</p>
+<p>本节示例使用的是Windows XP SP3中的notepad.exe程序。</p>
+<hr>
+<p>我使用的压缩器为UPX，它操作简单、功能强大，且完全免费，受到很多人的青睐。</p>
+<p>进入<a target="_blank" rel="noopener" href="http://upx.sourceforge.net网站,下载“win32console/">http://upx.sourceforge.net网站，下载“Win32Console</a> Version”后在<strong>命令行</strong>窗口运行，出现图14-1所示的界面，显示出UPX的使用说明。</p>
+<p><img src="/assets/posts/14-p216fr/assets/1581303830498-3aa040aa-6349-4d77-b235-dc7a4d173a22.png" alt="QQ截图20200210110342.png"></p>
+<p>图14-1UPX压缩器</p>
+<p>把notepad.exe文件复制到工作文件夹后，使用如图14-2所示的命令参数，对notepad.exe文件进行运行时压缩。</p>
+<p><img src="/assets/posts/14-p216fr/assets/1581303962593-efcb3cc2-4603-43d2-ad25-03e17cb6ce53.png" alt="QQ截图20200210110553.png"></p>
+<p>图14-2 notepad.exe运行时压缩</p>
+<p>从列出的压缩摘要中可以看到，压缩后的文件尺寸明显减小了（67584→48128）。若使用ZIP压缩，则文件大小缩减为35231。也就是说，运行时的压缩率要比普通的ZIP压缩低一些，这是由于其压缩后得到的是PE文件，需要添加PE头，并且还要放入解压缩代码。</p>
+<p><strong>比较notepad.exe与notepad_upx.exe文件</strong></p>
+<p>图14-3是从PE文件视角比较2个文件的示意图，很好地反映出了UPX压缩器的特点（选用不同类型的压缩器与选项，运行时压缩文件的形态也不相同）。</p>
+<p><img src="/assets/posts/14-p216fr/assets/1581304115959-5769bafc-e79a-4a50-a624-0d31bc8dc25c.png" alt="QQ截图20200210110828.png"></p>
+<p><img src="/assets/posts/14-p216fr/assets/1581304146313-40ae76c5-55ed-4aee-b882-e7544bd41d76.png" alt="QQ截图20200210110857.png"></p>
+<p><strong>注：</strong><span style="color: #000000">从DOS头（DOS header)到节区头（Section header)是</span><strong><span style="color: #F5222D">PE头</span></strong><span style="color: #000000">部分</span>，<strong>其下的节区合称</strong><span style="color: #F5222D">PE体</span>。</p>
+<p>需要引起注意的是，第一个节区（UPX0）的RawDataSize为0，即第一个节区在磁盘文件中是不存在的。UPX为何要创建这个空的节区呢？下面使用PEView查看第一个节区头，如图14-4所示。</p>
+<p><img src="/assets/posts/14-p216fr/assets/1581304438362-1e62cb77-a6f2-4f1d-b925-dedcac481b1f.png" alt="QQ截图20200210111313.png"></p>
+<p>图14-4 PEView</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>含义</th>
+</tr>
+</thead>
+</table>
+<table>
+<thead>
+<tr>
+<th>VirtualSize</th>
+<th>内存中节区所占的大小</th>
+</tr>
+</thead>
+</table>
+<table>
+<thead>
+<tr>
+<th>SizeOfRawData</th>
+<th>磁盘文件中节区所占大小</th>
+</tr>
+</thead>
+</table>
+<p>从VirtualSize值可以发现蛛丝马迹。第一个节区的VirtualSize值竟被设置为10000（而SizeOfRawData值为0)。这就是说，经过UPX压缩后的PE文件在运行瞬间将（文件中的）压缩的代码解压到（内存中的）第一个节区。说得更详细一点，解压缩代码与压缩的源代码都在第二个节区。<strong>文件运行时首先执行解压缩代码，把处于压缩状态的源代码解压到第一个节区。解压过程结束后即运行源文件的EP代码。</strong></p>
+<p>下一章将使用调试器调试实际的解压缩过程。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC14%E7%AB%A0%20%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC14%E7%AB%A0%20%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-07/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC15%E7%AB%A0%20%E8%B0%83%E8%AF%95UPX%E5%8E%8B%E7%BC%A9%E7%9A%84notepad%E7%A8%8B%E5%BA%8F/" title="第15章 调试UPX压缩的notepad程序"><img class="cover" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第15章 调试UPX压缩的notepad程序</div></div><div class="info-2"><div class="info-item-1">第15章 调试UPX压缩的notepad程序本章将调试UPX压缩的notepad_upx.exe程序，进一步了解运行时压缩的相关概念。我们的目标是通过调试一点点地跟踪代码，最终找出原notepad.exe程序代码。最后再简单讲解一下经过UPX压缩的文件如何通过调试器。 提示—————————————————————————————————————— 本章示例使用的是WindowsXPSP3中的notepad.exe程序。  15.1 notepad.exe的EP代码首先看一下原notepad.exe程序的EP代码，如图15-1所示。  图15-1 notepad.exe的EP代码 在010073B2地址处调用了GetModuleHandleA()API，获取notepad.exe程序的ImageBase（基准位置）。然后在010073B4与010073C0地址处比较MZ与PE签名。希望各位熟记原notepad.exe的EP代码。 15.2 notepad_upx.exe的EP代码使用olyDbg打开notepad_upx.exe时，弹出图15-2所示的警告消息框。  图15-2O...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC13%E7%AB%A0%20PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/" title="第13章 PE文件格式"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第13章 PE文件格式</div></div><div class="info-2"><div class="info-item-1">第13章 PE文件格式本章将详细讲解Windows操作系统的PE（Portable Executable)文件格式相关知识。学习PE文件格式的过程中，也一起整理一下有关进程、内存、DLL等的内容，它们是Windows操作系统最核心的部分。 13.1介绍PE文件是Windows操作系统下使用的可执行文件格式。它是微软在UNIX平台的COFF（Common Object File Format,通用对象文件格式）基础上制作而成的。最初（正如Portable这个单词所代表的那样）设计用来提高程序在不同操作系统上的移植性，但实际上这种文件格式仅用在Windows系列的操作系统下。 PE文件是指32位的可执行文件，也称为PE32。64位的可执行文件称为PE+或PE32+，是PE（PE32)文件的一种扩展形式（请注意不是PE64）。 13.2PE文件格式PE文件种类如表13-1所示。 表13-1 PE文件种类    种类 主扩展名 种类 主扩展名    可执行系列 EXE、SCR 驱动程序系列 SYS、VXD、   库系列 DLL、OCX、CPL、DRV 对象文件系列 OBJ   严格地说，...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC14%E7%AB%A0-%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9"><span class="toc-number">1.</span> <span class="toc-text">第14章 运行时压缩</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#14-1%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9"><span class="toc-number">1.1.</span> <span class="toc-text">14.1数据压缩</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-1%E6%97%A0%E6%8D%9F%E5%8E%8B%E7%BC%A9"><span class="toc-number">1.1.1.</span> <span class="toc-text">14.1.1无损压缩</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-1-2%E6%9C%89%E6%8D%9F%E5%8E%8B%E7%BC%A9"><span class="toc-number">1.1.2.</span> <span class="toc-text">14.1.2有损压缩</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-2%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9%E5%99%A8"><span class="toc-number">1.2.</span> <span class="toc-text">14.2运行时压缩器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-1%E5%8E%8B%E7%BC%A9%E5%99%A8"><span class="toc-number">1.2.1.</span> <span class="toc-text">14.2.1压缩器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#14-2-2%E4%BF%9D%E6%8A%A4%E5%99%A8"><span class="toc-number">1.2.2.</span> <span class="toc-text">14.2.2保护器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-3%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9%E6%B5%8B%E8%AF%95"><span class="toc-number">1.3.</span> <span class="toc-text">14.3运行时压缩测试</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>各个寄存器作用详解 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="各个寄存器作用详解参考资料：https:&#x2F;&#x2F;blog.csdn.net&#x2F;baidu_39511645&#x2F;article&#x2F;details&#x2F;78368112 一、寄存器的定义：寄存器（register），寄存器是中央处理器的组成部分。寄存器是有限存贮容量的高速存贮部件，它们可用来暂存指令、数据和位址。在中央处理器的控制部件中，包含的寄存器有指令寄存器(IR)和程序计数器(P">
+<meta property="og:type" content="article">
+<meta property="og:title" content="各个寄存器作用详解">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/x86%E6%8C%87%E4%BB%A4%E9%9B%86/%E5%90%84%E4%B8%AA%E5%AF%84%E5%AD%98%E5%99%A8%E4%BD%9C%E7%94%A8%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="各个寄存器作用详解参考资料：https:&#x2F;&#x2F;blog.csdn.net&#x2F;baidu_39511645&#x2F;article&#x2F;details&#x2F;78368112 一、寄存器的定义：寄存器（register），寄存器是中央处理器的组成部分。寄存器是有限存贮容量的高速存贮部件，它们可用来暂存指令、数据和位址。在中央处理器的控制部件中，包含的寄存器有指令寄存器(IR)和程序计数器(P">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-02/800/450">
+<meta property="article:published_time" content="2019-12-04T11:45:32.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.619Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-02/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "各个寄存器作用详解",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/x86%E6%8C%87%E4%BB%A4%E9%9B%86/%E5%90%84%E4%B8%AA%E5%AF%84%E5%AD%98%E5%99%A8%E4%BD%9C%E7%94%A8%E8%AF%A6%E8%A7%A3/",
+  "image": "https://picsum.photos/seed/blog-cover-02/800/450",
+  "datePublished": "2019-12-04T11:45:32.000Z",
+  "dateModified": "2026-07-03T14:46:17.619Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/x86%E6%8C%87%E4%BB%A4%E9%9B%86/%E5%90%84%E4%B8%AA%E5%AF%84%E5%AD%98%E5%99%A8%E4%BD%9C%E7%94%A8%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '各个寄存器作用详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-02/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">各个寄存器作用详解</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">各个寄存器作用详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-12-04T11:45:32.000Z" title="发表于 2019-12-04 19:45:32">2019-12-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.619Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>20分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="各个寄存器作用详解"><a href="#各个寄存器作用详解" class="headerlink" title="各个寄存器作用详解"></a>各个寄存器作用详解</h1><p>参考资料：<a target="_blank" rel="noopener" href="https://blog.csdn.net/baidu_39511645/article/details/78368112">https://blog.csdn.net/baidu_39511645&#x2F;article&#x2F;details&#x2F;78368112</a></p>
+<h2 id="一、寄存器的定义："><a href="#一、寄存器的定义：" class="headerlink" title="一、寄存器的定义："></a>一、寄存器的定义：</h2><p>寄存器（register），<span style="color: #444444">寄存器是中央处理器的组成部分。寄存器是有限存贮容量的高速存贮部件，它们可用来暂存指令、数据和位址。在中央处理器的控制部件中，包含的寄存器有指令寄存器(IR)和程序计数器(PC)，而在中央处理器的算术及逻辑部件中，包含的寄存器有累加器(ACC)。</span></p>
+<p><span style="color: #444444">寄存器是内存阶层中的最顶端，也是系统获得操作资料的最快速途径。寄存器通常都是以他们可以保存的位元数量来估量，举例来说，一个 “8 位元寄存器”或 “32 位元寄存器”。寄存器现在都以寄存器档案的方式来实作，但是他们也可能使用单独的正反器、高速的核心内存、薄膜内存以及在数种机器上的其他方式来实作出来。</span></p>
+<p><span style="color: #444444">寄存器通常指由一个指令的输出或输入、可以直接索引到的暂存器群组，我们更恰当可以称它为 “架构寄存器”。 </span></p>
+<h2 id="二、寄存器的用途："><a href="#二、寄存器的用途：" class="headerlink" title="二、寄存器的用途："></a><span style="color: #444444">二、寄存器的用途：</span></h2><p><span style="color: #444444">1.可将寄存器内的数据执行算术及逻辑运算；</span></p>
+<p><span style="color: #444444">　　2.存于寄存器内的地址可用来指向内存的某个位置，即寻址；</span></p>
+<p><span style="color: #444444">　　3.可以用来读写数据到电脑的周边设备。</span></p>
+<h2 id="三、数据寄存器："><a href="#三、数据寄存器：" class="headerlink" title="三、数据寄存器："></a><span style="color: #444444">三、</span>数据寄存器：</h2><p><span style="color: #444444">　  </span><span style="color: #444444">  8086 有14个16位寄存器，这14个寄存器按其用途可分为通用寄存器、指令指针、标志寄存器以及段寄存器等4类。</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">(1)通用寄存器：</span></p>
+<p><span style="color: #444444">通用寄存器有8个, 又可以分成2组，一组是数据寄存器(4个)，另一组是指针寄存器及变址寄存器(4个)。</span></p>
+<p><span style="color: #444444">　　数据寄存器分为:</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">AH&amp;AL</span><span style="color: #444444">＝AX(accumulator)：</span><span style="color: #333333">累加器是专门存放算术或逻辑运算的一个</span>操作数<span style="color: #333333">和运算结果的</span>寄存器<span style="color: #333333">。能进行加、减、读出、</span>移位<span style="color: #333333">、</span>循环移位<span style="color: #333333">和求补等</span><span style="color: #333333">操作，是运算器的主要部</span><span style="color: #333333">分；并且</span><span style="color: #444444">所有的I&#x2F;O（输入输出）指令都使用这一寄存器与外界设备传送数据。</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">BH&amp;BL＝BX(base)：</span><span style="color: #444444">基址寄存器，常用于地址索引。</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">CH&amp;CL＝CX(count)：</span><span style="color: #444444">计数寄存器，常用于计数；常用于保存计算值，如在移位指令，循环(loop)和串处理指令中用作隐含的计数器。</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">DH&amp;DL＝DX(data)：</span><span style="color: #444444">数据寄存器，常用于数据传递。</span></p>
+<p><span style="color: #444444">　　他们的特点是,这4个16位的寄存器可以分为高8位：AH， BH， CH， DH以及低八位：AL，BL，CL，DL；这2组8位寄存器可以分别寻址，并单独使用。</span></p>
+<p><span style="color: #444444">　　另一组是指针寄存器和变址寄存器，包括：</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">SP（Stack Pointer）：</span><span style="color: #444444">堆栈指针，与SS配合使用，可指向目前的堆栈位置；</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">BP（Base Pointer）：</span><span style="color: #444444">基址指针寄存器，可用作SS的一个相对基址位置；</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">SI（Source Index）：</span><span style="color: #444444">源变址寄存器可用来存放相对于DS段的源变址指针；</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">DI（Destination Index）：</span><span style="color: #444444">目的变址寄存器，可用来存放相对于 ES 段的目的变址指针。</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">这4个16位寄存器只能按16位进行存取操作，主要用来形成操作数的地址，用于堆栈操作和变址运算中计算操作数的有效地址。</span></p>
+<p><span style="color: #444444">(</span><span style="color: #444444">2) 指令指针IP(Instruction Pointer)</span></p>
+<p><span style="color: #444444">　　指令指针IP是一个16位专用寄存器，它指向当前需要取出的指令字节，当BIU从内存中取出一个指令字节后，IP就自动加1，指向下一个指令字节。注意，IP指向的是指令地址的段内地址偏移量，又称偏移地址(Offset Address)或有效地址(EA，Effective Address)。</span></p>
+<p><span style="color: #444444">(3)标志寄存器FR(Flag Register)　　</span><span style="color: #444444">8086有一个18位的标志寄存器FR，在FR中有意义的有9位，其中6位是状态位，3位是控制位。</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">OF：</span><span style="color: #444444"> 溢出标志位OF用于反映有符号数加减运算所得结果是否溢出。如果运算结果超过当前运算位数所能表示的范围，则称为溢出，OF的值被置为1，否则，OF的值被清为0。</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">DF：</span><span style="color: #444444">方向标志DF位用来决定在串操作指令执行时有关指针寄存器发生调整的方向。 </span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">IF：</span><span style="color: #444444">中断允许标志IF位用来决定CPU是否响应CPU外部的可屏蔽中断发出的中断请求。但不管该标志为何值，CPU都必须响应CPU外部的不可屏蔽中断所发出的中断请求，以及CPU内部产生的中断请求。具体规定如下： </span></p>
+<p><span style="color: #444444">　　(1)、当IF&#x3D;1时，CPU可以响应CPU外部的可屏蔽中断发出的中断请求； </span></p>
+<p><span style="color: #444444">　　(2)、当IF&#x3D;0时，CPU不响应CPU外部的可屏蔽中断发出的中断请求。 </span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">TF：</span><span style="color: #444444">跟踪标志TF。该标志可用于程序调试。TF标志没有专门的指令来设置或清楚。</span></p>
+<p><span style="color: #444444">　　（1）如果TF&#x3D;1，则CPU处于单步执行指令的工作方式，此时每执行完一条指令，就显示CPU                      内各个寄存器的当前值及CPU将要执行的下一条指令。</span></p>
+<p><span style="color: #444444">　　（2）如果TF&#x3D;0，则处于连续工作模式。</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">SF：</span><span style="color: #444444">符号标志SF用来反映运算结果的符号位，它与运算结果的最高位相同。在微机系统中，有符号数采用补码表示法，所以，SF也就反映运算结果的正负号。运算结果为正数时，SF的值为0，否则其值为1。 </span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">ZF：</span><span style="color: #444444"> 零标志ZF用来反映运算结果是否为0。如果运算结果为0，则其值为1，否则其值为0。在判断运算结果是否为0时，可使用此标志位。 </span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">AF：</span><span style="color: #444444">下列情况下，辅助进位标志AF的值被置为1，否则其值为0： </span></p>
+<p><span style="color: #444444">　　(1)在字操作时，发生低字节向高字节进位或借位时； </span></p>
+<p><span style="color: #444444">　　(2)在字节操作时，发生低4位向高4位进位或借位时。 </span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">PF：</span><span style="color: #444444">奇偶标志PF用于反映运算结果中“1”的个数的奇偶性。如果“1”的个数为偶数，则PF的值为1，否则其值为0。 </span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">CF：</span><span style="color: #444444">进位标志CF主要用来反映运算是否产生进位或借位。如果运算结果的最高位产生了一个进位或借位，那么，其值为1，否则其值为0。</span></p>
+<p><span style="color: #444444">4)段寄存器(Segment Register)</span></p>
+<p><span style="color: #444444">　　为了运用所有的内存空间，8086设定了四个段寄存器，专门用来保存段地址：</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">CS（Code Segment）：</span><span style="color: #444444">代码段寄存器；</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">DS（Data Segment）：</span><span style="color: #444444">数据段寄存器；</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">SS（Stack Segment）：</span><span style="color: #444444">堆栈段寄存器；</span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">ES（Extra Segment）：</span><span style="color: #444444">附加段寄存器。</span></p>
+<p><span style="color: #444444">　　当一个程序要执行时，就要决定程序代码、数据和堆栈各要用到内存的哪些位置，通过设定段寄存器 CS，DS，SS 来指向这些起始位置。通常是将DS固定，而根据需要修改CS。所以，程序可以在可寻址空间小于64K的情况下被写成任意大小。 所以，程序和其数据组合起来的大小，限制在DS 所指的64K内，这就是COM文件不得大于64K的原因。8086以内存做为战场，用寄存器做为军事基地，以加速工作。</span></p>
+<p><span style="color: #444444">　　以上是8086寄存器的整体概况, 自80386开始，PC进入32bit时代，其寻址方式，寄存器大小, 功能等都发生了变化，下面是80386寄存器的一些资料：</span></p>
+<p><span style="color: #444444">首先声明，寄存器都是32-bits宽。</span></p>
+<p><span style="color: #444444">　　A、通用寄存器 </span></p>
+<p><span style="color: #444444">　　下面介绍通用寄存器及其习惯用法。顾名思义，通用寄存器是那些你可以根据自己的意愿使用的寄存器，修改他们的值通常不会对计算机的运行造成很大的影响。通用寄存器最多的用途是计算。 </span></p>
+<p><span style="color: #444444">　　EAX：通用寄存器。相对其他寄存器，在进行运算方面比较常用。在保护模式中，也可以作为内存偏移指针（此时，DS作为段 寄存器或选择器） </span></p>
+<p><span style="color: #444444">　　EBX：通用寄存器。通常作为内存偏移指针使用（相对于EAX、ECX、EDX），DS是默认的段寄存器或选择器。在保护模式中，同样可以起这个作用。 </span></p>
+<p><span style="color: #444444">　　ECX：通用寄存器。通常用于特定指令的计数。在保护模式中，也可以作为内存偏移指针（此时，DS作为 寄存器或段选择器）。</span></p>
+<p><span style="color: #444444">　　EDX：通用寄存器。在某些运算中作为EAX的溢出寄存器（例如乘、除）。在保护模式中，也可以作为内存偏移指针（此时，DS作为段 寄存器或选择器）。 </span></p>
+<p><span style="color: #444444">　　同AX分为AH&amp;AL一样，上述寄存器包括对应的16-bit分组和8-bit分组。 </span></p>
+<p><span style="color: #444444">　　</span><span style="color: #444444">B、用作内存指针的特殊寄存器</span></p>
+<p><span style="color: #444444">　　ESI：通常在内存操作指令中作为“源地址指针”使用。当然，ESI可以被装入任意的数值，但通常没有人把它当作通用寄存器来用。DS是默认段寄存器或选择器。 </span></p>
+<p><span style="color: #444444">　　EDI：通常在内存操作指令中作为“目的地址指针”使用。当然，EDI也可以被装入任意的数值，但通常没有人把它当作通用寄存器来用。DS是默认段寄存器或选择器。 </span></p>
+<p><span style="color: #444444">　　EBP：这也是一个作为指针的寄存器。通常，它被高级语言编译器用以建造‘堆栈帧’来保存函数或过程的局部变量，不过，还是那句话，你可以在其中保存你希望的任何数据。SS是它的默认段寄存器或选择器。 </span></p>
+<p><span style="color: #444444">　　注意，这三个寄存器没有对应的8-bit分组。换言之，你可以通过SI、DI、BP作为别名访问他们的低16位，却没有办法直接访问他们的低8位。 </span></p>
+<p><span style="color: #444444"></span>C、段选择器：</p>
+<p>实模式下的段寄存器到保护模式下摇身一变就成了选择器。不同的是，实模式下的“段寄存器”是16-bit的，而保护模式下的选择器是32-bit的。</p>
+<p>CS 代码段，或代码选择器。同IP寄存器(稍后介绍)一同指向当前正在执行的那个地址。处理器执行时从这个寄存器指向的段（实模式）或内存（保护模式）中获取指令。除了跳转或其他分支指令之外，你无法修改这个寄存器的内容。</p>
+<p>DS 数据段，或数据选择器。这个寄存器的低16 bit连同ESI一同指向的指令将要处理的内存。同时，所有的内存操作指令 默认情况下都用它指定操作段(实模式)或内存(作为选择器，在保护模式。这个寄存器可以被装入任意数值，然而在这么做的时候需要小心一些。方法是，首先把数据送给AX，然后再把它从AX传送给DS(当然，也可以通过堆栈来做).</p>
+<p>ES 附加段，或附加选择器。这个寄存器的低16 bit连同EDI一同指向的指令将要处理的内存。同样的，这个寄存器可以被装入任意数值，方法和DS类似。</p>
+<p>FS F段或F选择器(推测F可能是Free?)。可以用这个寄存器作为默认段寄存器或选择器的一个替代品。它可以被装入任何数值，方法和DS类似。</p>
+<p>GS G段或G选择器(G的意义和F一样，没有在Intel的文档中解释)。它和FS几乎完全一样。</p>
+<p>SS 堆栈段或堆栈选择器。这个寄存器的低16 bit连同ESP一同指向下一次堆栈操作(push和pop)所要使用的堆栈地址。这个寄存器也可以被装入任意数值，你可以通过入栈和出栈操作来给他赋值，不过由于堆栈对于很多操作有很重要的意义，因此，不正确的修改有可能造成对堆栈的破坏。</p>
+<ul>
+<li>注意 一定不要在初学汇编的阶段把这些寄存器弄混。他们非常重要，而一旦你掌握了他们，你就可以对他们做任意的操作了。段寄存器，或选择器，在没有指定的情况下都是使用默认的那个。这句话在现在看来可能有点稀里糊涂，不过你很快就会在后面知道如何去做。</li>
+</ul>
+<p>指令指针寄存器：</p>
+<p>EIP 这个寄存器非常的重要。这是一个32位宽的寄存器 ，同CS一同指向即将执行的那条指令的地址。不能够直接修改这个寄存器的值，修改它的唯一方法是跳转或分支指令。(CS是默认的段或选择器)</p>
+<p>上面是最基本的寄存器。下面是一些其他的寄存器，你甚至可能没有听说过它们。(都是32位宽)：</p>
+<p>CR0, CR2, CR3(控制寄存器)。举一个例子，CR0的作用是切换实模式和保护模式。</p>
+<p>还有其他一些寄存器，D0, D1, D2, D3, D6和D7(调试寄存器)。他们可以作为调试器的硬件支持来设置条件断点。</p>
+<p>TR3, TR4, TR5, TR6 和 TR? 寄存器(测试寄存器)用于某些条件测试</p>
+<p>最近在学汇编，看到这篇文章，文章的原出处已经查不出来了，但觉得不错，所以转出来，当作备份学习。</p>
+<p>4个数据寄存器(EAX、EBX、ECX和EDX)</p>
+<p>2个变址和指针寄存器(ESI和EDI) 2个指针寄存器(ESP和EBP)</p>
+<p>6个段寄存器(ES、CS、SS、DS、FS和GS)</p>
+<p>1个指令指针寄存器(EIP) 1个标志寄存器(EFlags)</p>
+<p>1、数据寄存器</p>
+<p>数据寄存器主要用来保存操作数和运算结果等信息，从而节省读取操作数所需占用总线和访问存储器的时间。32位CPU有4个32位的通用寄存器EAX、EBX、ECX和EDX。对低16位数据的存取，不会影响高16位的数据。这些低16位寄存器分别命名为：AX、BX、CX和DX，它和先前的CPU中的寄存器相一致。</p>
+<p>4个16位寄存器又可分割成8个独立的8位寄存器(AX：AH-AL、BX：BH-BL、CX：CH-CL、DX：DH-DL)，每个寄存器都有自己的名称，可独立存取。程序员可利用数据寄存器的这种”可分可合”的特性，灵活地处理字&#x2F;字节的信息。</p>
+<p>寄存器AX和AL通常称为累加器(Accumulator)，用累加器进行的操作可能需要更少时间。累加器可用于乘、 除、输入&#x2F;输出等操作，它们的使用频率很高； 寄存器BX称为基地址寄存器(Base Register)。它可作为存储器指针来使用； 寄存器CX称为计数寄存器(Count Register)。在循环和字符串操作时，要用它来控制循环次数；在位操作 中，当移多位时，要用CL来指明移位的位数；</p>
+<p>寄存器DX称为数据寄存器(Data Register)。在进行乘、除运算时，它可作为默认的操作数参与运算，也可用于存放I&#x2F;O的端口地址。在16位CPU中，AX、BX、CX和DX不能作为基址和变址寄存器来存放存储单元的地址，但在32位CPU中，其32位寄存器EAX、EBX、ECX和EDX不仅可传送数据、暂存数据保存算术逻辑运算结果，而且也可作为指针寄存器，所以，这些32位寄存器更具有通用性。</p>
+<p>2、变址寄存器</p>
+<p>32位CPU有2个32位通用寄存器ESI和EDI。其低16位对应先前CPU中的SI和DI，对低16位数据的存取，不影响高16位的数据。</p>
+<p>寄存器ESI、EDI、SI和DI称为变址寄存器(Index Register)，它们主要用于存放存储单元在段内的偏移量，用它们可实现多种存储器操作数的寻址方式，为以不同的地址形式访问存储单元提供方便。变址寄存器不可分割成8位寄存器。作为通用寄存器，也可存储算术逻辑运算的操作数和运算结果。它们可作一般的存储器指针使用。在字符串操作指令的执行过程中，对它们有特定的要求，而且还具有特殊的功能。</p>
+<p>3、指针寄存器</p>
+<p>32位CPU有2个32位通用寄存器EBP和ESP。其低16位对应先前CPU中的SBP和SP，对低16位数据的存取，不影响高16位的数据。</p>
+<p>寄存器EBP、ESP、BP和SP称为指针寄存器(Pointer Register)，主要用于存放堆栈内存储单元的偏移量，用它们可实现多种存储器操作数的寻址方式，为以不同的地址形式访问存储单元提供方便。指针寄存器不可分割成8位寄存器。作为通用寄存器，也可存储算术逻辑运算的操作数和运算结果。</p>
+<p>它们主要用于访问堆栈内的存储单元，并且规定：</p>
+<p>BP为基指针(Base Pointer)寄存器，用它可直接存取堆栈中的数据；</p>
+<p>SP为堆栈指针(Stack Pointer)寄存器，用它只可访问栈顶。</p>
+<p>4、段寄存器</p>
+<p>段寄存器是根据内存分段的管理模式而设置的。内存单元的物理地址由段寄存器的值和一个偏移量组合而成</p>
+<p>的，这样可用两个较少位数的值组合成一个可访问较大物理空间的内存地址。</p>
+<p>CPU内部的段寄存器：</p>
+<p>CS——代码段寄存器(Code Segment Register)，其值为代码段的段值；</p>
+<p>DS——数据段寄存器(Data Segment Register)，其值为数据段的段值；</p>
+<p>ES——附加段寄存器(Extra Segment Register)，其值为附加数据段的段值；</p>
+<p>SS——堆栈段寄存器(Stack Segment Register)，其值为堆栈段的段值；</p>
+<p>FS——附加段寄存器(Extra Segment Register)，其值为附加数据段的段值；</p>
+<p>GS——附加段寄存器(Extra Segment Register)，其值为附加数据段的段值。</p>
+<p>在16位CPU系统中，它只有4个段寄存器，所以，程序在任何时刻至多有4个正在使用的段可直接访问；在32位微机系统中，它有6个段寄存器，所以，在此环境下开发的程序最多可同时访问6个段。32位CPU有两个不同的工作方式：实方式和保护方式。在每种方式下，段寄存器的作用是不同的。有关规定简单描述如下：</p>
+<p>实方式： 前4个段寄存器CS、DS、ES和SS与先前CPU中的所对应的段寄存器的含义完全一致，内存单元的逻辑地址仍为”段值：偏移量”的形式。为访问某内存段内的数据，必须使用该段寄存器和存储单元的偏移量。</p>
+<p>保护方式： 在此方式下，情况要复杂得多，装入段寄存器的不再是段值，而是称为”选择子”(Selector)的某个值。</p>
+<p>5、指令指针寄存器</p>
+<p>32位CPU把指令指针扩展到32位，并记作EIP，EIP的低16位与先前CPU中的IP作用相同。</p>
+<p>指令指针EIP、IP(Instruction Pointer)是存放下次将要执行的指令在代码段的偏移量。在具有预取指令功能的系统中，下次要执行的指令通常已被预取到指令队列中，除非发生转移情况。所以，在理解它们的功能时，不考虑存在指令队列的情况。</p>
+<p>在实方式下，由于每个段的最大范围为64K，所以，EIP中的高16位肯定都为0，此时，相当于只用其低16位的IP来反映程序中指令的执行次序。</p>
+<p>6、标志寄存器</p>
+<p>一、运算结果标志位</p>
+<p>1、进位标志CF(Carry Flag)</p>
+<p>进位标志CF主要用来反映运算是否产生进位或借位。如果运算结果的最高位产生了一个进位或借位，那么，其值为1，否则其值为0。使用该标志位的情况有：多字(字节)数的加减运算，无符号数的大小比较运算，移位操作，字(字节)之间移位，专门改变CF值的指令等。</p>
+<p>2、奇偶标志PF(Parity Flag)</p>
+<p>奇偶标志PF用于反映运算结果中”1″的个数的奇偶性。如果”1″的个数为偶数，则PF的值为1，否则其值为0。</p>
+<p>利用PF可进行奇偶校验检查，或产生奇偶校验位。在数据传送过程中，为了提供传送的可靠性，如果采用奇偶校验的方法，就可使用该标志位。</p>
+<p>3、辅助进位标志AF(Auxiliary Carry Flag)</p>
+<p>在发生下列情况时，辅助进位标志AF的值被置为1，否则其值为0：</p>
+<p>(1)、在字操作时，发生低字节向高字节进位或借位时；</p>
+<p>(2)、在字节操作时，发生低4位向高4位进位或借位时。</p>
+<p>对以上6个运算结果标志位，在一般编程情况下，标志位CF、ZF、SF和OF的使用频率较高，而标志位PF和AF的使用频率较低。</p>
+<p>4、零标志ZF(Zero Flag)</p>
+<p>零标志ZF用来反映运算结果是否为0。如果运算结果为0，则其值为1，否则其值为0。在判断运算结果是否为0时，可使用此标志位。</p>
+<p>5、符号标志SF(Sign Flag)</p>
+<p>符号标志SF用来反映运算结果的符号位，它与运算结果的最高位相同。在微机系统中，有符号数采用补码表示法，所以，SF也就反映运算结果的正负号。运算结果为正数时，SF的值为0，否则其值为1。</p>
+<p>6、溢出标志OF(Overflow Flag)</p>
+<p>溢出标志OF用于反映有符号数加减运算所得结果是否溢出。如果运算结果超过当前运算位数所能表示的范围，则称为溢出，OF的值被置为1，否则，OF的值被清为0。”溢出”和”进位”是两个不同含义的概念，不要混淆。如果不太清楚的话，请查阅《计算机组成原理》课程中的有关章节。</p>
+<p>二、状态控制标志位</p>
+<p>状态控制标志位是用来控制CPU操作的，它们要通过专门的指令才能使之发生改变。</p>
+<p>1、追踪标志TF(Trap Flag)</p>
+<p>当追踪标志TF被置为1时，CPU进入单步执行方式，即每执行一条指令，产生一个单步中断请求。这种方式主要用于程序的调试。指令系统中没有专门的指令来改变标志位TF的值，但程序员可用其它办法来改变其值。</p>
+<p>2、中断允许标志IF(Interrupt-enable Flag)</p>
+<p>中断允许标志IF是用来决定CPU是否响应CPU外部的可屏蔽中断发出的中断请求。但不管该标志为何值，CPU都必须响应CPU外部的不可屏蔽中断所发出的中断请求，以及CPU内部产生的中断请求。具体规定如下：</p>
+<p>(1)、当IF&#x3D;1时，CPU可以响应CPU外部的可屏蔽中断发出的中断请求；</p>
+<p>(2)、当IF&#x3D;0时，CPU不响应CPU外部的可屏蔽中断发出的中断请求。</p>
+<p>CPU的指令系统中也有专门的指令来改变标志位IF的值。</p>
+<p>3、方向标志DF(Direction Flag)</p>
+<p>方向标志DF用来决定在串操作指令执行时有关指针寄存器发生调整的方向。具体规定在第5.2.11节——字符串操作指令——中给出。在微机的指令系统中，还提供了专门的指令来改变标志位DF的值。</p>
+<p>三、32位标志寄存器增加的标志位</p>
+<p>1、I&#x2F;O特权标志IOPL(I&#x2F;O Privilege Level)</p>
+<p>I&#x2F;O特权标志用两位二进制位来表示，也称为I&#x2F;O特权级字段。该字段指定了要求执行I&#x2F;O指令的特权级。如果当前的特权级别在数值上小于等于IOPL的值，那么，该I&#x2F;O指令可执行，否则将发生一个保护异常。</p>
+<p>2、嵌套任务标志NT(Nested Task)</p>
+<p>嵌套任务标志NT用来控制中断返回指令IRET的执行。具体规定如下：</p>
+<p>(1)、当NT&#x3D;0，用堆栈中保存的值恢复EFLAGS、CS和EIP，执行常规的中断返回操作；</p>
+<p>(2)、当NT&#x3D;1，通过任务转换实现中断返回。</p>
+<p>3、重启动标志RF(Restart Flag)</p>
+<p>重启动标志RF用来控制是否接受调试故障。规定：RF&#x3D;0时，表示”接受”调试故障，否则拒绝之。在成功执行完一条指令后，处理机把RF置为0，当接受到一个非调试故障时，处理机就把它置为1。</p>
+<p>4、虚拟8086方式标志VM(Virtual 8086 Mode)</p>
+<p>如果该标志的值为1，则表示处理机处于虚拟的8086方式下的工作状态，否则，处理机处于一般保护方式下的工作状态</p>
+<p><span style="color: #444444"></span></p>
+<p><span style="color: #444444"></span></p>
+<p><span style="color: #444444"></span></p>
+<p><span style="color: #444444"></span></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/x86%E6%8C%87%E4%BB%A4%E9%9B%86/%E5%90%84%E4%B8%AA%E5%AF%84%E5%AD%98%E5%99%A8%E4%BD%9C%E7%94%A8%E8%AF%A6%E8%A7%A3/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/x86%E6%8C%87%E4%BB%A4%E9%9B%86/%E5%90%84%E4%B8%AA%E5%AF%84%E5%AD%98%E5%99%A8%E4%BD%9C%E7%94%A8%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-02/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C/%E6%94%BB%E9%98%B2%E4%B8%96%E7%95%8C-maze%EF%BC%88%E8%BF%B7%E5%AE%AB%E9%97%AE%E9%A2%98%EF%BC%89/" title="攻防世界-maze（迷宫问题）"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">攻防世界-maze（迷宫问题）</div></div><div class="info-2"><div class="info-item-1">攻防世界-maze（迷宫问题）参考资料： https://www.cnblogs.com/DirWang/p/11420496.html https://adworld.xctf.org.cn/task/writeup?type=reverse&amp;id=5084&amp;number=4&amp;grade=0&amp;page=1 有兴趣可以看下这篇英文博客： https://ctf-wiki.github.io/ctf-wiki/reverse/maze/maze/ 根据提示我们可以知道这是一道迷宫题：  下载得到文件，查壳和查看详细信息（Exeinfo PE）  文件中提示，他不是windows可执行程序，他是一个linux64位的可执行程序 将文件载入到64位IDA中，找到main函数，按下F5查看伪代码： _int64 __fastcall main(__int64 a1, char **a2, char **a3) { const char *v3; &#x2F;&#x2F; rsi signed __int64 v4; &#x2F;&#x2F; rbx sig...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/OD%E5%AD%A6%E4%B9%A0/OD-%E8%B7%B3%E8%BD%AC%E8%AF%AD%E5%8F%A5/" title="OD-跳转语句"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">OD-跳转语句</div></div><div class="info-2"><div class="info-item-1">OD-跳转语句资料来源：https://www.cnblogs.com/nxiao/articles/6354387.html 一、机械码,又称机器码. ultraedit打开,编辑exe文件时你会看到 许许多多的由0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F组成的数码,这些数码 就是机器码. 修改程序时必须通过修改机器码来修改exe文件. 二、需要熟练掌握的全部汇编知识(只有这么多) 不大容易理解,可先强行背住,混个脸儿熟,以后慢慢的就理解了 cmp a,b 比较a与b mov a,b 把b的值送给a ret 返回主程序 nop 无作用,英文“no operation”的简写，意思是“do nothing”(机器码90)***机器码的含义参看上面 (解释:ultraedit打开编辑exe文件时你看到90,等同于汇编语句nop) call 调用子程序 je 或jz 若相等则跳(机器码74 或0F84) jne或jnz 若不相等则跳(机器码75或0F85) jmp 无条件跳(机器码EB) jb 若小于则跳 ja 若大于则跳 jg 若大于则跳 jge 若大于等于则跳...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%90%84%E4%B8%AA%E5%AF%84%E5%AD%98%E5%99%A8%E4%BD%9C%E7%94%A8%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">各个寄存器作用详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E5%AE%9A%E4%B9%89%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">一、寄存器的定义：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E7%94%A8%E9%80%94%EF%BC%9A"><span class="toc-number">1.2.</span> <span class="toc-text">二、寄存器的用途：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%95%B0%E6%8D%AE%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%9A"><span class="toc-number">1.3.</span> <span class="toc-text">三、数据寄存器：</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

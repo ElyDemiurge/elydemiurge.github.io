@@ -1,0 +1,313 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>angr学习（3）：开始实战（1）--一个自写的demo--elf文件的保护 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="angr学习（3）：开始实战（1）–一个自写的demo–elf文件的保护 参考文章：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_33438733&#x2F;article&#x2F;details&#x2F;80276628https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;755e52d48a77demo下载链接：链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1wHDZTgKMIu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="angr学习（3）：开始实战（1）--一个自写的demo--elf文件的保护">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%881%EF%BC%89--%E4%B8%80%E4%B8%AA%E8%87%AA%E5%86%99%E7%9A%84demo--elf%E6%96%87%E4%BB%B6%E7%9A%84%E4%BF%9D%E6%8A%A4/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="angr学习（3）：开始实战（1）–一个自写的demo–elf文件的保护 参考文章：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_33438733&#x2F;article&#x2F;details&#x2F;80276628https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;755e52d48a77demo下载链接：链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1wHDZTgKMIu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-02/800/450">
+<meta property="article:published_time" content="2020-05-15T01:21:23.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.133Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-02/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "angr学习（3）：开始实战（1）--一个自写的demo--elf文件的保护",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%881%EF%BC%89--%E4%B8%80%E4%B8%AA%E8%87%AA%E5%86%99%E7%9A%84demo--elf%E6%96%87%E4%BB%B6%E7%9A%84%E4%BF%9D%E6%8A%A4/",
+  "image": "https://picsum.photos/seed/blog-cover-02/800/450",
+  "datePublished": "2020-05-15T01:21:23.000Z",
+  "dateModified": "2026-07-03T14:46:17.133Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%881%EF%BC%89--%E4%B8%80%E4%B8%AA%E8%87%AA%E5%86%99%E7%9A%84demo--elf%E6%96%87%E4%BB%B6%E7%9A%84%E4%BF%9D%E6%8A%A4/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'angr学习（3）：开始实战（1）--一个自写的demo--elf文件的保护',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-02/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">angr学习（3）：开始实战（1）--一个自写的demo--elf文件的保护</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">angr学习（3）：开始实战（1）--一个自写的demo--elf文件的保护</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-05-15T01:21:23.000Z" title="发表于 2020-05-15 09:21:23">2020-05-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.133Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="angr学习（3）：开始实战（1）–一个自写的demo–elf文件的保护"><a href="#angr学习（3）：开始实战（1）–一个自写的demo–elf文件的保护" class="headerlink" title="angr学习（3）：开始实战（1）–一个自写的demo–elf文件的保护"></a>angr学习（3）：开始实战（1）–一个自写的demo–elf文件的保护</h1><blockquote>
+<p>参考文章：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_33438733/article/details/80276628">https://blog.csdn.net/qq_33438733&#x2F;article&#x2F;details&#x2F;80276628</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/755e52d48a77">https://www.jianshu.com/p/755e52d48a77</a><br>demo下载链接：<br>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1wHDZTgKMIujsaLnSztH7VA">https://pan.baidu.com/s/1wHDZTgKMIujsaLnSztH7VA</a><br>提取码：9epn</p>
+</blockquote>
+<p>自己先写一个demo，代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">success</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;success\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">failed</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;fail\n&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> name[<span class="number">10</span>] = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;plz input your name:&quot;</span>);</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>, &amp;name);</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(name, <span class="string">&quot;Cyberangel&quot;</span>))</span><br><span class="line">    &#123;</span><br><span class="line">        success();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        failed();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：angr不会真的把程序加载到内存中执行，他只是利用模拟器模拟执行</p>
+</blockquote>
+<p><span style="color: #4D4D4D">注意编译的时候要先关闭PIE（下文会介绍PIE的概念），毕竟是作为demo用来学习angr的(你也不想在入门angr的时候给自己添麻烦)，</span>可以用checksec这个工具检查一下开启了哪些保护。</p>
+<blockquote>
+<p><strong>原文章作者注：在刚开始用的是</strong><span style="color: #F5222D">gets</span><strong>结果坑了自己一把，不信你可以去试试（</strong><span style="color: #F5222D">会造成符号传递中断</span><strong>）</strong>。</p>
+</blockquote>
+<p><span style="color: #4D4D4D">首先执行命令安装checksec，日志如下：</span></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop/angr$ <span class="built_in">sudo</span> apt install checksec</span><br><span class="line">Reading package lists... Done</span><br><span class="line">Building dependency tree       </span><br><span class="line">Reading state information... Done</span><br><span class="line">The following additional packages will be installed:</span><br><span class="line">  curl gawk libsigsegv2</span><br><span class="line">Suggested packages:</span><br><span class="line">  gawk-doc</span><br><span class="line">The following NEW packages will be installed:</span><br><span class="line">  checksec curl gawk libsigsegv2</span><br><span class="line">0 upgraded, 4 newly installed, 0 to remove and 73 not upgraded.</span><br><span class="line">Need to get 614 kB of archives.</span><br><span class="line">After this operation, 2,267 kB of additional disk space will be used.</span><br><span class="line">Do you want to <span class="built_in">continue</span>? [Y/n] Y</span><br><span class="line">Get:1 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libsigsegv2 amd64 2.12-2 [13.9 kB]</span><br><span class="line">Get:2 http://us.archive.ubuntu.com/ubuntu focal/main amd64 gawk amd64 1:5.0.1+dfsg-1 [418 kB]</span><br><span class="line">Get:3 http://us.archive.ubuntu.com/ubuntu focal/universe amd64 checksec all 2.1.0+git20191113.bf85698-2 [21.7 kB]</span><br><span class="line">Get:4 http://us.archive.ubuntu.com/ubuntu focal/main amd64 curl amd64 7.68.0-1ubuntu2 [161 kB]</span><br><span class="line">Fetched 614 kB <span class="keyword">in</span> 11s (57.6 kB/s)</span><br><span class="line">Selecting previously unselected package libsigsegv2:amd64.</span><br><span class="line">(Reading database ... 186399 files and directories currently installed.)</span><br><span class="line">Preparing to unpack .../libsigsegv2_2.12-2_amd64.deb ...</span><br><span class="line">Unpacking libsigsegv2:amd64 (2.12-2) ...</span><br><span class="line">Setting up libsigsegv2:amd64 (2.12-2) ...</span><br><span class="line">Selecting previously unselected package gawk.</span><br><span class="line">(Reading database ... 186406 files and directories currently installed.)</span><br><span class="line">Preparing to unpack .../gawk_1%3a5.0.1+dfsg-1_amd64.deb ...</span><br><span class="line">Unpacking gawk (1:5.0.1+dfsg-1) ...</span><br><span class="line">Selecting previously unselected package checksec.</span><br><span class="line">Preparing to unpack .../checksec_2.1.0+git20191113.bf85698-2_all.deb ...</span><br><span class="line">Unpacking checksec (2.1.0+git20191113.bf85698-2) ...</span><br><span class="line">Selecting previously unselected package curl.</span><br><span class="line">Preparing to unpack .../curl_7.68.0-1ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking curl (7.68.0-1ubuntu2) ...</span><br><span class="line">Setting up gawk (1:5.0.1+dfsg-1) ...</span><br><span class="line">Setting up checksec (2.1.0+git20191113.bf85698-2) ...</span><br><span class="line">Setting up curl (7.68.0-1ubuntu2) ...</span><br><span class="line">Processing triggers <span class="keyword">for</span> man-db (2.9.1-1) ...</span><br><span class="line">Processing triggers <span class="keyword">for</span> libc-bin (2.31-0ubuntu9) ...</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$</span><br></pre></td></tr></table></figure>
+
+<p>接下来使用Linux的gcc工具对cpp文件进行编译，将angr.cpp放入到Linux的Desktop&#x2F;angr&#x2F;（<strong>编译不要使用PIE</strong>）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop/angr$ gcc angr.cpp -no-pie -o angr</span><br><span class="line">angr.cpp: In <span class="keyword">function</span> ‘int main()’:</span><br><span class="line">angr.cpp:15:13: warning: format ‘%s’ expects argument of <span class="built_in">type</span> ‘char*’, but argument 2 has <span class="built_in">type</span> ‘char (*)[10]’ [-Wformat=]</span><br><span class="line">   15 |     scanf(<span class="string">&quot;%s&quot;</span>, &amp;name);</span><br><span class="line">      |            ~^   ~~~~~</span><br><span class="line">      |             |   |</span><br><span class="line">      |             |   char (*)[10]</span><br><span class="line">      |             char*</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$</span><br></pre></td></tr></table></figure>
+
+<p>检查一下是否关闭了PIE</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop/angr$ checksec --file=angr</span><br><span class="line">RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH	Symbols		FORTIFY	Fortified	Fortifiable  FILE</span><br><span class="line">Partial RELRO   Canary found      NX enabled    No PIE          No RPATH   No RUNPATH   69 Symbols     Yes	0		1	angr</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$</span><br></pre></td></tr></table></figure>
+
+<p><strong>下面我们来介绍一下checksec工具究竟可以干什么</strong></p>
+<p>简单的来说，checksec可以检查可执行文件的保护情况，在pwn中有广泛的应用，它可以检查的参数如下</p>
+<p><strong>Arch</strong></p>
+<p>程序架构信息。判断是拖进64位IDA还是32位？exp编写时p64还是p32函数？</p>
+<p><strong>RELRO</strong></p>
+<p>Relocation Read-Only (RELRO) 此项技术主要针对 GOT 改写的攻击方式。它分为两种，Partial RELRO 和 Full RELRO。</p>
+<p>部分RELRO 易受到攻击，例如攻击者可以<strong>atoi.got为system.plt，进而输入&#x2F;bin&#x2F;sh\x00获得shell</strong></p>
+<p>完全RELRO 使整个 GOT 只读，从而无法被覆盖，但这样会大大增加程序的启动时间，因为程序在启动之前需要解析所有的符号。</p>
+<p><strong>Stack-canary</strong></p>
+<p>栈溢出保护是一种缓冲区溢出攻击缓解手段，当函数存在缓冲区溢出攻击漏洞时，攻击者可以覆盖栈上的返回地址来让shellcode能够得到执行。当启用栈保护后，函数开始执行的时候会先往栈里插入类似cookie的信息，当函数真正返回的时候会验证cookie信息是否合法，如果不合法就停止程序运行。攻击者在覆盖返回地址的时候往往也会将cookie信息给覆盖掉，导致栈保护检查失败而阻止shellcode的执行。在Linux中我们将cookie信息称为canary。</p>
+<p><strong>NX</strong></p>
+<p>NX enabled如果这个保护开启就是意味着栈中数据没有执行权限，如此一来, 当攻击者在堆栈上部署自己的 shellcode 并触发时, 只会直接造成程序的崩溃，但是可以利用rop这种方法绕过</p>
+<p><strong>PIE</strong></p>
+<p>PIE(Position-Independent Executable, 位置无关可执行文件)技术与 ASLR 技术类似,ASLR 将程序运行时的堆栈以及共享库的加载地址随机化, 而 PIE 技术则在编译时将程序编译为位置无关, 即程序运行时各个段（如代码段等）加载的虚拟地址也是在装载时才确定。这就意味着, 在 PIE 和 ASLR 同时开启的情况下, 攻击者将对程序的内存布局一无所知, 传统的改写GOT 表项的方法也难以进行, 因为攻击者不能获得程序的.got 段的虚地址。</p>
+<p>若开启一般需在攻击时泄露地址信息</p>
+<p>RPATH&#x2F;RUNPATH</p>
+<p>程序运行时的环境变量，运行时所需要的共享库文件优先从该目录寻找，可以fake lib造成攻击</p>
+<p><strong>FORTIFY</strong></p>
+<p>这是一个由GCC实现的源码级别的保护机制，其功能是在编译的时候检查源码以避免潜在的缓冲区溢出等错误。简单地说，加了这个保护之后,一些敏感函数如read, fgets,memcpy, printf等等可能导致漏洞出现的函数都会被替换成__read_chk,__fgets_chk, __memcpy_chk, __printf_chk等。这些带了chk的函数会检查读取&#x2F;复制的字节长度是否超过缓冲区长度，通过检查诸如%n之类的字符串位置是否位于可能被用户修改的可写地址，避免了格式化字符串跳过某些参数（如直接%7$x）等方式来避免漏洞出现。开启了FORTIFY保护的程序会被checksec检出，此外，在反汇编时直接查看got表也会发现chk函数的存在,这种检查是默认不开启的，可以通过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -D_FORTIFY_SOURCE=2 -O1</span><br><span class="line">开启fortity检查，开启后会替换strcpy等危险函数。</span><br></pre></td></tr></table></figure>
+
+<p>已关闭PIE保护，将编译之后的文件载入到IDA中，可以发现只有两条路径：</p>
+<p><img src="/assets/posts/angr-3-1-demo-elf-10ws57c/assets/1589509260328-a9a1e405-96df-4ae7-9185-2f9e73157fd8.png" alt="TIM截图20200515102051.png"></p>
+<p>来到文本视图，注意两个地址，这是程序流的分支，分别流向success和failed，在C语言中的语句就是判断语句：if (!strcmp(name, “Cyberangel”))</p>
+<p><img src="/assets/posts/angr-3-1-demo-elf-10ws57c/assets/1589509420472-5dacb259-f621-448c-ae81-39f287bb821c.png" alt="TIM截图20200515102328.png"></p>
+<p>在Ubuntu中进入angr的虚拟环境：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop/angr$ <span class="built_in">export</span> WORKON_HOME=<span class="variable">$HOME</span>/Python-workhome</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$ <span class="built_in">source</span> /usr/share/virtualenvwrapper/virtualenvwrapper.sh</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$ workon</span><br><span class="line">angr</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$ workon angr</span><br><span class="line">(angr) ubuntu@ubuntu:~/Desktop/angr$</span><br></pre></td></tr></table></figure>
+
+<p>编写的angr脚本如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop/angr$ workon angr</span><br><span class="line">(angr) ubuntu@ubuntu:~/Desktop/angr$ python</span><br><span class="line">Python 3.8.2 (default, Apr 27 2020, 15:53:34) </span><br><span class="line">[GCC 9.3.0] on linux</span><br><span class="line">Type <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> or <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt; import angr</span><br><span class="line">&gt;&gt;&gt; p=angr.Project(<span class="string">&quot;angr&quot;</span>,auto_load_libs=False)</span><br><span class="line">&gt;&gt;&gt; state=p.factory.entry_state()</span><br><span class="line">&gt;&gt;&gt; sm=p.factory.simulation_manager(state)</span><br><span class="line">&gt;&gt;&gt; res=sm.explore(find=0x40124d,avoid=0x401254) </span><br><span class="line">WARNING | 2020-05-14 19:32:18,273 | angr.state_plugins.symbolic_memory | The program is accessing memory or registers with an unspecified value. This could indicate unwanted behavior.</span><br><span class="line">WARNING | 2020-05-14 19:32:18,273 | angr.state_plugins.symbolic_memory | angr will cope with this by generating an unconstrained symbolic variable and continuing. You can resolve this by:</span><br><span class="line">WARNING | 2020-05-14 19:32:18,273 | angr.state_plugins.symbolic_memory | 1) setting a value to the initial state</span><br><span class="line">WARNING | 2020-05-14 19:32:18,273 | angr.state_plugins.symbolic_memory | 2) adding the state option ZERO_FILL_UNCONSTRAINED_&#123;MEMORY,REGISTERS&#125;, to make unknown regions hold null</span><br><span class="line">WARNING | 2020-05-14 19:32:18,274 | angr.state_plugins.symbolic_memory | 3) adding the state option SYMBOL_FILL_UNCONSTRAINED_&#123;MEMORY_REGISTERS&#125;, to suppress these messages.</span><br><span class="line">WARNING | 2020-05-14 19:32:18,274 | angr.state_plugins.symbolic_memory | Filling memory at 0x7fffffffffefff8 with 86 unconstrained bytes referenced from 0x1000020 (strcmp+0x0 <span class="keyword">in</span> extern-address space (0x20))</span><br><span class="line">&gt;&gt;&gt; res.found[0].posix.dumps(0)</span><br><span class="line">b<span class="string">&#x27;Cyberangel\x00\x00\x00\x02\x01\x00\x02\x02\x1a\x1a\x0e\x08\x89\x02\x19\x02I\x01)\x02\x01\x01I\x02\x01\x01\x02\x02\x02\x02\x00\x08\x01\x08\x00\x80\x00\x00\x80\x80\x80\x80\x01\x08\x08\x00\x08\x08\x08\x00&#x27;</span></span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出angr已经给出了答案：Cyberangel</p>
+<p>上面的脚本看不懂？接下来我们注释一下脚本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr <span class="comment">#导入angr库</span></span><br><span class="line"></span><br><span class="line">p=angr.Project(<span class="string">&quot;angr&quot;</span>,auto_load_libs=<span class="literal">False</span>) <span class="comment"># 加载二进制程序，相当于在运行Windows程序时的双击鼠标</span></span><br><span class="line">state=p.factory.entry_state() <span class="comment">#创建一个状态，默认是程序的入口地址，也可以指定一个地址作为入口地址</span></span><br><span class="line">sm=p.factory.simulation_manager(state) <span class="comment">#创建一个模拟器用来模拟程序执行</span></span><br><span class="line">res=sm.explore(find=<span class="number">0x40124d</span>,avoid=<span class="number">0x401254</span>) <span class="comment">#使用explore执行模拟器，find和avoid用来作为约束条件，上面提到过这两个地址</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="built_in">len</span>(res.found) &gt; <span class="number">0</span>: <span class="comment">#如果angr寻找到的结果数目大于0</span></span><br><span class="line">    <span class="built_in">print</span> (res.found[<span class="number">0</span>].posix.dumps(<span class="number">0</span>))<span class="comment">#打印found的第一个结果</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>res.found[0].posix.dumps(0)代表该状态执行路径的 <strong>输入</strong></li>
+<li>res.found[0].posix.dumps(1)代表该状态执行路径的 <strong>输出</strong></li>
+</ul>
+<p><span style="color: #F5222D">注意：</span><strong><span style="color: #F5222D">res.found[0].posix.dumps(0)只能打印found的第一个结果，如需打印更多的结果请使用循环语句</span></strong><br><span style="color: #F5222D">因为我们这里要求输入的东西，因此我们使用</span><strong><span style="color: #F5222D">res.found[0].posix.dumps(0)</span></strong></p>
+</blockquote>
+<p>脚本运行结果：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">(angr) ubuntu@ubuntu:~/Desktop/angr$ python <span class="number">1.</span>py</span><br><span class="line">WARNING | <span class="number">2020</span>-05-<span class="number">14</span> <span class="number">20</span>:03:<span class="number">39</span>,<span class="number">344</span> | angr.state_plugins.symbolic_memory | The program <span class="keyword">is</span> accessing memory <span class="keyword">or</span> registers <span class="keyword">with</span> an unspecified value. This could indicate unwanted behavior.</span><br><span class="line">WARNING | <span class="number">2020</span>-05-<span class="number">14</span> <span class="number">20</span>:03:<span class="number">39</span>,<span class="number">344</span> | angr.state_plugins.symbolic_memory | angr will cope <span class="keyword">with</span> this by generating an unconstrained symbolic variable <span class="keyword">and</span> continuing. You can resolve this by:</span><br><span class="line">WARNING | <span class="number">2020</span>-05-<span class="number">14</span> <span class="number">20</span>:03:<span class="number">39</span>,<span class="number">345</span> | angr.state_plugins.symbolic_memory | <span class="number">1</span>) setting a value to the initial state</span><br><span class="line">WARNING | <span class="number">2020</span>-05-<span class="number">14</span> <span class="number">20</span>:03:<span class="number">39</span>,<span class="number">345</span> | angr.state_plugins.symbolic_memory | <span class="number">2</span>) adding the state option ZERO_FILL_UNCONSTRAINED_&#123;MEMORY,REGISTERS&#125;, to make unknown regions hold null</span><br><span class="line">WARNING | <span class="number">2020</span>-05-<span class="number">14</span> <span class="number">20</span>:03:<span class="number">39</span>,<span class="number">345</span> | angr.state_plugins.symbolic_memory | <span class="number">3</span>) adding the state option SYMBOL_FILL_UNCONSTRAINED_&#123;MEMORY_REGISTERS&#125;, to suppress these messages.</span><br><span class="line">WARNING | <span class="number">2020</span>-05-<span class="number">14</span> <span class="number">20</span>:03:<span class="number">39</span>,<span class="number">345</span> | angr.state_plugins.symbolic_memory | Filling memory at <span class="number">0x7fffffffffefff8</span> <span class="keyword">with</span> <span class="number">86</span> unconstrained <span class="built_in">bytes</span> referenced <span class="keyword">from</span> <span class="number">0x1000020</span> (strcmp+<span class="number">0x0</span> <span class="keyword">in</span> extern-address space (<span class="number">0x20</span>))</span><br><span class="line"><span class="string">b&#x27;Cyberangel\x00\x00\x00\x02\x01\x00\x02\x02\x1a\x1a\x0e\x08\x89\x02\x19\x02I\x01)\x02\x01\x01I\x02\x01\x01\x02\x02\x02\x02\x00\x08\x01\x08\x00\x80\x00\x00\x80\x80\x80\x80\x01\x08\x08\x00\x08\x08\x08\x00&#x27;</span></span><br><span class="line">(angr) ubuntu@ubuntu:~/Desktop/angr$</span><br></pre></td></tr></table></figure>
+
+<p>程序执行时部分截图如下：</p>
+<p><img src="/assets/posts/angr-3-1-demo-elf-10ws57c/assets/1589510785938-57a15559-5d53-4476-97d7-0a55ec22c6f2.png" alt="TIM截图20200515104523.png"></p>
+<p><img src="/assets/posts/angr-3-1-demo-elf-10ws57c/assets/1589510839686-13ae0b20-ce07-4b45-b261-0c6bde34c3f9.png" alt="TIM截图20200515104710.png"><img src="/assets/posts/angr-3-1-demo-elf-10ws57c/assets/1589510786586-e7b39f5b-f435-43f2-bc42-3a5e44cc7dec.png" alt="TIM截图20200515104557.png"><img src="/assets/posts/angr-3-1-demo-elf-10ws57c/assets/1589510787253-0b3cfded-302f-44ab-b4ed-677f5da1b546.png" alt="TIM截图20200515104612.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%881%EF%BC%89--%E4%B8%80%E4%B8%AA%E8%87%AA%E5%86%99%E7%9A%84demo--elf%E6%96%87%E4%BB%B6%E7%9A%84%E4%BF%9D%E6%8A%A4/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%881%EF%BC%89--%E4%B8%80%E4%B8%AA%E8%87%AA%E5%86%99%E7%9A%84demo--elf%E6%96%87%E4%BB%B6%E7%9A%84%E4%BF%9D%E6%8A%A4/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-02/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%882%EF%BC%89--%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84demo/" title="angr学习（3）：开始实战（2）--一个简单的demo"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">angr学习（3）：开始实战（2）--一个简单的demo</div></div><div class="info-2"><div class="info-item-1">angr学习（3）：开始实战（2）–一个简单的demo在上一节我们使用自己编写的程序来进行angr的学习，接下来继续实战，看一看使用angr解题到底有多么简单 示例程序：https://github.com/angr/angr-doc/tree/master/examples/defcamp_r100 开启虚拟环境： 123456ubuntu@ubuntu:~/Desktop/angr$ export WORKON_HOME=$HOME/Python-workhomeubuntu@ubuntu:~/Desktop/angr$ source /usr/share/virtualenvwrapper/virtualenvwrapper.shubuntu@ubuntu:~/Desktop/angr$ workonangrubuntu@ubuntu:~/Desktop/angr$ workon angr(angr) ubuntu@ubuntu:~/Desktop/angr$  看一下文件属性： 123(angr) ubuntu@ubuntu:~/Desktop/angr$ file r1...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%882%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/" title="angr学习（2）：基本命令"><img class="cover" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">angr学习（2）：基本命令</div></div><div class="info-2"><div class="info-item-1">angr学习（2）：基本命令参考资料：http://www.manongjc.com/article/68188.html 此篇文章翻译自：https://docs.angr.io/ Angr Documentation①导入angr模块以及加载二进制程序12&gt;&gt;&gt; import angr&gt;&gt;&gt; proj = angr.Project(&#x27;/bin/true&#x27;)  ②了解导入的二进制程序的基本信息123&gt;&gt;&gt; proj.arch #架构&gt;&gt;&gt; proj.entry #二进制程序入口点&gt;&gt;&gt; proj.filename #程序名称以及位置  ③二进制程序在虚拟地址空间的表示12345678910111213&gt;&gt;&gt; proj.loader#是通过CLE模块将二进制对象加载并映射带单个内存空间&gt;&gt;&gt; proj.loader.min_addr#proj.loader 的低位地址&gt;&gt;&gt; proj.loader.max_addr#p...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%881%EF%BC%89%E2%80%93%E4%B8%80%E4%B8%AA%E8%87%AA%E5%86%99%E7%9A%84demo%E2%80%93elf%E6%96%87%E4%BB%B6%E7%9A%84%E4%BF%9D%E6%8A%A4"><span class="toc-number">1.</span> <span class="toc-text">angr学习（3）：开始实战（1）–一个自写的demo–elf文件的保护</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

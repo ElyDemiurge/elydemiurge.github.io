@@ -1,0 +1,486 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>BUUCTF-firmware（路由固件逆向） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="BUUCTF-firmware（路由固件逆向）写在前面：此题目中的工具firmware-mod-kit仅适用于ubuntu，不适用于kali，如下图所示：  这里使用全新的ubuntu系统进行讲解：ubuntu v18.04.4（推荐，未经过系统更新，安装过程断网） 做题时需要全程挂SSR（当然，你也可以不用） http:&#x2F;&#x2F;releases.ubuntu.com&#x2F;18.04&#x2F;ubuntu-18.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-firmware（路由固件逆向）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/Reverse%20&%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-firmware%EF%BC%88%E8%B7%AF%E7%94%B1%E5%9B%BA%E4%BB%B6%E9%80%86%E5%90%91%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="BUUCTF-firmware（路由固件逆向）写在前面：此题目中的工具firmware-mod-kit仅适用于ubuntu，不适用于kali，如下图所示：  这里使用全新的ubuntu系统进行讲解：ubuntu v18.04.4（推荐，未经过系统更新，安装过程断网） 做题时需要全程挂SSR（当然，你也可以不用） http:&#x2F;&#x2F;releases.ubuntu.com&#x2F;18.04&#x2F;ubuntu-18.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-03/800/450">
+<meta property="article:published_time" content="2020-03-24T01:21:23.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.327Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-03/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "BUUCTF-firmware（路由固件逆向）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/Reverse%20&%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-firmware%EF%BC%88%E8%B7%AF%E7%94%B1%E5%9B%BA%E4%BB%B6%E9%80%86%E5%90%91%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-03/800/450",
+  "datePublished": "2020-03-24T01:21:23.000Z",
+  "dateModified": "2026-07-03T14:46:15.327Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-firmware%EF%BC%88%E8%B7%AF%E7%94%B1%E5%9B%BA%E4%BB%B6%E9%80%86%E5%90%91%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BUUCTF-firmware（路由固件逆向）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-03/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">BUUCTF-firmware（路由固件逆向）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">BUUCTF-firmware（路由固件逆向）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-03-24T01:21:23.000Z" title="发表于 2020-03-24 09:21:23">2020-03-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.327Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Reverse-PWN-CTFWriteUp/">Reverse &amp; PWN - CTFWriteUp</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Reverse-PWN-CTFWriteUp/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>21分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="BUUCTF-firmware（路由固件逆向）"><a href="#BUUCTF-firmware（路由固件逆向）" class="headerlink" title="BUUCTF-firmware（路由固件逆向）"></a>BUUCTF-firmware（路由固件逆向）</h1><h2 id="写在前面："><a href="#写在前面：" class="headerlink" title="写在前面："></a>写在前面：</h2><p>此题目中的工具firmware-mod-kit仅适用于ubuntu，不适用于kali，如下图所示：</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585013099814-1f04b87c-25fc-44d4-81b2-1cd22a9ce983.png"></p>
+<p>这里使用<strong>全新</strong>的ubuntu系统进行讲解：ubuntu v18.04.4（<span style="color: #F5222D">推荐</span>，未经过系统更新，安装过程断网）</p>
+<p>做题时需要全程挂SSR（当然，你也可以不用）</p>
+<p><a target="_blank" rel="noopener" href="http://releases.ubuntu.com/18.04/ubuntu-18.04.4-desktop-amd64.iso">http://releases.ubuntu.com/18.04/ubuntu-18.04.4-desktop-amd64.iso</a></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585022117852-c0b450ca-3040-491d-9410-f1386121a15d.png" alt="QQ截图20200324115230.png"></p>
+<h2 id="基本信息："><a href="#基本信息：" class="headerlink" title="基本信息："></a>基本信息：</h2><p>先来看一下题目：</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585012929548-fa1a4535-6878-4a5c-b42d-10576fcd1950.png" alt="QQ截图20200324092159.png"></p>
+<p>为了方便，我们将“51475f91-7b90-41dd-81a3-8b82df4f29d0.bin”重命名为1.bin，将文件拖入到ubuntu中。</p>
+<p>先看一下路由器固件的基本信息，执行命令：</p>
+<blockquote>
+<p>file 1.bin</p>
+</blockquote>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585013616603-7c85518e-1cc6-4fea-9eab-9d4e77166309.png" alt="QQ截图20200324093327.png"></p>
+<p>TP-LINK的路由器…</p>
+<h2 id="安装依赖："><a href="#安装依赖：" class="headerlink" title="安装依赖："></a>安装依赖：</h2><p>接下来安装firmware-mod-kit所需要的依赖，执行命令：</p>
+<blockquote>
+<p>sudo apt-get install git build-essential zlib1g-dev liblzma-dev python-magic</p>
+</blockquote>
+<p>若出现如下图类似的报错：（以kali为例，当然ubuntu新安装的系统也会出现这种情况）</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585022781886-f9b99466-cb40-4a87-b073-0e5dcce074b7.png" alt="QQ截图20200324120615.png"></p>
+<p>执行命令：</p>
+<blockquote>
+<p>sudo apt-get update</p>
+</blockquote>
+<p>若出现下图情况，请更换SSR或网络</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585014502968-49f418a1-a086-4409-94c7-af3aa6ac9bcc.png" alt="QQ截图20200324094109.png"></p>
+<p>执行命令之后，请耐心等待。。。</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585023054478-bcf9b62c-1f86-4cad-aa62-91d9066fdbe2.png" alt="QQ截图20200324121046.png"></p>
+<p><strong>更新数目因系统而异</strong></p>
+<p>再次执行命令：</p>
+<blockquote>
+<p>sudo apt-get install git build-essential zlib1g-dev liblzma-dev python-magic</p>
+</blockquote>
+<p>若出现下图，请重启虚拟机</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585015016582-d4fa6c9d-41df-4229-8511-68d9eb6066e5.png" alt="QQ截图20200324095358.png"></p>
+<p>正常执行如下图：</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585023136374-7dfc40aa-2162-4339-8f21-192e3f89046f.png" alt="QQ截图20200324121208.png"></p>
+<p>输入Y后进行安装，请耐心等待…</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585015167444-36efff16-2da4-4d59-9fbf-b1d294943a05.png" alt="QQ截图20200324095905.png"></p>
+<p>再次执行命令，验证一下</p>
+<blockquote>
+<p>sudo apt-get install git build-essential zlib1g-dev liblzma-dev python-magic</p>
+</blockquote>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585023429503-df6a494c-6b7e-481e-9485-035b475bf5f2.png" alt="QQ截图20200324121702.png"></p>
+<h2 id="安装firmware-mod-kit"><a href="#安装firmware-mod-kit" class="headerlink" title="安装firmware-mod-kit"></a>安装firmware-mod-kit</h2><p>安装成功！下面我们来安装**firmware-mod-kit，**执行命令：</p>
+<blockquote>
+<p>git clone <a target="_blank" rel="noopener" href="https://github.com/mirror/firmware-mod-kit.git">https://github.com/mirror/firmware-mod-kit.git</a></p>
+<h1 id="进入源码目录"><a href="#进入源码目录" class="headerlink" title="进入源码目录"></a>进入源码目录</h1><p>cd firmware-mod-kit&#x2F;src</p>
+<h1 id="执行configure文件生成Makefile文件然后make编译生成可执行文件"><a href="#执行configure文件生成Makefile文件然后make编译生成可执行文件" class="headerlink" title="执行configure文件生成Makefile文件然后make编译生成可执行文件"></a>执行configure文件生成Makefile文件然后make编译生成可执行文件</h1><p>.&#x2F;configure &amp;&amp; make</p>
+</blockquote>
+<p>我这里网络环境不理想，可以去<span style="color: #4D4D4D">github下载离线安装包：</span><a target="_blank" rel="noopener" href="https://github.com/mirror/firmware-mod-kit">https://github.com/mirror/firmware-mod-kit</a></p>
+<p>将压缩包解压到ubuntu中，进入src目录，打开终端执行命令：</p>
+<blockquote>
+<p>.&#x2F;configure &amp;&amp; make</p>
+</blockquote>
+<p>[视频]</p>
+<p><span style="color: #F5222D">若报错：</span></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585018575105-46da3ee4-2e1c-42d1-b312-27c149022329.png" alt="QQ截图20200324102236.png"></p>
+<p><span style="color: #F5222D">请更换ubuntu为v18.04.4</span></p>
+<p>将1.bin拖入kali，执行命令：</p>
+<blockquote>
+<p>binwalk -e 1.bin</p>
+</blockquote>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585020083528-26374c75-2a52-4da2-8899-912f1582d974.png" alt="QQ截图20200324112115.png"></p>
+<p>得到：120200.squashfs</p>
+<p><span style="color: #4D4D4D">文件属性：</span></p>
+<p><span style="color: #4D4D4D">放入ubuntu后，在firmware-mod-kit的目录下执行：</span></p>
+<blockquote>
+<p><span style="color: #4D4D4D">.&#x2F;unsquashfs_all.sh 120200.squashfs</span></p>
+</blockquote>
+<p><span style="color: #4D4D4D"></span></p>
+<p><span style="color: #4D4D4D">得到文件夹：</span>squashfs-root，在目录&#x2F;squashfs-root&#x2F;tmp可以找到backdoor（后门）文件，是linux的elf</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585020871382-887f3e69-e606-4741-bf98-57e6949cd256.png" alt="QQ截图20200324113423.png"></p>
+<p>将其拖入windows，查壳发现有upx壳</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585020922616-fb5196a5-3874-41df-8d4d-3546c11d99d8.png" alt="QQ截图20200324113503.png"></p>
+<blockquote>
+<p>linux elf脱壳工具<a target="_blank" rel="noopener" href="https://github.com/upx/upx/releases/tag/v3.96">https://github.com/upx/upx/releases/tag/v3.96</a>，下载：upx-3.96-amd64_linux.tar.xz</p>
+</blockquote>
+<p>下载解压之后放入ubuntu中（backdoor也放入），在工具目录下执行命令：</p>
+<blockquote>
+<p>.&#x2F;upx -d backdoor</p>
+</blockquote>
+<p>脱壳后载入IDA，搜索字符串找到后门网址</p>
+<p>两次交叉引用最终来到代码段text，找到端口：36667</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585024117404-3f2e06f9-a94c-424d-9d8e-f2c4f05271bf.png" alt="QQ截图20200324114153.png"><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585024119210-f4f92522-a66e-464a-97af-f180518f3db5.png" alt="QQ截图20200324114257.png"></p>
+<p>根据题目进行md5加密后得到：33a422c45d551ac6e4756f59812a954b</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585021507355-9acb0adc-1324-4ba7-bcde-d3c722bda41a.png" alt="QQ截图20200324114457.png"></p>
+<p>flag{33a422c45d551ac6e4756f59812a954b}</p>
+<hr>
+<h2 id="附：路由器文件系统与提取"><a href="#附：路由器文件系统与提取" class="headerlink" title="附：路由器文件系统与提取"></a>附：路由器文件系统与提取</h2><h3 id="1、路由器文件系统"><a href="#1、路由器文件系统" class="headerlink" title="1、路由器文件系统"></a>1、路由器文件系统</h3><p>我们通常所说的更新路由器是指更新路由器的固件，不同的路由器使用了不同呃硬件平台、操作系统及固件。通常情况下，路由器的固件中包含操作系统的内核及文件系统。</p>
+<h4 id="1-1、路由器固件"><a href="#1-1、路由器固件" class="headerlink" title="1.1、路由器固件"></a>1.1、路由器固件</h4><p>路由器固件不是硬件，而是软件，在路由器中，它通常是被固化在只读存储器中的，所以称为固件。</p>
+<p>在进行漏洞分析时获取路由器固件的通常有两种方式：</p>
+<p>一、从路由器厂商提供的更新网站下载；</p>
+<p>二、通过硬件接入，从路由器的Flash中提取固件。</p>
+<p>路由器固件中包含了该路由器中所有的可执行程序及配置文件信息，这些信息对于我们进行路由器漏洞的分析和挖掘都至关重要。获取固件之后，我们就可以从固件中分离文件系统了。</p>
+<h4 id="1-2、文件系统"><a href="#1-2、文件系统" class="headerlink" title="1.2、文件系统"></a>1.2、文件系统</h4><p>文件系统是操作系统的重要组成部分，是操作运行的基础。不同的路由器使用的文件系统格式不尽相同。根文件系统会被打包成当前路由器所使用的文件系统格式，然后组装到固件中。</p>
+<p>Squashfs是一个只读格式的文件系统，具有超高压缩率，其压缩率最高可达34%。当系统启动后，会将文件系统保存在一个压缩过的文件系统的文件中，这个文件可以使用换回的形式挂载并对其中的文件进行访问，当进程需要某些文件时，仅将对应部分的压缩文件解压缩。</p>
+<p>Squashfs文件系统常用的压缩格式有GZIP、LZMA、LZO、XZ(LZMA2)，在路由器中被普遍采用。路由器的根文件系统通常会按照Squashfs文件系统常用压缩格式中的一种进行打包，形成一个完整的Squashfs文件系统，然后与路由器操作系统的内核一起形成更新固件。</p>
+<h3 id="2、手动提取文件系统"><a href="#2、手动提取文件系统" class="headerlink" title="2、手动提取文件系统"></a>2、手动提取文件系统</h3><p>要想分析路由器漏洞，必须获得路由器中存在漏洞的应用程序。文件系统是操作系统的重要组成部分，是操作运行的基础。文件系统中包含实现路由器各种功能的基础应用程序。如家用路由器中实现一个Web服务器，使用户可以通过Web访问路由器，对路由器进行管理。文件系统能够从固件中提取，而从路由器固件中提取文件系统是一个难点，原因之一在于不同的操作系统使用的文件系统不同。另外，路由器的文件系统压缩算法也有差异，有些路由器甚至会使用非标准的压缩算法打包文件系统。</p>
+<h4 id="2-1、查看文件类型"><a href="#2-1、查看文件类型" class="headerlink" title="2.1、查看文件类型"></a>2.1、查看文件类型</h4><p>file命令通过定义的magic签名可以识别各种格式，包括常用的Linux&#x2F;Windows可执行文件、DOC、PDF及各种压缩格式等。</p>
+<p>如果file firmware.bin   —–&gt;  firmware.bin: data</p>
+<p>上面例子中，file命令并没有发现符合任何文件类型的匹配，但这并不代表该固件就是没有接触过的文件格式，原因在于file命令是从给定文件的首字节开始的，会按照既定格式进行模式匹配。</p>
+<h4 id="2-2、手动判断文件类型"><a href="#2-2、手动判断文件类型" class="headerlink" title="2.2、手动判断文件类型"></a>2.2、手动判断文件类型</h4><p>如果没有发现符合要求的文件格式，就需要采用下面的方法进一步分析：</p>
+<ul>
+<li>“strings | grep”检索文件系统magic签名头。（1）</li>
+<li>“hexdump | grep” 检索magic签名偏移。（2）</li>
+<li>“dd | file” 确定magic签名偏移处的文件类型。（3）</li>
+</ul>
+<p>文件系统magic签名头是指一个文件系统中包含的一串可识别字符，有了这串字符，表明该文件可能包含某个文件系统。当然，如果要确定是否包含某文件系统，还需要利用其他条件配合证明，也就是2和3步骤需要做。</p>
+<p>Windows应用程序以字符串”MZ”开头，但不是所有具有此特征的文件都是可执行程序，它也可能是一个文本文件，只不过恰巧“MZ”开头，所以，仅凭单一特征就确定一个文件的类型是有失偏颇的。</p>
+<h5 id="2-2-1、检索文件系统magic签名"><a href="#2-2-1、检索文件系统magic签名" class="headerlink" title="2.2.1、检索文件系统magic签名"></a>2.2.1、检索文件系统magic签名</h5><p>文件系统头部特征是根据每一种文件系统开头的几字节提炼出来的。常用的文件系统头部特征如下：</p>
+<ul>
+<li>cramfs —-    文件系统头部特征字符为”0x28cd3d45”。</li>
+<li>squashfs —- 文件系统头部特征较多，其中一些是标准的squashfs头部，有些是国外的研究人员发现的，大致有sqsh、hsqs、qshs、shsq、hsqt、tqsh、sqlz 7种。</li>
+</ul>
+<p>检查是否存在cramfs文件系统头部特征和magic签名“0x28cd3d45”。因为目前不知道文件组织是大端机格式还是小端机格式，所以要进行二次搜索：</p>
+<p>strings firmware.bin | grep <code>python -c &#39;print &quot;\x28\xcd\x3d\x45&quot;&#39;</code></p>
+<p>strings firmware.bin | grep <code>python -c &#39;print &quot;\x45\x3d\xcd\x28&quot;&#39;</code></p>
+<p>如果不是cramfs文件类型，那么可以尝试判断是不是Squashfs文件系统：</p>
+<p>strings fimware.bin | grep “sqsh” 或 “hsqs”或“qshs”或“shsq”或“hsqt”或“tqsh”或“sqlz”等。</p>
+<p>这里如果在strings firmware.bin | grep “hsqs” —–&gt; 打印出hsqs，我们发现了squashfs文件系统”hsqs”的magic签名头，但我们不能完全确定该文件包含的是否为一个squashfs文件系统，还需要进一步确定firmware.bin是不是squashfs文件系统。</p>
+<h5 id="2-2-2、确定文件系统"><a href="#2-2-2、确定文件系统" class="headerlink" title="2.2.2、确定文件系统"></a>2.2.2、确定文件系统</h5><p>在输入hexdump -C firmware.bin | grep -n “hsqs” 后出现：</p>
+<p>00240: 00160090     68 73 71 73 9d 08 00 00    ab c0 ba 51 00 00 04 00   | hsqs…. ……Q……….|</p>
+<p>可以看到，在偏移0x160090(十六进制1441936）出发现了”hsqs”。</p>
+<p>然后用dd命令复制从0x160090处开始的100字节数据。命令如下：</p>
+<p>dd if&#x3D;firmware.bin bs&#x3D;1 count&#x3D;100 skip&#x3D;1441936 of&#x3D;squash</p>
+<p>之所以要复制100字节的数据，是因为squashfs文件系统的头部校验不会超过100字节。</p>
+<p>最后使用file命令确认复制的文件squash的文件类型。</p>
+<p>运行file squash ：</p>
+<p>squash: Squashfs filesystem, little endian, version 4.0, <strong>6164554 bytes</strong>, 2205 inodes, blocksize: 262144 bytes,</p>
+<h3 id="2-3、手动提取文件系统"><a href="#2-3、手动提取文件系统" class="headerlink" title="2.3、手动提取文件系统"></a>2.3、手动提取文件系统</h3><p>在上面，我们已经知道firmware.bin在偏移0x00160090(十进制1441936)处包含squashfs文件系统，其大小为6164554字节，因此，可以使用dd命令复制该数据块。</p>
+<p>命令如下：</p>
+<p>dd if&#x3D;firmware.bin bs&#x3D;1 count&#x3D;6164554 skip&#x3D;1441936 of&#x3D;kernel.squash</p>
+<p>运行上面命令后，属于squashfs文件系统的数据已经成功提取出来，接下来的工作就是还原squashfs文件系统中的根文件系统。</p>
+<p>尽管Linux自带的file命令中包含与squashfs文件系统相关的magic签名头部信息，但这对于我们深入了解该文件系统而言是不够的。</p>
+<p>使用file命令的”-m”参数加载自定义的magic签名文件，输出更加详细的信息。</p>
+<p>命令：file -m filesystems.hsqs hernel.squash</p>
+<p>打印略过，在firmware.bin中提取的kernel.squash使用的是LZMA压缩方式。</p>
+<p>在linux下可以安装squashfs-tools工具，命令“apt-get install squashfs-tools”,该工具目前仅支持GIZP、LZO、XZ格式，不支持LZMA格式。</p>
+<p>可以安装firmware-mod-kit解压缩。</p>
+<p>git clone <a target="_blank" rel="noopener" href="https://github.com/mirror/firmware-mod-kit.git">https://github.com/mirror/firmware-mod-kit.git</a></p>
+<p>sudo apt-get install build-essential zlib1g-dev libz1zma-dev python-magic</p>
+<p>.&#x2F;configure &amp;&amp; make</p>
+<p>然后在firmware-mod-kit目录下运行unsquashfs_all.sh kernel.squash</p>
+<hr>
+<h2 id="附：路由器逆向分析——firmware-mod-kit工具安装和使用说明"><a href="#附：路由器逆向分析——firmware-mod-kit工具安装和使用说明" class="headerlink" title="附：路由器逆向分析——firmware-mod-kit工具安装和使用说明"></a>附：路由器逆向分析——firmware-mod-kit工具安装和使用说明</h2><p>本文博客地址：<a target="_blank" rel="noopener" href="http://blog.csdn.net/qq1084283172/article/details/68061957">http://blog.csdn.net/qq1084283172/article/details/68061957</a></p>
+<h3 id="一、firmware-mod-kit工具的安装"><a href="#一、firmware-mod-kit工具的安装" class="headerlink" title="一、firmware-mod-kit工具的安装"></a>一、firmware-mod-kit工具的安装</h3><p>firmware-mod-kit工具的功能和binwalk工具的类似，其实firmware-mod-kit工具在功能上有调用binwalk工具提供的功能以及其他的固件解包工具的整合。下载firmware-mod-kit工具的源码进入到src目录下就能够看到firmware-mod-kit工具整合了那些固件提取和文件系统解压的工具。firmware-mod-kit工具的功能有固件文件的解包和打包、固件提取文件系统的解压和压缩、DD-WRT Web Pages的修改等，在每个整合的固件分析工具的源码文件夹里都有相关的使用说明。</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019243425-61874fa3-f91c-4e43-9da4-a57d9bc38af6.png"></p>
+<p><strong>1.在ubuntu系统上安装firmware-mod-kit工具之前需要先安装需要的依赖库文件。</strong></p>
+<p>具体可以参考firmware-mod-kit工具的官方说明文档：<a target="_blank" rel="noopener" href="https://code.google.com/archive/p/firmware-mod-kit/wikis/Documentation.wiki">https://code.google.com/archive/p/firmware-mod-kit/wikis/Documentation.wiki</a>。</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019243404-cba31d0d-7739-4b2c-8fc0-da501f1a62c7.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># For Ubuntu 需要安装的依赖库文件</span><br><span class="line">$ sudo apt-get install git build-essential zlib1g-dev liblzma-dev python-magic</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">2.firmware-mod-kit工具的下载和安装.</span></p>
+<p>firmware-mod-kit工具的github源码下载地址：<a target="_blank" rel="noopener" href="https://github.com/mirror/firmware-mod-kit">https://github.com/mirror/firmware-mod-kit</a>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/mirror/firmware-mod-kit.git</span><br><span class="line"># 进入源码目录</span><br><span class="line">cd firmware-mod-kit/src</span><br><span class="line"># 执行configure文件生成Makefile文件然后make编译生成可执行文件</span><br><span class="line">./configure &amp;&amp; make</span><br></pre></td></tr></table></figure>
+
+<p><strong>3.firmware-mod-kit工具官方的详细说明教程</strong></p>
+<p>firmware-mod-kit工具官方详细说明教程的参考网址为：<a target="_blank" rel="noopener" href="https://bitsum.com//firmware_mod_kit.htm">https://bitsum.com//firmware_mod_kit.htm</a>，该网页中详细的说明了firmware-mod-kit工具运行支持的平台，整合的固件解包和分析的工具、支持分析的路由器的固件型号以及使用的命令行参数的说明。</p>
+<p><strong>4.设备固件分析的讨论</strong></p>
+<p>有关路由器等设备固件分析讨论的论坛：<a target="_blank" rel="noopener" href="https://forum.bitsum.com/forum/index.php/board,12.html">https://forum.bitsum.com/forum/index.php/board,12.html</a>，该论坛里有很多的有关固件提取、解压、修改、工具交流的信息。</p>
+<h3 id="二、firmware-mod-kit工具的使用说明"><a href="#二、firmware-mod-kit工具的使用说明" class="headerlink" title="二、firmware-mod-kit工具的使用说明"></a>二、firmware-mod-kit工具的使用说明</h3><p><strong>1.firmware-mod-kit工具的官方功能描述（有些功能去掉了）：</strong></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019244498-09b2b97d-6726-4185-8617-bc1f58c6f7a4.png"></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019243376-e2234b7e-9e25-43e9-b8ce-a52c47cb1f72.png"></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019243404-29b93fb2-62d4-432c-beab-ae4c37de3d2f.png"></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019243413-b6eb48a8-1a00-402b-84b7-464dd6956dc3.png"></p>
+<p><strong>2.firmware-mod-kit工具提供的功能对应的脚本.</strong></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019244345-4ea92bc2-7699-4bda-926d-2436cdd1e829.png"></p>
+<p><strong>3.firmware-mod-kit工具的功能简单介绍</strong></p>
+<p><strong>3.1.解包固件提取内核和文件系统</strong></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019244519-d7b9ea93-0238-47be-a485-1644db27f1df.png"></p>
+<h4 id="The-Firmware-Working-Directory"><a href="#The-Firmware-Working-Directory" class="headerlink" title="The Firmware Working Directory"></a>The Firmware Working Directory</h4><p>The Firmware Mod Kit uses a ‘hard coded’ working directory of ‘fmk’. The extraction script extracts to this folder, and the rebuild script rebuilds from this folder. Allowance of alternate working directories is supported for <span style="color: #000000">some</span> operations, but not all. We’ll be expanding that in the future. For now, if you have multiple working directories, we suggest you rename the ones you’re not currently operating on.</p>
+<h4 id="Extracting-Firmware"><a href="#Extracting-Firmware" class="headerlink" title="Extracting Firmware"></a>Extracting Firmware</h4><p>Automated firmware extraction typically works with most firmware images that employ uImage&#x2F;TRX firmware headers and use SquashFS or CramFS file systems. Currently, extract-firmware.sh is the preferred method of extraction as it supports more firmware types than the older old-extract.sh script. However, old-extract.sh is still included and works with many firmware formats.</p>
+<p>Usage for both extract-firmware.sh and extract_firmware.sh is straight forward:</p>
+<p><code>$ ./extract-firmware.sh firmware.bin</code></p>
+<p>By default, output from extract-firmware.sh will be located in the ‘fmk’ directory, while old-extract.sh will place extracted data into the specified working directory.</p>
+<p><strong>3.2.重打包解包的内核和文件系统重建固件文件</strong></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019243420-f344148f-e48c-4d94-bbb3-3081d61cd712.png"></p>
+<h4 id="Re-Building-Firmware"><a href="#Re-Building-Firmware" class="headerlink" title="Re-Building Firmware"></a>Re-Building Firmware</h4><p>Which build script to use is dependant on which extraction script was used. If you extracted a firmware image with extract-firmware.sh, then you must use build-firmware.sh to re-build it. Likewise, if old-extract.sh was used, then old-build.sh must be invoked when re-building an image:</p>
+<p><code>$ ./build-firmware.sh [-nopad] [-min]</code></p>
+<p><span style="color: #444444">The new firmware generated by build-firmware.sh will be located at ‘fmk&#x2F;</span><span style="color: #3333FF">new-firmware.bin</span><span style="color: #444444">‘, while old-build.sh will generate firmware images in several different formats and save them in the specified output directory.</span></p>
+<p><span style="color: #444444">The optional </span><span style="color: #3333FF">-nopad</span><span style="color: #444444"> switch will instruct build-firmware.sh to NOT pad the firmware up to its original size.</span></p>
+<p><span style="color: #444444">The optional </span><span style="color: #3333FF">-min</span><span style="color: #444444">switch will use the maximum squashfs block size of 1MB. This will decrease the firmware image size at the cost of additional CPU and RAM resources utilized on the target device. Do not use this switch unless you must. This is a very large block size for embedded systems. The original firmware squashfs block size is preserved on rebuild, and the original block size should be the one used unless you are sure you know what you’re doing. Too large a block size may appear to work fine, but runtime performance of the firmware may suffer in all or some loads.</span></p>
+<p><strong>3.3.修改 DD-WRT Web Pages 面</strong></p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019244018-07b269b1-ef96-4aff-84d6-bb53da030ba7.png"></p>
+<h4 id="Modifying-DD-WRT-Web-Pages"><a href="#Modifying-DD-WRT-Web-Pages" class="headerlink" title="Modifying DD-WRT Web Pages"></a>Modifying DD-WRT Web Pages</h4><p>One very unique feature of the Firmware Mod Kit is its ability to extract and rebuild files from the DD-WRT Web GUI. This is automated by the ddwrt-gui-extract.sh and ddwrt-gui-restore.sh scripts.</p>
+<p>Once you have extracted a DD-WRT firmware image using extract-firmwware.sh, you can extract the Web files by running:</p>
+<p><code>$ ./ddwrt-gui-extract.sh</code></p>
+<p>This will create a directory named ‘www’ and extract the Web files there. You may modify the files any way you like, but you cannot add or delete files.</p>
+<p>When you are finished editing, you can rebuild the Web files by running:</p>
+<p><code>$ ./ddwrt-gui-rebuild.sh</code></p>
+<p><strong>3.4.解压cpio、cramfs、squashfs格式的文件系统</strong></p>
+<p>当然了，在firmware-mod-kit工具的源码文件夹里仔细看看，能发现cpio、cramfs、squashfs格式的文件系统的压缩工具。</p>
+<p><img src="/assets/posts/buuctf-firmware-1abxu0o/assets/1585019243395-f987380b-de84-4256-b58b-336d7e704a52.png"></p>
+<p><strong>3.5.使用firmware-mod-kit工具修改设备固件然后重打包</strong></p>
+<h4 id="Reverting-to-a-vendor-firmware"><a href="#Reverting-to-a-vendor-firmware" class="headerlink" title="Reverting to a vendor firmware"></a>Reverting to a vendor firmware</h4><p>Sometimes you’ll enthusiastically flash a third-party firmware like Gargoyle or DD-WRT only to discover it lacks features you need, doesn’t perform as well as the vendor firmware, or has functional problems. In this situation, you might find yourself wanting to go back to the vendor firmware, but have no way to do so!</p>
+<p>Here’s how the Firmware Mod Kit can help you revert to a vendor firmware. The process is this:</p>
+<ol>
+<li>Extract vendor firmware. Then rename the ‘fmk’ directory.</li>
+<li>Extract third-party ‘upgrade’ firmware (e.g. Gargoyle-sysupgrade)</li>
+<li>Replace extracted third-party firmware’s rootfs and image_parts with those from the vendor firmware.</li>
+<li>Rebuild firmware image</li>
+<li>Flash vendor firmware image (now packaged as your third-party firmware expects).</li>
+<li>If all succeeded, you’re now using the vendor firmware again.</li>
+</ol>
+<p>Once you are back to the vendor firmware, then it accepts vendor firmware images again.</p>
+<h4 id="Examples"><a href="#Examples" class="headerlink" title="Examples"></a>Examples</h4><p>This example demonstrates how to extract a firmware image, replace its existing telnet daemon with a custom built one, and then build a new firmware image:</p>
+<p><code>$ ./extract-firmware.sh firmware.bin</code></p>
+<p><code>$ cp new-telnetd fmk/rootfs/usr/sbin/telnetd</code></p>
+<p><code>$ ./build-firmware.sh</code></p>
+<p>Below is an example of the commands to run in order to extract a DD-WRT firmware image, modify the Web index page, and build a new firmware image:</p>
+<p><code>$ ./extract-firmware.sh firmware.bin</code></p>
+<p><code>$ ./ddwrt-gui-extract.sh</code></p>
+<p><code>$ echo &quot;HELLO WORLD&quot; &gt; www/index.asp</code></p>
+<p><code>$ ./ddwrt-gui-rebuild.sh</code></p>
+<p><code>$ ./build-firmware.sh</code></p>
+<p><strong>3.6.firmware-mod-kit工具的其它功能</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">Making changes to the firmware&#x27;s file system</span><br><span class="line">Modifying the firmware is simple. The file system is stored in the working directory you supplied to extract_firmware.sh. Here are the subfolders of this directory:</span><br><span class="line">    rootfs/ </span><br><span class="line">        This is where the file system is. Make modifications here.</span><br><span class="line">    image_parts/ </span><br><span class="line">        This is where intermediate files are stored. If you need to replace the kernel (not at all recommended), you can do so by replacing the appropriate file here (usually segment2).</span><br><span class="line">    installed_packages/</span><br><span class="line">        If you use the ipkg_install.sh tool, this is where packages you&#x27;ve installed after firmware extraction will reside.</span><br><span class="line">One can manually change the files in rootfs and/or use the automated package scripts.</span><br><span class="line"> </span><br><span class="line">Installing packages (.IPK)</span><br><span class="line">In compliment to manually making changes, one can use pre-built IPKG format package files with the ipkg_install/remove scripts. Although not all will work and a repository for packages verified to work has not yet been produced, many packages work just fine.</span><br><span class="line">Packages are pre-built collections of files pertaining to a set of software. OpenWrt and DD-WRT both use packages, and most are cross-compatible. These packages are stored in a tar/gzip archive of a pre-defined structure that includes some control files. You can extract and copy the files manually, or use the ipkg_install.sh script included with this kit. For a list of some of the available packages (not all may work), see http://downloads.openwrt.org/whiterussian/packages/ and http://ftp.selfnet.de/pub/openwrt/backports/rc5/ . We are currently in the process of compiling a set of packages known to be good for DD-WRT ... to help in this matter please visit here.</span><br><span class="line">For information on how to create IPKs, see the IPK Creation Kit.</span><br><span class="line">Example use:</span><br><span class="line">$ ./ipkg_install.sh some_package-1.2.5.ipk working_directory/</span><br><span class="line"> </span><br><span class="line">some_package-1.2.5.ipkg would be the filename of the package.</span><br><span class="line">working_directory is the same working directory you supplied to the extract_firmware.sh script.</span><br><span class="line">Notes:</span><br><span class="line">A script, ipkg_install_all.sh is also available to install an entire folder of packages.</span><br><span class="line">The collection of installed packages will be stored in working_directory/installed_packages .</span><br><span class="line"> </span><br><span class="line">Removing packages (.IPK)</span><br><span class="line">To remove packages there is the ipkg_remove.sh script.</span><br><span class="line">Example use:</span><br><span class="line">$ ./ipkg_remove.sh some_package-1.2.5.ipk working_directory/</span><br><span class="line"> </span><br><span class="line">some_package-1.2.5.ipkg would be the filename of the package.</span><br><span class="line">working_directory is the same working directory you supplied to the extract_firmware.sh script.</span><br><span class="line">Notes:</span><br><span class="line">A script, ipkg_remove_all.sh is also available to install an entire folder of packages.</span><br></pre></td></tr></table></figure>
+
+<h3 id="三、firmware-mod-kit包含的工具的说明"><a href="#三、firmware-mod-kit包含的工具的说明" class="headerlink" title="三、firmware-mod-kit包含的工具的说明"></a>三、firmware-mod-kit包含的工具的说明</h3><h4 id="Tools-Utilities"><a href="#Tools-Utilities" class="headerlink" title="Tools &#x2F; Utilities"></a>Tools &#x2F; Utilities</h4><p>The Firmware Mod Kit consists of a collection of tools useful when working with embedded firmware images. These include those listed below, though there are <span style="color: #000000">MANY MORE</span> that are not listed here.</p>
+<p><span style="color: #444444">| |</span><span style="color: #000000">Tool</span> | <span style="color: #000000">Description</span></p>
+<p>| |:———|:—————-</p>
+<p>| | AsusTRX | An extended version of ASUSTRX that can build both ‘normal’ TRX files and, optionally, those with an ASUS addver style header appended. It can also, uniquely, force segment offsets in the TRX (with -b switch) for compatibility with Marvell ASUS devices like the WL-530g. This tool replaces both ‘normal’ trx tool and addver. Current versions included are: 0.90 beta.</p>
+<p>| | AddPattern | Utility to pre-pend Linksys style HDR0 header to a TRX.</p>
+<p>| | AddVer | ASUS utility to append a header to a TRX image that contains version information. ASUSTRX includes this capability. Current version: unversioned.</p>
+<p>| | Binwalk | Scans firmware images for known file types (firmware headers, compressed kernels, file systems, etc.)</p>
+<p>| | CramFSCK | CRAMFS file system image checker and extractor. Current versions included are: 2.4x.</p>
+<p>| | CramFSSwap | Utility to swap the endianess of a CramFS image</p>
+<p>| | CRCalc | Utility to patch all uImage and TRX headers inside a given firmware image.</p>
+<p>| | MkSquashFS | Builds a squashfs file system image. Current versions included are: 2.1-<a target="_blank" rel="noopener" href="https://code.google.com/p/firmware-mod-kit/source/detail?r=2">r2</a>, 3.0.</p>
+<p>| | MkCramFS | Builds a cramfs file system image. Coming in next version. Current versions included are: 2.4x.</p>
+<p>| | MotorolaBin | Utility that prepends 8 byte headers to TRX images for Motorola devices WR850G, WA840G, WE800G. Current version: unversioned.</p>
+<p>| | Splitter3 | Utility to scan and extract a firmware image’s component parts.</p>
+<p>| | Tpl-tool | Utility to manipulate TP-Link vendor format images.</p>
+<p>| | UnCramFS | Alternate tool to extract a cramfs file system image. Use cramfsck instead whenever possible as it seems to be more reliable. Current versions included are: 0.7 (for cramfs v2.x).</p>
+<p>| | UnCramFS-LZMA | Alternate tool to extract LZMA-compressed cramfs file system images, such as those used by OpenRG.</p>
+<p>| | UnSquashFS | Extracts a zlib squashfs file system image. Current versions included are 1.0 for 3.0 images and 1.0 for 2.x images (my own blend).</p>
+<p>| | UnSquashFS-LZMA | Extracts an lzma squashfs file system image. Current versions included are 1.0 for 3.0 images and 1.0 for 2.x images (my own blend). Note: Not all squashfs-lzma patches are compatible with one another. I’m working on adding support for all common squashfs-lzma variations.</p>
+<p>| | UnTRX | Splits TRX style firmwares into their component parts. Also supports pre-pended addpattern HDR0 style headers. This was developed exclusively for this kit. Current versions included are: 0.45.</p>
+<p>| | WebDecomp | Extracts and restores Web GUI files from DD-WRT firmware images, allowing modifications to the Web pages.</p>
+<p>| | WRTVxImgTool | Utility to generate VxWorks compatible firmware images for the WRT54G(S) v5 series.</p>
+<p>参考网址：<a target="_blank" rel="noopener" href="https://code.google.com/archive/p/firmware-mod-kit/wikis/Documentation.wiki">https://code.google.com/archive/p/firmware-mod-kit/wikis/Documentation.wiki</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-firmware%EF%BC%88%E8%B7%AF%E7%94%B1%E5%9B%BA%E4%BB%B6%E9%80%86%E5%90%91%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-firmware%EF%BC%88%E8%B7%AF%E7%94%B1%E5%9B%BA%E4%BB%B6%E9%80%86%E5%90%91%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-03/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E8%84%B1%E5%A3%B3/ESP%E8%84%B1%E5%A3%B3%E5%AE%9A%E5%BE%8B%EF%BC%88%E4%BB%A5UPX%E5%A3%B3%E4%B8%BA%E4%BE%8B%EF%BC%89/" title="ESP脱壳定律（以UPX壳为例）"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">ESP脱壳定律（以UPX壳为例）</div></div><div class="info-2"><div class="info-item-1">ESP脱壳定律（以UPX壳为例）参考资料： https://bbs.ichunqiu.com/forum.php?mod=viewthread&amp;tid=15978&amp;extra=&amp;highlight=esp&amp;page=1 （由于在输液时写文章，故部分语言借助如上链接，望理解） 为了方便，我们找到在吾爱破解工具包中找到单文件工具并使用加壳工具对其加壳。 使用的单文件工具如下：  首先在加壳之前查一下壳：   没有壳，接下来手动对其加一个UPX壳，同样使用吾爱破解工具包中的加壳工具   再检测一下：  加壳成功，接下来使用ESP脱壳定律进行脱壳。  ESP脱壳定律原理：“堆栈平衡”原理 在开始讨论ESP定律之前，先给复习一下一些简单的汇编知识。 1.call 这个命令是访问子程序的一个汇编基本指令。也许你说，这个我早就知道了！别急请继续看完。call真正的意义是什么呢？我们可以这样来理解： 1.向堆栈中压入下一行程序的地址； 2.JMP到call的子程序地址处。 例如： 00401029.E8           call 004A3508 004010...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF%EF%BC%88%E5%8D%97%E9%98%B3%E7%90%86%E5%B7%A5%E5%AD%A6%E9%99%A2%E6%8B%9B%E6%96%B0%E8%B5%9B%EF%BC%89-findit/" title="BUUCTF（南阳理工学院招新赛）-findit"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">BUUCTF（南阳理工学院招新赛）-findit</div></div><div class="info-2"><div class="info-item-1">BUUCTF（南阳理工学院招新赛）-findit①下载文件得到“kaisa.zip”，并解压出“1.apk” ②将得到的“app-debug.apk”拖入Andriodkiller”中 ③发现两串16进制数： .array-data 2 0x70s 0x76s 0x6bs 0x71s 0x7bs 0x6ds 0x31s 0x36s 0x34s 0x36s 0x37s 0x35s 0x32s 0x36s 0x32s 0x30s 0x33s 0x33s 0x6cs 0x34s 0x6ds 0x34s 0x39s 0x6cs 0x6es 0x70s 0x37s 0x70s 0x39s 0x6ds 0x6es 0x6bs 0x32s 0x38s 0x6bs 0x37s 0x35s 0x7ds .array-data 2 0x54s 0x68s 0x69s 0x73s 0x49s 0x73s 0x54s 0x68s 0x65s 0x46s 0x6cs 0x61s 0x67s 0x48s 0x6fs 0x6ds 0x65s ④第一串得到ThisITheFIagHome，第二串得到:pvkq{...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BUUCTF-firmware%EF%BC%88%E8%B7%AF%E7%94%B1%E5%9B%BA%E4%BB%B6%E9%80%86%E5%90%91%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">BUUCTF-firmware（路由固件逆向）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">写在前面：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF%EF%BC%9A"><span class="toc-number">1.2.</span> <span class="toc-text">基本信息：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96%EF%BC%9A"><span class="toc-number">1.3.</span> <span class="toc-text">安装依赖：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85firmware-mod-kit"><span class="toc-number">1.4.</span> <span class="toc-text">安装firmware-mod-kit</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BF%9B%E5%85%A5%E6%BA%90%E7%A0%81%E7%9B%AE%E5%BD%95"><span class="toc-number">2.</span> <span class="toc-text">进入源码目录</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%89%A7%E8%A1%8Cconfigure%E6%96%87%E4%BB%B6%E7%94%9F%E6%88%90Makefile%E6%96%87%E4%BB%B6%E7%84%B6%E5%90%8Emake%E7%BC%96%E8%AF%91%E7%94%9F%E6%88%90%E5%8F%AF%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">执行configure文件生成Makefile文件然后make编译生成可执行文件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%EF%BC%9A%E8%B7%AF%E7%94%B1%E5%99%A8%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8F%90%E5%8F%96"><span class="toc-number">3.1.</span> <span class="toc-text">附：路由器文件系统与提取</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E8%B7%AF%E7%94%B1%E5%99%A8%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.1.1.</span> <span class="toc-text">1、路由器文件系统</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-1%E3%80%81%E8%B7%AF%E7%94%B1%E5%99%A8%E5%9B%BA%E4%BB%B6"><span class="toc-number">3.1.1.1.</span> <span class="toc-text">1.1、路由器固件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2%E3%80%81%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.1.1.2.</span> <span class="toc-text">1.2、文件系统</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E6%89%8B%E5%8A%A8%E6%8F%90%E5%8F%96%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.1.2.</span> <span class="toc-text">2、手动提取文件系统</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1%E3%80%81%E6%9F%A5%E7%9C%8B%E6%96%87%E4%BB%B6%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.1.2.1.</span> <span class="toc-text">2.1、查看文件类型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2%E3%80%81%E6%89%8B%E5%8A%A8%E5%88%A4%E6%96%AD%E6%96%87%E4%BB%B6%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.1.2.2.</span> <span class="toc-text">2.2、手动判断文件类型</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-1%E3%80%81%E6%A3%80%E7%B4%A2%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9Fmagic%E7%AD%BE%E5%90%8D"><span class="toc-number">3.1.2.2.1.</span> <span class="toc-text">2.2.1、检索文件系统magic签名</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-2-2%E3%80%81%E7%A1%AE%E5%AE%9A%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.1.2.2.2.</span> <span class="toc-text">2.2.2、确定文件系统</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3%E3%80%81%E6%89%8B%E5%8A%A8%E6%8F%90%E5%8F%96%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.1.3.</span> <span class="toc-text">2.3、手动提取文件系统</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%EF%BC%9A%E8%B7%AF%E7%94%B1%E5%99%A8%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%E2%80%94%E2%80%94firmware-mod-kit%E5%B7%A5%E5%85%B7%E5%AE%89%E8%A3%85%E5%92%8C%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"><span class="toc-number">3.2.</span> <span class="toc-text">附：路由器逆向分析——firmware-mod-kit工具安装和使用说明</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81firmware-mod-kit%E5%B7%A5%E5%85%B7%E7%9A%84%E5%AE%89%E8%A3%85"><span class="toc-number">3.2.1.</span> <span class="toc-text">一、firmware-mod-kit工具的安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81firmware-mod-kit%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E"><span class="toc-number">3.2.2.</span> <span class="toc-text">二、firmware-mod-kit工具的使用说明</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#The-Firmware-Working-Directory"><span class="toc-number">3.2.2.1.</span> <span class="toc-text">The Firmware Working Directory</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Extracting-Firmware"><span class="toc-number">3.2.2.2.</span> <span class="toc-text">Extracting Firmware</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Re-Building-Firmware"><span class="toc-number">3.2.2.3.</span> <span class="toc-text">Re-Building Firmware</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Modifying-DD-WRT-Web-Pages"><span class="toc-number">3.2.2.4.</span> <span class="toc-text">Modifying DD-WRT Web Pages</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Reverting-to-a-vendor-firmware"><span class="toc-number">3.2.2.5.</span> <span class="toc-text">Reverting to a vendor firmware</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Examples"><span class="toc-number">3.2.2.6.</span> <span class="toc-text">Examples</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81firmware-mod-kit%E5%8C%85%E5%90%AB%E7%9A%84%E5%B7%A5%E5%85%B7%E7%9A%84%E8%AF%B4%E6%98%8E"><span class="toc-number">3.2.3.</span> <span class="toc-text">三、firmware-mod-kit包含的工具的说明</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Tools-Utilities"><span class="toc-number">3.2.3.1.</span> <span class="toc-text">Tools &#x2F; Utilities</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

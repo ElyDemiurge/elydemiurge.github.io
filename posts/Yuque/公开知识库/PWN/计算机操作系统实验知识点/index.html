@@ -1,0 +1,624 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>计算机操作系统实验知识点 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="计算机操作系统实验知识点 注：一些在学校学的计算机操作系统知识点，方便查询…  实验一进程僵尸进程：僵尸进程是当子进程比父进程先结束，而父进程又没有回收子进程，释放子进程占用的资源，此时子进程将成为一个僵尸进程。 中断中断是指在CPU正常运行期间，由于内外部事件或由程序预先安排的事件引起的CPU暂时停止正在运行的程序，转而为该内部或外部事件或预先安排的事件服务的程序中去，服务完毕后再返回去继续运行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机操作系统实验知识点">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E7%9F%A5%E8%AF%86%E7%82%B9/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="计算机操作系统实验知识点 注：一些在学校学的计算机操作系统知识点，方便查询…  实验一进程僵尸进程：僵尸进程是当子进程比父进程先结束，而父进程又没有回收子进程，释放子进程占用的资源，此时子进程将成为一个僵尸进程。 中断中断是指在CPU正常运行期间，由于内外部事件或由程序预先安排的事件引起的CPU暂时停止正在运行的程序，转而为该内部或外部事件或预先安排的事件服务的程序中去，服务完毕后再返回去继续运行">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-06/800/450">
+<meta property="article:published_time" content="2021-04-21T08:38:03.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:16.911Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-06/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "计算机操作系统实验知识点",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E7%9F%A5%E8%AF%86%E7%82%B9/",
+  "image": "https://picsum.photos/seed/blog-cover-06/800/450",
+  "datePublished": "2021-04-21T08:38:03.000Z",
+  "dateModified": "2026-07-03T14:46:16.911Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E7%9F%A5%E8%AF%86%E7%82%B9/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '计算机操作系统实验知识点',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-06/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">计算机操作系统实验知识点</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">计算机操作系统实验知识点</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-04-21T08:38:03.000Z" title="发表于 2021-04-21 16:38:03">2021-04-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:16.911Z" title="更新于 2026-07-03 22:46:16">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">16.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>51分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="计算机操作系统实验知识点"><a href="#计算机操作系统实验知识点" class="headerlink" title="计算机操作系统实验知识点"></a>计算机操作系统实验知识点</h1><blockquote>
+<p>注：一些在学校学的计算机操作系统知识点，方便查询…</p>
+</blockquote>
+<h2 id="实验一"><a href="#实验一" class="headerlink" title="实验一"></a>实验一</h2><h3 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h3><p>僵尸进程：僵尸进程是当子进程比父进程先结束，而父进程又没有回收子进程，释放子进程占用的资源，此时子进程将成为一个僵尸进程。</p>
+<h3 id="中断"><a href="#中断" class="headerlink" title="中断"></a>中断</h3><p>中断是指在CPU正常运行期间，由于内外部事件或由程序预先安排的事件引起的CPU暂时停止正在运行的程序，转而为该内部或外部事件或预先安排的事件服务的程序中去，服务完毕后再返回去继续运行被暂时中断的程序。Linux中通常分为外部中断（又叫硬件中断）和内部中断（又叫异常）。</p>
+<h4 id="硬中断"><a href="#硬中断" class="headerlink" title="硬中断"></a>硬中断</h4><p>由与系统相连的外设(比如网卡、硬盘)自动产生的。主要是用来通知操作系统系统外设状态的变化。比如当网卡收到数据包的时候，就会发出一个中断。我们通常所说的中断指的是硬中断(hardirq)。</p>
+<h4 id="软中断"><a href="#软中断" class="headerlink" title="软中断"></a>软中断</h4><p>软中断是软件实现的中断，也就是程序运行时其他程序对它的中断：比如说在调试程序时下的断点一般为软件断点。</p>
+<h4 id="硬中断和软中断的区别"><a href="#硬中断和软中断的区别" class="headerlink" title="硬中断和软中断的区别"></a>硬中断和软中断的区别</h4><ul>
+<li>软中断是执行中断指令产生的，而硬中断是由外设引发的。</li>
+<li>硬中断的中断号是由中断控制器提供的，软中断的中断号由指令直接指出，无需使用中断控制器。</li>
+<li>硬中断是可屏蔽的，软中断不可屏蔽。</li>
+<li>硬中断处理程序要确保它能快速地完成任务，这样程序执行时才不会等待较长时间，称为上半部。</li>
+<li>软中断处理硬中断未完成的工作，是一种推后执行的机制，属于下半部。</li>
+</ul>
+<h3 id="swap（交换）分区"><a href="#swap（交换）分区" class="headerlink" title="swap（交换）分区"></a>swap（交换）分区</h3><p>在安装系统的时就已经建立了swap分区。swap分区通常被称为交换分区，这是一块特殊的硬盘空间，即当实际内存不够用的时候，操作系统会从内存中取出一部分暂时不用的数据，放在交换分区中，从而为当前运行的程序腾出足够的内存空间。</p>
+<h3 id="主存和辅存"><a href="#主存和辅存" class="headerlink" title="主存和辅存"></a>主存和辅存</h3><p>存储器在计算机组成结构占据很重要的位置。有了存储器，计算机就可以存储程序和数据。但在计算机组成结构中存储器的种类很多，按其用途可分为：主存储器和辅助存储器；对一般计算机而言，主存&#x3D;&#x3D;内存 指计算机中的内存条；外存&#x3D;&#x3D;辅存 如：硬盘、U盘、光盘及软盘等；</p>
+<h4 id="主存"><a href="#主存" class="headerlink" title="主存"></a>主存</h4><p>主存储器又称内存储器（简称内存）内存又称主存，是CPU能直接寻址的存储空间，它的特点是存取速率快。内存是电脑中主要部件，它是相对于外存来说。</p>
+<p>内存一般采用半导体存储单元，包括随机存储器（RAM）、只读存储器（ROM）和高级缓存（Cache）。</p>
+<ul>
+<li>随机存储器（RAM）：（Random Access Memory）程序的数据放在主存储器内，各个存储单元的内容可通过指令随机访问。我们不仅可以从中读取数据，而且还可以写入数据。但是机器电源关闭时，它中数据就会丢失。内存条（SIMM）就是把RAM集成块集中在一小块电路板上。</li>
+<li>只读存储器（ROM）：（Read Only Memory）里面存放一次性写入的程序或数据，它是把数据或程序永久保存在其中，不能更改，只能随机读取。即使机器断电，数据也不会丢失。RAM和ROM共同分享主存储器的地址空间。</li>
+<li>高级缓存（Cache）：它是介于CPU与内存之间，常用有一级缓存（L1）、二级缓存（L2）、三级缓存（L3）（存在于CPU中）。它的读写速度比内存还快，当CPU在内存中读取或写入数据时，数据会被保存在高级缓冲存储器中，当下次访问该数据时，CPU直接读取高级缓冲存储器，而不是更慢的内存。</li>
+</ul>
+<p>在CPU同时处理很多数据，而又不可能同时进行所有数据的传输的情况，把优先级低的数据暂时放入缓存中，等优先级高的数据处理完毕后再把它们从缓存中拿出来进行处理。</p>
+<h4 id="辅存"><a href="#辅存" class="headerlink" title="辅存"></a>辅存</h4><p>辅助存储器又称外存储器（简称外存），它是指除CPU缓存和计算机内存以外的存储器。</p>
+<h4 id="处理机"><a href="#处理机" class="headerlink" title="处理机"></a>处理机</h4><p>处理机是处理计算机系统中存储程序和数据，并按照程序规定的步骤执行指令的部件。</p>
+<h3 id="进程的五态"><a href="#进程的五态" class="headerlink" title="进程的五态"></a>进程的五态</h3><h4 id="各个状态的概念"><a href="#各个状态的概念" class="headerlink" title="各个状态的概念"></a>各个状态的概念</h4><h5 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h5><p>正在创建进程，尚未转到就绪状态。</p>
+<blockquote>
+<p>（父）进程创建过程：OS分配进程标识符，在内核中申请PCB</p>
+<ol>
+<li>复制父进程的环境</li>
+<li>分配资源（堆栈，文件…）</li>
+<li>复制父进程空间里的内容（这里linux下fork()函数采用COW技术）</li>
+<li>将进程设置为就绪状态，放入就绪队列</li>
+</ol>
+</blockquote>
+<h5 id="就绪"><a href="#就绪" class="headerlink" title="就绪"></a>就绪</h5><p>进程处于准备运行的状态，即 进程已经获得了除了处理机之外的一切所需资源，一旦得到处理机后就可以运行。</p>
+<h5 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h5><p>进程正在等待某一事件（某种资源的获取、IO…）而暂停运行。很显然这个状态下即使进程获得了处理机资源也不能立刻运行。</p>
+<h5 id="执行"><a href="#执行" class="headerlink" title="执行"></a>执行</h5><p>进程正在处理机上运行，在单处理机环境下，每一时刻最多只有一个进程处于运行状态。那么由此可以推出，在单处理机环境下，如果创建了N个进程，每一时刻最多只有N-1个进程处于就绪状态。</p>
+<h5 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h5><p>进程正在从系统中结束，原因可能是正常退出，也可能是异常退出。</p>
+<blockquote>
+<p>退出过程：</p>
+<ol>
+<li>根据终止进程的进程标识符在PCB集合中检索出要终止的进程，并查看该进程的状态</li>
+<li>若该进程有子进程则全部递归终止</li>
+<li>将该进程的所属资源还给父进程或者OS</li>
+<li>将该进程的PCB从PCB集合中移除</li>
+</ol>
+</blockquote>
+<h4 id="状态图说明"><a href="#状态图说明" class="headerlink" title="状态图说明"></a>状态图说明</h4><p><img src="/assets/posts/post-146vje4/assets/1618996286425-dd144d27-3924-48a6-bd59-d5d52a3a8b11.png" alt="image.png"></p>
+<p>就绪状态 -&gt; 执行状态：根据系统的调度算法，处于就绪状态的进程获取到处理机资源（分派的时间片）</p>
+<p>执行状态 -&gt; 就绪状态：</p>
+<ul>
+<li>处于运行状态的进程用完了系统分配给它的执行时间片，需要让出处理机</li>
+<li>在可剥夺的OS中，当有更高优先级的进程就绪，调度算法会让更高优先级的进程先执行</li>
+</ul>
+<p>执行状态 -&gt; 阻塞状态：当进程等待某一事件发生时，就会从运行状态切换到阻塞状态（比如等待IO设备）</p>
+<p>阻塞状态 -&gt; 就绪状态：当进程等待的事件已经发生，就会从运行状态切换到就绪状态</p>
+<p>执行 -&gt; 终止：程序执行完成（正常退出或异常退出）</p>
+<h2 id="实验二"><a href="#实验二" class="headerlink" title="实验二"></a>实验二</h2><h3 id="Linux–fork函数及exec函数"><a href="#Linux–fork函数及exec函数" class="headerlink" title="Linux–fork函数及exec函数"></a>Linux–fork函数及exec函数</h3><h4 id="1-写时拷贝的概念（COW）"><a href="#1-写时拷贝的概念（COW）" class="headerlink" title="1. 写时拷贝的概念（COW）"></a>1. 写时拷贝的概念（COW）</h4><p>Linux在使用fork()函数进程创建时，传统fork()的做法是系统把所有的资源复制给新创建的进程，这种方式不仅单一，而且效率低下。因为所拷贝的数据或别的资源可能是可以共享的。现在Linux的fork()使用写时拷贝页来实现新进程的创建，它是一种可推迟甚至避免数据拷贝的技术，刚开始时内核并不会复制整个地址空间，而是让父子进程共享地址空间，只有在写时才复制地址空间，使得父子进程都拥有独立的地址空间，即资源的复制是在只有需要写入时才会发生，因此而称之为Copy on Write（COW）。在此之前都是以读的方式去和父进程共享资源，这样，在页根本不会被写入的场景下，fork()立即执行exec()，无需对地址空间进行复制，fork()的实际开销就是复制父进程的一个页表和为子进程创建一个进程描述符，也就是说只有当进程空间中各段的内存内容发生变化时，父进程才将其内容复制一份传给子进程，大大提高了效率。</p>
+<p>那么子进程的物理空间没有代码，怎么去取指令执行exec系统调用呢？</p>
+<p><strong><span style="color: #F5222D">其实，在fork()之后，exec()之前，子进程和父进程是共享物理空间（内存区）的，子进程的代码段，数据段和堆栈都指向父进程物理空间，即两者的虚拟空间不同，但物理空间其实是同一个，当父进程或者子进程有需要修改段的行为时，再为子进程分配相应段的物理空间，若不是exec则内核会给子进程的数据段，堆栈段分配相应的物理空间，至此二者各自有各自的物理空间，互不影响。而代码段则继续共享父进程的物理空间，因为两者的代码完全相同，但如果是因为exec,，由于二者的执行的代码不同，则也需为子进程分配代码段的物理空间。</span></strong></p>
+<h4 id="2-详细"><a href="#2-详细" class="headerlink" title="2. 详细"></a>2. 详细</h4><p>现在有一个父进程P1，这是一个主体，那么它是有灵魂也就身体的。现在在其虚拟地址空间（有相应的数据结构表示）上有：正文段，数据段，堆，栈这四个部分，相应的，内核要为这四个部分分配各自的物理块。即：正文段块，数据段块，堆块，栈块。至于如何分配，这是内核去做的事，在此不详述。</p>
+<h4 id="3-关于fork函数"><a href="#3-关于fork函数" class="headerlink" title="3. 关于fork函数"></a>3. 关于fork函数</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">fork</span><span class="params">(<span class="type">void</span>)</span>;</span><br><span class="line"><span class="comment">//返回：在子进程中返回0，在父进程中返回子进程的id，出错返回-1.</span></span><br></pre></td></tr></table></figure>
+
+<p>fork在子进程中返回0而不是父进程的ID的原因在于：任何子进程只有一个父进程，而且子进程总是可以通过调用getppid取得父进程的ID。相反，父进程可以有许多子进程，而且无法获得各个子进程的进程ID。如果父进程想要跟踪所有子进程的ID，那么它必须记录每次调用fork的返回值，所以父进程返回的是子进程的进程ID。</p>
+<p><strong>fork有两个典型的用法：</strong></p>
+<p>1．一个进程创建一个自身的拷贝，这样每个拷贝都可以在另一个拷贝执行其他任务的同时处理各自的某个操作。这是网络服务器的典型用法。</p>
+<p>２．一个进程想要执行另一个程序。既然创建新进程的唯一方法为调用fork，该进程于是首先调用fork创建一个自身的拷贝，然后其中一个拷贝（通常为子进程）调用exec把自身替换成新的程序。这是诸如shell之类程序的典型用法。</p>
+<h4 id="4-关于exec函数"><a href="#4-关于exec函数" class="headerlink" title="4.关于exec函数"></a>4.关于exec函数</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">execl</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *pathname, <span class="type">const</span> <span class="type">char</span> *arg0,...<span class="comment">/* (char *)0 */</span>)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execv</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *pathname, <span class="type">char</span> *<span class="type">const</span> argv[])</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execle</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *pathname, <span class="type">const</span> <span class="type">char</span> *arg0,...<span class="comment">/* (char *)0,char *const envp[] */</span>)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execve</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *pathname, <span class="type">char</span> *<span class="type">const</span> argv[], <span class="type">char</span> *<span class="type">const</span> envp[])</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execlp</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *filename, <span class="type">const</span> <span class="type">char</span> *arg0,...<span class="comment">/* (char *)0 */</span>)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">execvp</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *filename, <span class="type">char</span> *<span class="type">const</span> argv[])</span>;</span><br><span class="line"><span class="comment">//所有六个函数返回：-1——失败，无返回——成功</span></span><br></pre></td></tr></table></figure>
+
+<p>从上面我们已经知道了fork会创建一个子进程。子进程的是父进程的副本。</p>
+<p>exec函数的作用就是：<strong><span style="color: #F5222D">装载一个新的程序（可执行映像）覆盖当前进程内存空间中的映像，从而执行不同的任务。exec系列函数在执行时会直接替换掉当前进程的地址空间。</span></strong></p>
+<p>画张图来理解一下：</p>
+<p><img src="/assets/posts/post-146vje4/assets/1618999442908-56e2eae5-684d-42f8-9a3e-6767d14ef457.png" alt="image.png"></p>
+<h4 id="５-Copy-On-Write技术原理"><a href="#５-Copy-On-Write技术原理" class="headerlink" title="５.Copy On Write技术原理"></a>５.Copy On Write技术原理</h4><p>内核只为新生成的子进程创建虚拟空间结构，它们来复制于父进程的虚拟空间结构，但是不为这些段分配物理内存，它们共享父进程的物理空间，当父子进程中有更改相应段的行为发生时，再为子进程相应的段分配物理空间。</p>
+<p>Copy On Write技术好处是什么？</p>
+<ul>
+<li>COW技术可减少分配和复制大量资源时带来的瞬间延时。</li>
+<li>COW技术可减少不必要的资源分配。比如fork进程时，并不是所有的页面都需要复制，父进程的代码段和只读数据段都不被允许修改，所以无需复制。</li>
+</ul>
+<p>Copy On Write技术缺点是什么？</p>
+<ul>
+<li>如果在fork()之后父子进程都还需要继续进行写操作，那么会产生大量的分页错误(页异常中断page-fault)，这样就得不偿失。</li>
+</ul>
+<p>几句话总结Linux的Copy On Write技术：</p>
+<ul>
+<li>fork出的子进程共享父进程的物理空间，当父子进程有内存写入操作时，read-only内存页发生中断，将触发的异常的内存页复制一份(其余的页还是共享父进程的)。</li>
+<li>fork出的子进程功能实现和父进程是一样的。如果有需要，我们会用exec()把当前进程映像替换成新的进程文件，完成自己想要实现的功能。</li>
+</ul>
+<p>６．关于vfork函数</p>
+<p>vfork()：这个做法更加火爆，内核连子进程的虚拟地址空间结构也不创建了，直接共享了父进程的虚拟空间，当然了，这种做法就顺水推舟的共享了父进程的物理空间。</p>
+<p>PS：实际上COW技术不仅仅在Linux进程上有应用，其他例如C++的String在有的IDE环境下也支持COW技术，即例如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">string</span> str1 = <span class="string">&quot;hello world&quot;</span>;</span><br><span class="line"><span class="built_in">string</span> str2 = str1;</span><br></pre></td></tr></table></figure>
+
+<p>之后执行修改代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">str1[<span class="number">1</span>]=<span class="string">&#x27;q&#x27;</span>;</span><br><span class="line">str2[<span class="number">1</span>]=<span class="string">&#x27;w&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>执行修改后，此时str1的地址会发生变化，而str2的地址还是原来的。即在复制对象时，并不真正为新对象开辟内存空间，而是在新对象的内存映射表中设立一个指针，指向源对象，这样在进行读操作时因为并不修改对象，并不会给源对象带来影响，当某一时刻要对某一对象进行修改时，即写操作时，再将对象复制到新的内存空间中去，在这上面执行修改，以避免相互之间的影响。这样做的一个好处也是尽可能提高效率。</p>
+<p>这就是C++中的COW技术的应用，不过VS2005似乎已经不支持COW。</p>
+<h3 id="fork函数拷贝的内存空间"><a href="#fork函数拷贝的内存空间" class="headerlink" title="fork函数拷贝的内存空间"></a>fork函数拷贝的内存空间</h3><p>通过fork创建的子进程会拷贝父进程的代码段、数据段、静态数据段、堆、栈、IO缓冲区，下面这个例子可以证明这一点：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">func</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;我是函数%s\n&quot;</span>,__func__);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> num = <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> num_s;</span><br><span class="line">    <span class="type">int</span>* p = <span class="built_in">malloc</span>(<span class="number">4</span>);</span><br><span class="line">    <span class="type">pid_t</span> pid = fork();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;haha\n&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span>(<span class="number">0</span> == pid)&#123;   </span><br><span class="line">        func();</span><br><span class="line">        *p = <span class="number">1234</span>;</span><br><span class="line">        num = <span class="number">1234</span>;</span><br><span class="line">        num_s = <span class="number">1234</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;我是子进程%u %p %p %p\n&quot;</span>,pid,p,&amp;num,&amp;num_s);</span><br><span class="line">    &#125;   </span><br><span class="line">    <span class="keyword">else</span>&#123;   </span><br><span class="line">        func();</span><br><span class="line">        *p = <span class="number">4567</span>;</span><br><span class="line">        num = <span class="number">4567</span>;</span><br><span class="line">        num_s = <span class="number">4567</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;我是父进程%u %p %p %p\n&quot;</span>,pid,p,&amp;num,&amp;num_s);</span><br><span class="line">    &#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>gcc编译之后查看一下结果：</p>
+<p><img src="/assets/posts/post-146vje4/assets/1619006825449-c4c7584a-a67c-4057-94aa-dfefaaa140aa.png" alt="截屏2021-04-21 20.07.01.png"></p>
+<p>从上图的结果中可以看出子进程中的变量地址和父进程中的一样。这里就涉及到物理地址和虚拟地址（或称逻辑地址）的概念。从逻辑地址到物理地址的映射称为地址重定向。分为：</p>
+<ul>
+<li>静态重定向：在程序装入主存时已经完成了逻辑地址到物理地址和变换，在程序执行期间不会再发生改变。</li>
+<li>动态重定向：程序执行期间完成，其实现依赖于硬件地址变换机构，如基址寄存器。</li>
+</ul>
+<p>虚拟地址：CPU所生成的地址。CPU产生的逻辑地址被分为：</p>
+<ul>
+<li>p （页号） 它包含每个页在物理内存中的基址，用来作为页表的索引；</li>
+<li>d：（页偏移），同基址相结合，用来确定送入内存设备的物理内存地址。</li>
+</ul>
+<p>物理地址：内存单元所看到的地址。用户程序看不见真正的物理地址。用户只生成逻辑地址，且认为进程的地址空间为0到max。物理地址范围从R+0到R+max，R为基地址，地址映射－将程序地址空间中使用的逻辑地址变换成内存中的物理地址的过程。由内存管理单元（MMU）来完成。</p>
+<p>fork后会产生一个和父进程完全相同的子进程，但子进程在此后多会exec系统调用，出于效率考虑，linux中引入了“写时复制“技术，也就是只有进程空间的各段的内容要发生变化时，才会将父进程的内容复制一份给子进程。</p>
+<p>在fork之后exec之前两个进程用的是相同的物理空间（内存区），子进程的代码段、数据段、堆栈都是指向父进程的物理空间，也就是说，两者的虚拟空间不同，但其对应的物理空间是同一个。当父子进程中有更改相应段的行为发生时，再为子进程相应的段分配物理空间。如果段的变动不是因为exec，内核会给子进程的数据段、堆栈段分配相应的物理空间（至此两者有各自的进程空间，互不影响），而代码段继续共享父进程的物理空间（两者的代码完全相同）；而如果是因为exec，由于两者执行的代码不同，子进程的代码段也会分配单独的物理空间。</p>
+<p>fork时子进程获得父进程代码和数据段、共享库、堆和栈的复制，所以变量的地址（当然是虚拟地址）也是一样的。</p>
+<p>每个进程都有自己的虚拟地址空间，不同进程的相同的虚拟地址显然可以对应不同的物理地址。因此地址相同（虚拟地址）而值不同没什么奇怪。具体过程是这样的：fork子进程完全复制父进程的栈空间，也复制了页表，但没有复制物理页面，所以这时虚拟地址相同，物理地址也相同，但是会把父子共享的页面标记为“只读”（类似mmap的private的方式），如果父子进程一直对这个页面是同一个页面，知道其中任何一个进程要对共享的页面“写操作”，这时内核会复制一个物理页面给这个进程使用，同时修改页表。而把原来的只读页面标记为“可写”，留给另外一个进程使用。</p>
+<p>这就是所谓的“写时复制”。正因为fork采用了这种写时复制的机制，所以fork出来子进程之后，父子进程哪个先调度呢？内核一般会先调度子进程，因为很多情况下子进程是要马上执行exec，会清空栈、堆。。这些和父进程共享的空间，加载新的代码段。。。这就避免了“写时复制”拷贝共享页面的机会。如果父进程先调度很可能写共享页面，会产生“写时复制”的无用功。所以，一般是子进程先调度滴。</p>
+<p>假定父进程malloc的指针指向0x12345678，fork后，子进程中的指针也是指向0x12345678，但是这两个地址都是虚拟内存地址 （virtual memory)，经过内存地址转换后所对应的 物理地址是不一样的。所以两个进城中的这两个地址相互之间没有任何关系。</p>
+<p>在理解时，你可以认为fork后，这两个相同的虚拟地址指向的是不同的物理地址，这样方便理解父子进程之间的独立性；但实际上，Linux为了提高fork的效率，采用了 copy-on-write 技术，fork后，这两个虚拟地址实际上指向相同的物理地址（内存页），只有任何一个进程试图修改这个虚拟地址里的内容前，两个虚拟地址才会指向不同的物理地址（新的物理地址的内容从原物理地址中复制得到）</p>
+<h3 id="wait函数"><a href="#wait函数" class="headerlink" title="wait函数"></a>wait函数</h3><p>编程过程中，有时需要让一个进程等待另一个进程，最常见的是父进程等待自己的子进程，或者父进程回收自己的子进程资源包括僵尸进程。这里简单介绍一下系统调用函数：wait()，wait函数的原型如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;wait.h&gt;</span></span></span><br><span class="line"><span class="type">pid_t</span> <span class="title function_">wait</span><span class="params">(<span class="type">int</span>* status)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>函数功能是：父进程一旦调用了wait就立即阻塞自己，由wait自动分析是否当前进程的某个子进程已经退出，如果让它找到了这样一个已经变成僵尸的子进程，wait就会收集这个子进程的信息，并把它彻底销毁后返回；如果没有找到这样一个子进程，wait就会一直阻塞在这里，直到有一个出现为止。</p>
+<p>注：</p>
+<ul>
+<li>当父进程忘了用wait()函数等待已终止的子进程时，子进程就会进入一种无父进程的状态，此时子进程就是僵尸进程.</li>
+<li>wait()要与fork()配套出现,如果在使用fork()之前调用wait(),wait()的返回值则为-1,正常情况下wait()的返回值为子进程的PID.</li>
+<li>如果先终止父进程,子进程将继续正常进行，只是它将由init进程(PID 1)继承,当子进程终止时,init进程捕获这个状态.</li>
+</ul>
+<p>参数status用来保存被收集进程退出时的一些状态，它是一个指向int类型的指针。但如果我们对这个子进程是如何死掉毫不在意，只想把这个僵尸进程消灭掉，（事实上绝大多数情况下，我们都会这样想），我们就可以设定这个参数为NULL，就像下面这样：pid &#x3D; wait(NULL);</p>
+<p>如果成功，wait会返回被收集的子进程的进程ID，如果调用进程没有子进程，调用就会失败，此时wait返回-1，同时errno被置为ECHILD。</p>
+<p>如果参数status的值不是NULL，wait就会把子进程退出时的状态取出并存入其中， 这是一个整数值(int)，指出了子进程是正常退出还是被非正常结束的，以及正常结束时的返回值，或被哪一个信号结束的等信息。由于这些信息 被存放在一个整数的不同二进制位中，所以用常规的方法读取会非常麻烦，人们就设计了一套专门的宏（macro）来完成这项工作，下面我们来学习一下其中最常用的两个：</p>
+<p><img src="/assets/posts/post-146vje4/assets/1619050189116-07107e4d-280b-49d7-9725-531ba81e264b.png" alt="image.png"></p>
+<p>1，WIFEXITED(status)</p>
+<p>这个宏用来指出子进程是否为正常退出的，如果是，它会返回一个非零值。</p>
+<p>（请注意虽然名字一样，这里的参数status并不同于wait唯一的参数–指向整数的指针status，而是那个指针所指向的整数，切记不要搞混了。）</p>
+<p>2， WEXITSTATUS(status)</p>
+<p>当WIFEXITED返回非零值时，我们可以用这个宏来提取子进程的返回值，如果子进程调用exit(5)退出，WEXITSTATUS(status) 就会返回5；如果子进程调用exit(7)，WEXITSTATUS(status)就会返回7。请注意，如果进程不是正常退出的，也就是说WIFEXITED返回0，这个值就毫无意义。</p>
+<p>调用wait()或waitpid()的父进程会发生什么情况：</p>
+<ul>
+<li>如果其所有子进程都还在运行，则阻塞;</li>
+</ul>
+<p>Q：如果是一部分子进程终止，而另一部分还在运行，那么父进程还会阻塞吗？</p>
+<p>A：不会，只要有一个进程终止，wait就会返回。也就是说只要wait接收到一个SIGCHLD信号,wait()就会返回。对于两个或多个子进程的情况,需要调用wait两次或多次。</p>
+<ul>
+<li>如果一个子进程已经终止，正等待父进程获取其终止状态，则取得该子进程的终止状态立即返回;</li>
+<li>如果它没有任何子进程，则立即出错返回;</li>
+</ul>
+<p>如果一个子进程已经终止,并且是一个僵尸进程,则wait立即返回并取得该子进程的终止状态,否则wait使其调用者阻塞直到一个子进程终止。如果调用者阻塞而且它有多个子进程，则在其一个子进程终止时，wait就立即返回。因为wait的返回值是终止进程的进程ID,所以父进程总能知道哪一个子进程终止了。</p>
+<ul>
+<li>参数status如果不是一个空指针，则终止进程的终止状态就存放在status所指向的单元。</li>
+<li>参数status如果是一个空指针，则表示父进程不关心子进程的终止状态。</li>
+</ul>
+<h3 id="页表"><a href="#页表" class="headerlink" title="页表"></a>页表</h3><h4 id="页表的概念"><a href="#页表的概念" class="headerlink" title="页表的概念"></a>页表的概念</h4><p><span style="color: rgb(77, 77, 77)">我们知道，在linux操作系统中，CPU在执行一个进程的时候，都会访问内存。 但CPU并不是直接访问</span><strong><span style="color: rgb(77, 77, 77)">物理内存地址</span></strong><span style="color: rgb(77, 77, 77)">，而是通过</span><strong><span style="color: rgb(77, 77, 77)">虚拟地址空间</span></strong><span style="color: rgb(77, 77, 77)">来间接的访问物理内存地址。 所谓的虚拟地址空间，是操作系统为每一个正在执行的进程分配的一个</span><strong><span style="color: rgb(77, 77, 77)">逻辑地址</span></strong><span style="color: rgb(77, 77, 77)">，在32位机上，其范围从0 ~ 4G-1。</span><strong><span style="color: #F5222D">操作系统通过将虚拟地址空间和物理内存地址之间建立映射关系，让CPU间接的访问物理内存地址。</span></strong><span style="color: rgb(77, 77, 77)"> 通常将虚拟地址空间以512Byte ~ 8K，作为一个单位，称为</span><strong><span style="color: rgb(77, 77, 77)">页</span></strong><span style="color: rgb(77, 77, 77)">，并从0开始依次对每一个页编号。这个大小通常被称为</span><strong><span style="color: rgb(77, 77, 77)">页面</span></strong><span style="color: rgb(77, 77, 77)">将物理地址按照同样的大小，作为一个单位，称为</span><strong><span style="color: rgb(77, 77, 77)">框</span></strong><span style="color: rgb(77, 77, 77)">或者</span><strong><span style="color: rgb(77, 77, 77)">块</span></strong><span style="color: rgb(77, 77, 77)">，也从0开始依次对每一个框编号。 操作系统通过维护一张表，这张表上记录了每一对页和框的映射关系。如图： </span><img src="/assets/posts/post-146vje4/assets/1619052042598-bb9a7e9b-827f-471d-8782-8006d3c044db.png"></p>
+<p><span style="color: rgb(77, 77, 77)">这张表，称</span><span style="color: rgb(77, 77, 77)">为</span><strong><span style="color: rgb(77, 77, 77)">页表</span></strong><span style="color: rgb(77, 77, 77)">。 在windows系统下，页面为4k，这里我们以4k为例。 一个4G虚拟地址空间，将会产生1024*1024个页，页表的每一项存储一个页和一个框的映射，所以，至少需要1M个</span><strong><span style="color: rgb(77, 77, 77)">页表项</span></strong><span style="color: rgb(77, 77, 77)">。如果一个页表项大小为1Byte，则至少需要1M的空间，所以页表被放在物理内存中，由操作系统维护。 当CPU要访问一个虚拟地址空间对应的物理内存地址时，先将具体的虚拟地址A&#x2F;页面大小4K，结果的商作为页表号，结果的余作为业内地址偏移。 例如： CPU访问的虚拟地址：A 页面：L 页表号：(A&#x2F;L) 页内偏移：(A%L) CPU中有一个页表寄存器，里面存放着当前进程页表的起始地址和页表长度。将上述计算的页表号和页表长度进行对比，确认在页表范围内，然后将页表号和页表项长度相乘，得到目标页相对于页表基地址的偏移量，最后加上页表基地址偏移量就可以访问到相对应的框了，CPU拿到框的起始地址之后，再把页内偏移地址加上，访问到最终的目标地址。如图： </span><img src="/assets/posts/post-146vje4/assets/1619052042674-3a16b11c-65f2-4625-bf37-2815f212784e.png"><strong><span style="color: rgb(77, 77, 77)">注意，每个进程都有页表，页表起始地址和页表长度的信息在进程不被CPU执行的时候，存放在其PCB内。</span></strong><span style="color: rgb(77, 77, 77)">按照上述的过程，可以发现，CPU对内存的一次访问动作需要访问两次物理内存才能达到目的，第一次，拿到框的起始地址，第二次，访问最终物理地址。CPU的效率变成了50%。为了提高CPU对内存的访问效率，在CPU第一次访问内存之前，加了一个快速缓冲区寄存器，它里面存放了近期访问过的页表项。当CPU发起一次访问时，先到TLB中查询是否存在对应的页表项，如果有就直接返回了。整个过程只需要访问一次内存。如图： </span><img src="/assets/posts/post-146vje4/assets/1619052042638-ceb8de10-9b18-4925-98a9-d406b7559ad4.png"><span style="color: rgb(77, 77, 77)">这种方式极大的提高了CPU对内存的访问效率。将近90%。 然而这样的方式还是存在弊端，在物理内存中需要拿出至少1M的连续的内存空间来存放页表。可以通过多级页表的方式，将页表分为多个部分，分别存放，这样就不要求连续的整段内存，只需要多个连续的小段内存即可。 把连续的页表拆分成多个页表称之为一级页表，再创建一张页表，这张页表记录每一张一级页表的起始地址并按照顺序为其填写页表号。 通过这样的方式，CPU从基地址寄存器中拿到了一级页表的地址，从地址结构中取出一级页表的页表号，找到二级页表的起始物理地址；然后结合地址结构中的中间10位(二级页表上的页表号)，可以找到对应的框的起始地址，最后结合页内偏移量，就可以计算出最终目标的物理地址。如图： </span><img src="/assets/posts/post-146vje4/assets/1619052042784-d940f4c7-0183-4573-997c-286b7d7edf0f.png"></p>
+<h4 id="两级页表的地址转换"><a href="#两级页表的地址转换" class="headerlink" title="两级页表的地址转换"></a>两级页表的地址转换</h4><p><img src="/assets/posts/post-146vje4/assets/1619051683004-29255136-f563-457a-9b87-6cf488de1e5a.png"></p>
+<blockquote>
+<p>(1) 按照地址结构将逻辑地址拆成三个部分。<br>(2) 从PCB中读取页目录起始地址，再根据一级页号查页目录表，找到下一级页表在内存中存放位置。<br>(3) 根据二级页号查表，找到最终想要访问的内存块号。<br>(4) 结合页内偏移量得到物理地址。</p>
+</blockquote>
+<h4 id="虚拟存储技术"><a href="#虚拟存储技术" class="headerlink" title="虚拟存储技术"></a>虚拟存储技术</h4><p><span style="color: rgb(77, 77, 77)">再解决了页必须连续存放的问题后，再看如何第二个问题：没有必要让整个页表常驻内存，因为进程一段时间内可能只需要访问某几个特定的页面。解决方案：可以在需要访问页面时才把页面调入内存——虚拟存储技术（后面再说）。可以在页表中增加一个标示位，用于表示该页表是否已经调入内存。</span></p>
+<h2 id="实验三-Linux进程通信"><a href="#实验三-Linux进程通信" class="headerlink" title="实验三-Linux进程通信"></a>实验三-Linux进程通信</h2><h3 id="管道（pipe）"><a href="#管道（pipe）" class="headerlink" title="管道（pipe）"></a>管道（pipe）</h3><p>管道（pipe）允许两个进程进行通信，是早期 UNIX 系统最早使用的一种IPC机制。管道为进程之间的相互通信提供了一种较为简单的方法，尽管也有一定的局限性。在实现管道时，应该考虑以下四个问题：</p>
+<ol>
+<li>管道允许单向通信还是双向通信？</li>
+<li>如果允许双向通信， <strong>它是半双工的（数据在同一时间内只能按一个方向传输）还是全双工的（数据在同一时间内可在两个方向上传输）</strong> ？</li>
+<li>通信进程之间是否应有一定的关系（如父子关系）？</li>
+<li>管道通信能否通过网络，还是只能在同一台机器上进行？</li>
+</ol>
+<p>有两种常见类型的用于 UNIX 和 Windows 系统的管道：无名管道（普通管道）和有名管道，本节先讲解无名管道。</p>
+<blockquote>
+<p>管道是进程间通信的主要手段之一。<strong><span style="color: #F5222D">一个管道实际上就是个只存在于内存中的文件，对这个文件的操作要通过两个已经打开文件进行，它们分别代表管道的两端。</span></strong><br><strong><span style="color: #F5222D">管道是一种特殊的文件，它不属于某一种文件系统，而是一种独立的文件系统，有其自己的数据结构。</span></strong><br>根据管道的适用范围将其分为：无名管道和命名管道。</p>
+</blockquote>
+<h4 id="无名管道（普通管道）"><a href="#无名管道（普通管道）" class="headerlink" title="无名管道（普通管道）"></a>无名管道（普通管道）</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="http://c.biancheng.net/view/1213.html">http://c.biancheng.net/view/1213.html</a></p>
+</blockquote>
+<p>普通管道允许两个进程按标准的生产者-消费者方式进行通信：生产者向管道的一端（写入端）写，消费者从管道的另一端（读出端）读。因此，**<span style="color: #F5222D">普通管道是单向的，只允许单向通信。</span>*<em>如果需要双向通信，那么就要采用两个管道，而每个管道向不同方向发送数据。下面我们讨论在 UNIX 和 Windows 系统上创建普通管道。在这两个程序实例中，一个进程向管道中写入消息Greetings，而另一个进程从管道中读取此消息。<strong>在 UNIX 系统上，普通管道的创建采用函数pipe (int fd[])这个函数创建一个管道，以便通过文件描述符 int fd[] 来访问：fd[0] 为管道的读出端，而 fd[1] 为管道的写入端。</strong></em>*<span style="color: #F5222D">UNIX 将管道作为一种特殊类型的文件。</span>**因此，访问管道可以采用普通的系统调用 read() 和 write()。<strong>普通管道只能由创建进程所访问。<strong>通常情况下，父进程创建一个管道，并使用它来与其子进程进行通信（该子进程由 fork() 来创建）。正如进程的创建的那样，子进程继承了父进程的打开文件。由于管道是一种特殊类型的文件，</strong><span style="color: #F5222D">因此子进程也继承了父进程的管道</span></strong>。</p>
+<blockquote>
+<p>**无名管道主要用于父进程与子进程之间，或者两个兄弟进程之间。**在linux系统中可以通过系统调用建立起一个单向的通信管道，且这种关系只能由父进程来建立。</p>
+</blockquote>
+<p><img src="/assets/posts/post-146vje4/assets/1619074632623-2c4b5ec9-8907-4660-b2ef-bd69bbf9e418.png" alt="image.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUFFER_SIZE 25</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> READ_END 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> WRITE_END 1</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> write_msg[BUFFER_SIZE] = <span class="string">&quot;Greetings&quot;</span>;</span><br><span class="line">    <span class="type">char</span> read_msg[BUFFER_SIZE];</span><br><span class="line">    <span class="type">int</span> fd[<span class="number">2</span>];</span><br><span class="line">    <span class="type">pid_t</span> pid;</span><br><span class="line">    <span class="comment">/* create the pipe */</span></span><br><span class="line">    <span class="keyword">if</span> (pipe(fd) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">&quot;Pipe failed&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* fork a child process */</span></span><br><span class="line">    pid = fork();</span><br><span class="line">    <span class="keyword">if</span> (pid &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">/* error occurred */</span></span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Fork Failed&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (pid &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">/* parent process */</span></span><br><span class="line">        <span class="comment">/* close tlie unused end of the pipe */</span></span><br><span class="line">        close (fd [READJEND]);</span><br><span class="line">       </span><br><span class="line">        <span class="comment">/* write to the pipe */</span></span><br><span class="line">        write (fd [WRITE_END]，write_msg, <span class="built_in">strlen</span> (write_msg)+<span class="number">1</span>);</span><br><span class="line">        <span class="comment">/* close the read end of the pipe */</span></span><br><span class="line">        close (fd[WRITE_END]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* child process */</span></span><br><span class="line">        <span class="comment">/* close the unused end of the pipe */</span></span><br><span class="line">        close(fd[WRITEJEND]);</span><br><span class="line">        <span class="comment">/* read from the pipe */</span></span><br><span class="line">        read(fd[READ_END] , read_msg, BUFFER_SIZE);</span><br><span class="line">        <span class="built_in">printf</span> (<span class="string">&quot;read %s&quot;</span>,read_msg);</span><br><span class="line">        <span class="comment">/* close the write end of the pipe */</span></span><br><span class="line">        close (fd[READ_END]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: rgb(68, 68, 68)">上边的 UNIX 程序中，父进程创建了一个管道，然后调用 fork() 来创建子进程。调用 fork() 之后的行为取决于数据流如何流过管道。对于这个实例，父进程向管道写，而子进程从管道读。重要的是要注意，父进程和子进程开始就关闭了管道的未使用端。有一个重要的步骤是确保当管道的写入者关闭了管道写入端时，从管道读取的进程能检测到 end-of-file（调用 read() 返回 0），不过上边所示的程序中没有这个操作。</span><strong><span style="color: rgb(68, 68, 68)">对于 Windows 系统，普通管道被称为</span><strong><strong><span style="color: rgb(0, 128, 0)">匿名管道（anonymous pipe）</span></strong></strong><span style="color: rgb(68, 68, 68)">，</span></strong><span style="color: rgb(68, 68, 68)">它们的行为类似于 UNIX 的管道：它们是单向的，通信进程之间具有父子关系。另外，读取和写入管道可以采用普通函数 ReadFile() 和 WriteFile()。用于创建管道的 Windows API 是 CreatePipe() 函数，它有四个参数，包括：</span></p>
+<ol>
+<li>读取管道的句柄；</li>
+<li>写入管道的句柄；</li>
+<li>STARTUPINFO结构的一个实例，用于指定子进程继承管道的句柄；</li>
+<li>可以指定管道的大小（以字节为单位）；</li>
+</ol>
+<p><span style="color: rgb(68, 68, 68)">下面的代码说明了一个父进程创建一个匿名管道，以便与子进程通信：</span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUFFER_SIZE 25</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(VOID)</span></span><br><span class="line">&#123;</span><br><span class="line">    HANDLE ReadHandle, WriteHandle;</span><br><span class="line">    STARTUPINFO si;</span><br><span class="line">    PR0CESS_INF0RMATI0N pi;</span><br><span class="line">    <span class="type">char</span> message [BUFFER_SIZE] = <span class="string">&quot;Greetings&quot;</span>;</span><br><span class="line">    DWORD written;</span><br><span class="line">    <span class="comment">/* set up security attributes allowing pipes to be inherited */</span></span><br><span class="line">    SECURITY_ATTRIBUTES sa = &#123;<span class="keyword">sizeof</span> (SECURITY_ATTRIBUTES) ,<span class="literal">NULL</span>,TRUE&#125;;</span><br><span class="line">    <span class="comment">/* allocate memory */</span></span><br><span class="line">    ZeroMemory(&amp;pi，<span class="keyword">sizeof</span>(pi));</span><br><span class="line">    <span class="comment">/* create the pipe */</span></span><br><span class="line">    <span class="keyword">if</span> (!CreatePipe(&amp;ReadHandle, &amp;WriteHandle, &amp;sa, <span class="number">0</span>)) &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Create Pipe Failed&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* establish the STARTJNFO structure for the child process */</span></span><br><span class="line">    GetStartupInfo(&amp;si);</span><br><span class="line">    si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);</span><br><span class="line">    <span class="comment">/* redirect standard input to the read end of the pipe */</span></span><br><span class="line">    si.hStdlnput = ReadHandle;\</span><br><span class="line">    si.dwFlags = STARTF.USESTDHANDLES;</span><br><span class="line">    <span class="comment">/* don5t allow the child to inherit the write end of pipe */</span></span><br><span class="line">    SetHandlelnformat <span class="title function_">ion</span> <span class="params">(WriteHandle, HANDLEJFLAGJNHERIT, <span class="number">0</span>)</span>;</span><br><span class="line">    <span class="comment">/* create the child process */</span></span><br><span class="line">    CreateProcess (<span class="literal">NULL</span>, <span class="string">&quot;child.exe&quot;</span> , <span class="literal">NULL</span>, <span class="literal">NULL</span>,TRUE, <span class="comment">/* inherit handles */</span></span><br><span class="line">    <span class="number">0</span>，<span class="literal">NULL</span>, <span class="literal">NULL</span>, &amp;si, &amp;pi);</span><br><span class="line">    <span class="comment">/* close the unused end of the pipe */</span></span><br><span class="line">    CloseHandle(ReadHandle);</span><br><span class="line">    <span class="comment">/* the parent writes to the pipe */</span></span><br><span class="line">    <span class="keyword">if</span> (! WriteFile (WriteHandle, message,BUFFER.SIZE,&amp;written,<span class="literal">NULL</span>))</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Error writing to pipe.&quot;</span>);</span><br><span class="line">    <span class="comment">/* close the write end of the pipe */</span></span><br><span class="line">    CloseHandle(WriteHandle);</span><br><span class="line">    <span class="comment">/* wait for the child to exit */</span></span><br><span class="line">    WaitForSingleObject(pi.hProcess, INFINITE);</span><br><span class="line">    CloseHandle(pi.hProcess);</span><br><span class="line">    CloseHandle(pi.hThread);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>**对于UNIX系统，子进程自动继承由父进程创建的管道；对于 Windows 系统，程序员需要指定子进程继承的属性。**首先，初始化结构 SECURITY_ATTRIBUTES，以便允许句柄继承；然后，重定向子进程的句柄，以便标准输入或输出为管道的读出或写入。由于子进程从管道上读，父进程应将子进程的标准输入重定向为管道的读出句柄。另外，由于管道为半双工，需要禁止子进程继承管道的写入端。</p>
+<p>创建子进程的程序中，第五个参数设置为 TRUE，表示子进程会从父进程那里继承指定的句柄。父进程向管道写入时，应先关闭未使用的管道读出端。从管道读的子进程如下所示：</p>
+<p>创建子进程的程序中，第五个参数设置为 TRUE，表示子进程会从父进程那里继承指定的句柄。父进程向管道写入时，应先关闭未使用的管道读出端。从管道读的子进程如下所示：纯文本复制</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUFFER_SIZE 25</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span> <span class="params">(VOID)</span></span><br><span class="line">&#123;</span><br><span class="line">    HANDLE Readhandle;</span><br><span class="line">    CHAR buffer [BUFFER_SIZE];</span><br><span class="line">    DWORD read;</span><br><span class="line">    <span class="comment">/* get the read handle of the pipe */</span></span><br><span class="line">    ReadHandle = GetStdHandle (STDJNPUTJHANDLE);</span><br><span class="line">    <span class="comment">/* the child reads from the pipe */</span></span><br><span class="line">    <span class="keyword">if</span> (ReadFile(ReadHandle, buffer, BUFFER_SIZE, &amp;read, <span class="literal">NULL</span>))</span><br><span class="line">        <span class="built_in">printf</span> (<span class="string">&quot;child read %s&quot;</span>,buffer);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Error reading from pipe&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从管道读之前，这个程序应通过调用 GetStdHandle()，以得到管道的读句柄。</p>
+<p>请注意，对于 UNIX 和 Windows 系统，采用普通管道的进程通信需要有父子关系。这意味着，这些管道只可用于同一机器的进程间通信。</p>
+<h4 id="有名管道（FIFO）"><a href="#有名管道（FIFO）" class="headerlink" title="有名管道（FIFO）"></a>有名管道（FIFO）</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="http://c.biancheng.net/view/1214.html">http://c.biancheng.net/view/1214.html</a></p>
+</blockquote>
+<p>无名管道提供了一个简单机制，允许一对进程通信。<strong>然而，只有当进程相互通信时，普通管道才存在。</strong></p>
+<p>对于 UNIX 和 Windows 系统，一旦进程已经完成通信并且终止了，那么普通管道就不存在了。</p>
+<p>**<span style="color: #F5222D">有名管道提供了一个更强大的通信工具。通信可以是双向的，并且父子关系不是必需的，当建立了一个有名管道后，多个进程都可用它通信。</span>**事实上，在一个典型的场景中，一个有名管道有几个写者。此外，当通信进程完成后，有名管道继续存在。虽然 UNIX 和 Windows 系统都支持有名管道，但是实现细节具有很大不同。下一步，我们探索这些系统的有名管道。</p>
+<p>对于 UNIX，有名管道为FIFO。一旦创建，它们表现为文件系统的典型文件。通过系统调用 mkfifo()，可以创建 FIFO，通过系统调用 open()、read()、write()和close()，可以操作 FIFO**。****<span style="color: #F5222D">FIFO 会一直存在，直到它被显式地从文件系统中删除。虽然 FIFO 允许双向通信，但只允许半双工传输（数据在同一时间内只能按一个方向传输）。如果数据要在两个方向上传输，那么通常使用两个 FIFO。</span>**<strong>此外，通信进程应位于同一台机器上。如果需要不同系统之间的通信，那么应使用套接字。</strong></p>
+<p>**与 UNIX 系统相比，Windows 系统的有名管道通信机制更加丰富。允许全双工通信（数据在同一时间内可在两个方向上传输），并且通信进程可以位于同一机器或不同机器。此外，UNIX 的 FIFO 只支持字节流的数据，而 Windows 系统允许字节流或消息流的数据。**Windows通过函数 CreateNamedPipe()，可创建有名管道；通过函数 ConnectNamedPipe()，客户可连接到有名管道。通过函数 ReadFile() 和 WriteFile()，可进行有名管道的通信。</p>
+<p>**在使用 UNIX 命令行的情况下，管道经常用于将一个命令的输出作为另一个命令的输入。**例如，UNIX 命令 ls 可以生成一个目录列表。对于特别长的目录列表，输出可以有多个屏幕的长度。命令 more 管理输出，一次一屏地显示输出；用户通过按动空格键，一屏一屏地移动。在命令 ls 和命令 more 之间（作为两个独立的进程运行）设置一个管道，以便允许将 ls 的输出作为 more 的输入，从而用户就能一次一屏地显示一个长的目录列表。在命令行上，管道用字符“ | ”来表示。完整命令如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">ls</span> | more</span><br></pre></td></tr></table></figure>
+
+<p>在这种情况下，命令 ls 作为生产者，而命令 more 作为消费者。Windows 为 DOS 外壳提供了一个命令 more，其功能与 UNIX 的类似。DOS 外壳也釆用“|”来表示管道。唯一不同的是，要得到一个目录列表，DOS 利用命令 dir 而不是 ls，如下所示：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">dir</span> | more</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>命名管道是建立在实际的磁盘介质或文件系统（而不是只存在于内存中）上有自己名字的文件，任何进程可以在任何时间通过文件名或路径名与该文件建立联系。为了实现命名管道，引入了一种新的文件类型——FIFO文件（遵循先进先出的原则）。实现一个命名管道实际上就是实现一个FIFO文件。命名管道一旦建立，之后它的读、写以及关闭操作都与普通管道完全相同。虽然FIFO文件的inode节点（索引节点）在磁盘上，但是仅是一个节点而已，文件的数据还是存在于内存缓冲页面中，和普通管道相同。</p>
+</blockquote>
+<h4 id="管道的实现机制"><a href="#管道的实现机制" class="headerlink" title="管道的实现机制"></a>管道的实现机制</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000009528245">https://segmentfault.com/a/1190000009528245</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_37925202/article/details/79835102">https://blog.csdn.net/m0_37925202&#x2F;article&#x2F;details&#x2F;79835102</a></p>
+</blockquote>
+<p>管道机制的主体是系统调用pipe(),但是由pipe()所建立的管道的两端都在同一进程中，所以必须在fork的配合下，才能在父子进程之间或者两个子进程之间建立起进程间的通信管道。由于管道两端都是以（已打开）文件的形式出现在相关的进程中，在具体实现上也是作为匿名文件来实现的。所以pipe()的代码与文件系统密切相关。</p>
+<ul>
+<li>管道是由内核管理的一个缓冲区，相当于我们放入内存中的一个纸条。管道的一端连接一个进程的输出。这个进程会向管道中放入信息。管道的另一端连接一个进程的输入，这个进程取出被放入管道的信息。</li>
+<li>一个缓冲区不需要很大一般为4K大小，它被设计成为环形的数据结构，以便管道可以被循环利用。</li>
+<li>当管道中没有信息的话，从管道中读取的进程会等待，直到另一端的进程放入信息。</li>
+<li>当管道被放满信息的时候，尝试放入信息的进程会等待，直到另一端的进程取出信息。</li>
+<li>当两个进程都终结的时候，管道也自动消失。</li>
+</ul>
+<p><img src="/assets/posts/post-146vje4/assets/1619076576767-8ea0df9c-ccb3-4544-a2d0-3dcb96c71b28.png" alt="image.png"></p>
+<h3 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h3><h4 id="原子操作"><a href="#原子操作" class="headerlink" title="原子操作"></a>原子操作</h4><p><strong>原子操作（atomic operation）指的是由一步或多步操作组成的一个操作。如果该操作不能原子地执行，则要么执行完所有步骤，要么一步也不执行，不可能只执行所有步骤的一个子集。</strong></p>
+<p>现代操作系统中，一般都提供了原子操作来实现一些同步操作，所谓原子操作，也就是一个独立而不可分割的操作。在单核环境中，一般的意义下原子操作中线程不会被切换，线程切换要么在原子操作之前，要么在原子操作完成之后。更广泛的意义下原子操作是指一系列必须整体完成的操作步骤，如果任何一步操作没有完成，那么所有完成的步骤都必须回滚，这样就可以保证要么所有操作步骤都未完成，要么所有操作步骤都被完成。</p>
+<p>例如在单核系统里，单个的机器指令可以看成是原子操作（如果有编译器优化、乱序执行等情况除外）；在多核系统中，单个的机器指令就不是原子操作，因为多核系统里是多指令流并行运行的，一个核在执行一个指令时，其他核同时执行的指令有可能操作同一块内存区域，从而出现数据竞争现象。多核系统中的原子操作通常使用内存栅障（memory barrier）来实现，即一个CPU核在执行原子操作时，其他CPU核必须停止对内存操作或者不对指定的内存进行操作，这样才能避免数据竞争问题。</p>
+<h4 id="临界资源"><a href="#临界资源" class="headerlink" title="临界资源"></a>临界资源</h4><p>多道程序系统中存在许多进程，它们共享各种资源，然而有很多资源一次只能供一个进程使用。**<span style="color: #F5222D">一次仅允许一个进程使用的资源称为临界资源。</span>**许多物理设备都属于临界资源，如输入机、打印机、磁带机等。</p>
+<h4 id="信号量（Semaphore）"><a href="#信号量（Semaphore）" class="headerlink" title="信号量（Semaphore）"></a>信号量（Semaphore）</h4><blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wuyepeng/p/9748552.html">https://www.cnblogs.com/wuyepeng/p/9748552.html</a></p>
+</blockquote>
+<p>信号量本质上是一个计数器（不设置全局变量是因为进程间是相互独立的，而这不一定能看到，看到也不能保证++引用计数为原子操作），用于多进程对共享数据对象的读取，它和管道有所不同，<strong>它不以传送数据为主要目的，它主要是用来保护共享资源（信号量也属于临界资源）</strong>，使得资源在一个时刻只有一个进程独享。</p>
+<h5 id="信号量的工作原理"><a href="#信号量的工作原理" class="headerlink" title="信号量的工作原理"></a>信号量的工作原理</h5><p>由于信号量只能进行两种操作：等待信号P(sv)和发送信号V(sv)，他们的行为是这样的：</p>
+<ul>
+<li>P(sv)：如果sv的值大于零，就给它减1；如果它的值为零，就挂起该进程的执行</li>
+<li>V(sv)：如果有其他进程因等待sv而被挂起，就让它恢复运行，如果没有进程因等待sv而挂起，就给它加1。</li>
+</ul>
+<p>在信号量进行PV操作时都为原子操作（因为它需要保护临界资源）</p>
+<blockquote>
+<p>举个例子，就是两个进程共享信号量sv，一旦其中一个进程执行了P(sv)操作，它将得到信号量，并可以进入临界区，使sv减1。而第二个进程将被阻止进入临界区，因为当它试图执行P(sv)时，sv为0，它会被挂起以等待第一个进程离开临界区域并执行V(sv)释放信号量，这时第二个进程就可以恢复执行。</p>
+</blockquote>
+<h5 id="二元信号量（Binary-Semaphore）"><a href="#二元信号量（Binary-Semaphore）" class="headerlink" title="二元信号量（Binary Semaphore）"></a>二元信号量（Binary Semaphore）</h5><p>二元信号量（或二进制信号量）是最简单的一种锁（互斥锁），它只用两种状态：占用与非占用。所以它的引用计数为1。</p>
+<h5 id="进程如何获得共享资源"><a href="#进程如何获得共享资源" class="headerlink" title="进程如何获得共享资源"></a>进程如何获得共享资源</h5><ol>
+<li>测试控制该资源的信号量</li>
+<li>信号量的值为正，进程获得该资源的使用权，进程将信号量减1，表示它使用了一个资源单位</li>
+<li>若此时信号量的值为0，则进程进入挂起状态（进程状态改变），直到信号量的值大于0，若进程被唤醒则返回至第一步。</li>
+</ol>
+<blockquote>
+<p>注：信号量通过同步与互斥保证访问资源的一致性。</p>
+</blockquote>
+<h5 id="Linux的信号量函数semget"><a href="#Linux的信号量函数semget" class="headerlink" title="Linux的信号量函数semget"></a>Linux的信号量函数semget</h5><p>它的作用是创建一个新信号量或取得一个已有信号量，此函数的函数原型如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">semget</span><span class="params">(<span class="type">key_t</span> key, <span class="type">int</span> num_sems, <span class="type">int</span> sem_flags)</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>第一个参数key是整数值（唯一非零），不相关的进程可以通过它访问一个信号量，它代表程序可能要使用的某个资源，程序对所有信号量的访问都是间接的，程序先通过调用semget()函数并提供一个键，再由系统生成一个相应的信号标识符（semget()函数的返回值），只有semget()函数才直接使用信号量键，所有其他的信号量函数使用由semget()函数返回的信号量标识符。如果多个程序使用相同的key值，key将负责协调工作。</li>
+<li>第二个参数num_sems指定需要的信号量数目，它的值几乎总是1。</li>
+<li>第三个参数sem_flags是一组标志，当想要当信号量不存在时创建一个新的信号量，可以和值IPC_CREAT做按位或操作。设置了IPC_CREAT标志后，即使给出的键是一个已有信号量的键，也不会产生错误。而IPC_CREAT | IPC_EXCL则可以创建一个新的，唯一的信号量，如果信号量已存在，返回一个错误。</li>
+<li>semget()函数成功返回一个相应信号标识符（非零），失败返回-1.</li>
+</ul>
+<h5 id="Linux的内存共享函数"><a href="#Linux的内存共享函数" class="headerlink" title="Linux的内存共享函数"></a>Linux的内存共享函数</h5><p>与信号量一样，在Linux中也提供了一组函数接口用于使用共享内存，而且使用共享共存的接口还与信号量的非常相似，而且比使用信号量的接口来得简单。它们声明在头文件sys&#x2F;shm.h中。</p>
+<h6 id="shmget-–share-memory-get"><a href="#shmget-–share-memory-get" class="headerlink" title="shmget()–share memory get"></a>shmget()–share memory get</h6><p>该函数用来创建共享内存，它的原型为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">shmget</span><span class="params">(<span class="type">key_t</span> key, <span class="type">size_t</span> size, <span class="type">int</span> shmflg)</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>第一个参数，与信号量的semget函数一样，程序需要提供一个参数key（非0整数），它有效地为共享内存段命名，shmget()函数成功时返回一个与key相关的共享内存标识符（非负整数），用于后续的共享内存函数。调用失败返回-1。不相关的进程可以通过该函数的返回值访问同一共享内存，它代表程序可能要使用的某个资源，程序对所有共享内存的访问都是间接的，程序先通过调用shmget()函数并提供一个键，再由系统生成一个相应的共享内存标识符（shmget()函数的返回值），只有shmget()函数才直接使用信号量键，所有其他的信号量函数使用由semget函数返回的信号量标识符。</li>
+<li>第二个参数，size以字节为单位指定需要共享的内存容量。</li>
+<li>第三个参数，shmflg是权限标志，它的作用与open函数的mode参数一样，如果要想在key标识的共享内存不存在时，创建它的话，可以与IPC_CREAT做或操作。共享内存的权限标志与文件的读写权限一样，举例来说，0644,它表示允许一个进程创建的共享内存被内存创建者所拥有的进程向共享内存读取和写入数据，同时其他用户创建的进程只能读取共享内存。</li>
+</ul>
+<h6 id="shmat-–share-memory-attach"><a href="#shmat-–share-memory-attach" class="headerlink" title="shmat()–share memory attach"></a>shmat()–share memory attach</h6><p><span style="color: rgb(0, 0, 0)">第一次创建完共享内存时，它还不能被任何进程访问，shmat()函数的作用就是用来启动对该共享内存的访问，并把共享内存连接到当前进程的地址空间。它的原型如下：</span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *<span class="title function_">shmat</span><span class="params">(<span class="type">int</span> shm_id, <span class="type">const</span> <span class="type">void</span> *shm_addr, <span class="type">int</span> shmflg)</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>第一个参数，shm_id是由shmget()函数返回的共享内存标识。</li>
+<li>第二个参数，shm_addr指定共享内存连接到当前进程中的地址位置，通常为空，表示让系统来选择共享内存的地址。</li>
+<li>第三个参数，shm_flg是一组标志位，通常为0。</li>
+</ul>
+<p><span style="color: rgb(0, 0, 0)">调用成功时返回一个指向共享内存第一个字节的指针，如果调用失败返回-1.</span></p>
+<h6 id="shmdt-–share-memory-detach"><a href="#shmdt-–share-memory-detach" class="headerlink" title="shmdt()–share memory detach"></a>shmdt()–share memory detach</h6><p><span style="color: rgb(0, 0, 0)">该函数用于将共享内存从当前进程中分离。注意，将共享内存分离并不是删除它，只是使该共享内存对当前进程不再可用。它的原型如下：</span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">shmdt</span><span class="params">(<span class="type">const</span> <span class="type">void</span> *shmaddr)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: rgb(0, 0, 0)">参数shmaddr是shmat()函数返回的地址指针，调用成功时返回0，失败时返回-1.</span></p>
+<h6 id="shmctl-–share-memory-control"><a href="#shmctl-–share-memory-control" class="headerlink" title="shmctl()–share memory control"></a>shmctl()–share memory control</h6><p>该函数用来直接控制信号量信息，它的原型为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">semctl</span><span class="params">(<span class="type">int</span> sem_id, <span class="type">int</span> sem_num, <span class="type">int</span> command, ...)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: rgb(0, 0, 0)">第一个参数，shm_id是shmget()函数返回的共享内存标识符。</span></p>
+<p><span style="color: rgb(0, 0, 0)">第二个参数，command是要采取的操作，它可以取下面的三个值 ：</span></p>
+<ul>
+<li>IPC_STAT：把shmid_ds结构中的数据设置为共享内存的当前关联值，即用共享内存的当前关联值覆盖shmid_ds的值。</li>
+<li>IPC_SET：如果进程有足够的权限，就把共享内存的当前关联值设置为shmid_ds结构中给出的值</li>
+<li>IPC_RMID：删除共享内存段</li>
+</ul>
+<p><span style="color: rgb(0, 0, 0)">第三个参数，buf是一个结构指针，它指向共享内存模式和访问权限的结构。</span></p>
+<p><span style="color: rgb(0, 0, 0)">shmid_ds结构 至少包括以下成员：</span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">shmid_ds</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"><span class="type">uid_t</span> shm_perm.uid;</span><br><span class="line"><span class="type">uid_t</span> shm_perm.gid;</span><br><span class="line"><span class="type">mode_t</span> shm_perm.mode;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>如果有第四个参数，它通常是一个union semum结构，定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">semun</span> &#123;</span></span><br><span class="line">    <span class="type">int</span> val;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">semid_ds</span> *<span class="title">buf</span>;</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> *arry;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h5 id="使用共享内存的优缺点"><a href="#使用共享内存的优缺点" class="headerlink" title="使用共享内存的优缺点"></a>使用共享内存的优缺点</h5><p>1、优点：我们可以看到使用共享内存进行进程间的通信真的是非常方便，而且函数的接口也简单，数据的共享还使进程间的数据不用传送，而是直接访问内存，也加快了程序的效率。同时，它也不像匿名管道那样要求通信的进程有一定的父子关系。</p>
+<p>2、缺点：共享内存没有提供同步的机制，这使得我们在使用共享内存进行进程间通信时，往往要借助如信号量等其他的手段来进行进程间的同步工作。</p>
+<h2 id="实验四"><a href="#实验四" class="headerlink" title="实验四"></a>实验四</h2><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/52php/p/5862114.html">https://www.cnblogs.com/52php/p/5862114.html</a></p>
+<h3 id="消息队列的定义"><a href="#消息队列的定义" class="headerlink" title="消息队列的定义"></a>消息队列的定义</h3><p>消息队列本质上是位于**<span style="color: #F5222D">内核空间的链表</span>**，链表的每个节点都是一条消息。每一条消息都有自己的消息类型，消息类型用整数来表示，而且必须大于 0。每种类型的消息都被对应的链表所维护；消息队列克服了信号传递信息少、管道只能承载无格式字节流以及缓冲区大小受限等缺点。</p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/7e3045cf1ab8">https://www.jianshu.com/p/7e3045cf1ab8</a></p>
+<p><img src="/assets/posts/post-146vje4/assets/1620306800636-89e6c5e0-87b3-4d94-a99f-310f6a4c11a8.png" alt="image.png"></p>
+<p><img src="/assets/posts/post-146vje4/assets/1620306350206-da1a8ed6-d3dd-4546-9fb1-d09904c44087.png" alt="image.png"></p>
+<blockquote>
+<p>其中数字 1 表示类型为 1 的消息，数字2、3、4 类似。彩色块表示消息数据，它们被挂在对应类型的链表上。<br>值得注意的是，刚刚说过没有消息类型为 0 的消息，实际上，消息类型为 0 的链表记录了所有消息加入队列的顺序，其中红色箭头表示消息加入的顺序。</p>
+</blockquote>
+<p>消息队列提供了一种从一个进程向另一个进程发送一个数据块的方法。<strong><span style="color: #F5222D">每个数据块都被认为含有一个类型，接收进程可以独立地接收含有不同类型的数据结构。</span><strong>我们可以通过发送消息来避免命名管道的同步和阻塞问题。但是消息队列与命名管道一样，每个数据块都</strong><span style="color: #F5222D">有一个最大长度的限制</span></strong>。</p>
+<blockquote>
+<p>Linux用宏MSGMAX和MSGMNB来限制一条消息的最大长度和一个队列的最大长度。</p>
+</blockquote>
+<h3 id="Linux中有关消息队列的函数"><a href="#Linux中有关消息队列的函数" class="headerlink" title="Linux中有关消息队列的函数"></a>Linux中有关消息队列的函数</h3><h4 id="msgget-–message-get"><a href="#msgget-–message-get" class="headerlink" title="msgget()–message get"></a>msgget()–message get</h4><p>该函数用来**<span style="color: #F5222D">创建和访问</span>**一个消息队列。它的原型为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">msgget</span><span class="params">(<span class="type">key_t</span>, key, <span class="type">int</span> msgflg)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>key：与其他的IPC机制一样，程序必须提供一个键来命名某个特定的消息队列。</p>
+<p>msgflg：msgflg是一个权限标志，表示消息队列的访问权限，它与文件的访问权限一样。</p>
+<blockquote>
+<p>文件中r w x的含义，r是只读权限，w是写的权限，x是可执行权限<br>读取权限：等于4 用 r 表示<br>写入权限：等于2 用 w 表示<br>执行权限：等于1 用 x 表示</p>
+</blockquote>
+<p>msgflg可以与IPC_CREAT做或操作，表示当key所命名的消息队列不存在时创建一个消息队列，如果key所命名的消息队列存在时，IPC_CREAT标志会被忽略，而只返回一个标识符。</p>
+<p>返回值：它返回一个以key命名的消息队列的标识符（非零整数），失败时返回-1。</p>
+<h4 id="msgsnd-函数–message-send"><a href="#msgsnd-函数–message-send" class="headerlink" title="msgsnd()函数–message send"></a>msgsnd()函数–message send</h4><p>该函数用来**<span style="color: #F5222D">把消息添加到消息队列中</span>**。它的原型为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">msgsend</span><span class="params">(<span class="type">int</span> msgid, <span class="type">const</span> <span class="type">void</span> *msg_ptr, <span class="type">size_t</span> msg_sz, <span class="type">int</span> msgflg)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>msgid是由**<span style="color: #F5222D">msgget函数返回</span>**的消息队列标识符。</p>
+<p>msg_ptr是一个指向准备发送消息的**<span style="color: #F5222D">指针</span>**，但是消息的数据结构却有一定的要求，指针msg_ptr所指向的消息结构一定要是以一个长整型成员变量开始的结构体，接收函数将用这个成员来确定消息的类型。所以消息结构要定义成这样：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">my_message</span> &#123;</span></span><br><span class="line">    <span class="type">long</span> <span class="type">int</span> message_type;</span><br><span class="line">    <span class="comment">/* The data you wish to transfer */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>msg_sz是msg_ptr指向的消息的长度， <strong><span style="color: #F5222D">注意是消息的长度</span></strong> ， <strong><span style="color: #F5222D">而不是整个结构体的长度，也就是说msg_sz是不包括长整型消息类型成员变量的长度。</span></strong></li>
+<li>msgflg 用于控制当前消息队列满或队列消息到达系统范围的限制时将要发生的事情。</li>
+</ul>
+<p>返回值：如果调用成功，消息数据的一分副本将被放到消息队列中，并返回0，失败时返回-1。</p>
+<h4 id="msgrcv-–message-receive"><a href="#msgrcv-–message-receive" class="headerlink" title="msgrcv()–message receive"></a>msgrcv()–message receive</h4><p>该函数用来**<span style="color: #F5222D">从一个消息队列获取消息</span>**，它的原型为</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">msgrcv</span><span class="params">(<span class="type">int</span> msgid, <span class="type">void</span> *msg_ptr, <span class="type">size_t</span> msg_st, <span class="type">long</span> <span class="type">int</span> msgtype, <span class="type">int</span> msgflg)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这个函数中的参数msgid，msg_ptr, msg_st 的作用也函数msgsnd()函数的一样。</p>
+<ul>
+<li>msgtype 可以实现一种简单的接收优先级。如果msgtype为0，就获取队列中的第一个消息。如果它的值大于零，将获取具有相同消息类型的第一个信息。如果它小于零，就获取类型等于或小于msgtype的绝对值的第一个消息。</li>
+<li>msgflg 用于控制当队列中没有相应类型的消息可以接收时将发生的事情。</li>
+</ul>
+<p><strong>调用成功时，该函数返回放到接收缓存区中的字节数，消息被复制到由msg_ptr指向的用户分配的缓存区中，然后</strong>**<span style="color: #F5222D">删除消息队列中的对应消息</span>****。**失败时返回-1。</p>
+<h4 id="msgctl-函数–message-control"><a href="#msgctl-函数–message-control" class="headerlink" title="msgctl()函数–message control"></a>msgctl()函数–message control</h4><p>该函数用来控制消息队列，它与共享内存的shmctl函数相似，它的原型为：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">msgctl</span><span class="params">(<span class="type">int</span> msgid, <span class="type">int</span> command, <span class="keyword">struct</span> msgid_ds *buf)</span>;</span><br></pre></td></tr></table></figure>
+
+<p>command是将要采取的动作，它可以取3个值：</p>
+<ul>
+<li>IPC_STAT：把msgid_ds结构中的数据设置为消息队列的当前关联值，即用消息队列的当前关联值覆盖msgid_ds的值。</li>
+<li>IPC_SET：如果进程有足够的权限，就把消息列队的当前关联值设置为msgid_ds结构中给出的值</li>
+<li>IPC_RMID：删除消息队列</li>
+</ul>
+<p>buf是指向msgid_ds结构的指针，<strong><span style="color: #F5222D">它指向消息队列模式和访问权限的结构</span></strong>。msgid_ds结构至少包括以下成员：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">msgid_ds</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="type">uid_t</span> shm_perm.uid;</span><br><span class="line">    <span class="type">uid_t</span> shm_perm.gid;</span><br><span class="line">    <span class="type">mode_t</span> shm_perm.mode;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>成功时返回0，失败时返回-1。</p>
+<h3 id="使用pwndbg查看消息队列"><a href="#使用pwndbg查看消息队列" class="headerlink" title="使用pwndbg查看消息队列"></a>使用pwndbg查看消息队列</h3><h4 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h4><p>源代码如下，编译命令：gcc -g test.c -o test</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;sys/msg.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MSGKEY 75</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">msgform</span>&#123;</span></span><br><span class="line">    <span class="type">long</span> mtype;</span><br><span class="line">    <span class="type">char</span> mtext[<span class="number">1024</span>];</span><br><span class="line">&#125;;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">int</span> id;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">msgform</span> <span class="title">msg</span>;</span></span><br><span class="line">    id=msgget(MSGKEY,<span class="number">0777</span>|IPC_CREAT);</span><br><span class="line">    <span class="keyword">if</span>(fork()==<span class="number">0</span>)&#123;</span><br><span class="line"> 	<span class="built_in">printf</span>(<span class="string">&quot;正在执行子进程...\n&quot;</span>);</span><br><span class="line">        msg.mtype=<span class="number">1</span>;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;子进程正在向父进程发送消息...\n&quot;</span>);</span><br><span class="line">        <span class="built_in">sprintf</span>(msg.mtext,<span class="string">&quot;#Cyberangel:子进程的PID为%d\n&quot;</span>,getpid());</span><br><span class="line">        msgsnd(id,&amp;msg,<span class="keyword">sizeof</span>(msg),<span class="number">0</span>);</span><br><span class="line">        sleep(<span class="number">1</span>);</span><br><span class="line">        msgrcv(id,&amp;msg,<span class="keyword">sizeof</span>(msg),<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;子进程接受从父进程发送来的数据,接收到的数据为%s\n&quot;</span>,msg.mtext);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;子进程结束...\n&quot;</span>);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">       <span class="built_in">printf</span>(<span class="string">&quot;正在执行父进程...\n&quot;</span>);</span><br><span class="line">       msgrcv(id,&amp;msg,<span class="keyword">sizeof</span>(msg),<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">       <span class="keyword">if</span>(msg.mtype==<span class="number">1</span>)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;父进程正在接受从子进程发送来数据,接收到的数据为%s\n&quot;</span>,msg.mtext);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;父进程正在向子进程发送消息...\n&quot;</span>);</span><br><span class="line">        <span class="built_in">sprintf</span>(msg.mtext,<span class="string">&quot;#PWN:子进程的PID为%d\n&quot;</span>,getpid());</span><br><span class="line">        msgsnd(id,&amp;msg,<span class="keyword">sizeof</span>(msg),<span class="number">0</span>);</span><br><span class="line">        sleep(<span class="number">2</span>);</span><br><span class="line">        msgctl(id,IPC_RMID,<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;父进程结束...\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="有关消息队列的命令"><a href="#有关消息队列的命令" class="headerlink" title="有关消息队列的命令"></a>有关消息队列的命令</h4><h5 id="ipcs"><a href="#ipcs" class="headerlink" title="ipcs"></a>ipcs</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">ipcs -q : 显示所有的消息队列</span><br><span class="line"></span><br><span class="line">ipcs -qt : 查看消息队列对应的用户、发送和接收进程pid</span><br><span class="line"></span><br><span class="line">ipcs -qp: 显示往消息队列中放消息和从消息队列中取消息的进程ID</span><br><span class="line"></span><br><span class="line">ipcs -q -i msgid: 显示该消息队列结构体中的消息信息：</span><br><span class="line"></span><br><span class="line">ipcs -ql : 显示消息队列的限制信息：</span><br><span class="line"></span><br><span class="line">取得ipc信息：</span><br><span class="line">ipcs [-m|-q|-s]</span><br><span class="line">-m 输出有关共享内存(shared memory)的信息</span><br><span class="line">-q 输出有关信息队列(message <span class="built_in">queue</span>)的信息</span><br><span class="line">-s 输出有关“遮断器”(semaphore)的信息</span><br><span class="line"></span><br><span class="line">ipcrm -Q key：删除消息队列</span><br></pre></td></tr></table></figure>
+
+<h4 id="调整查看系统对消息队列的设置"><a href="#调整查看系统对消息队列的设置" class="headerlink" title="调整查看系统对消息队列的设置"></a>调整查看系统对消息队列的设置</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">消息队列提供了一种从一个进程向另外一个进程发送一个数据块的方法。</span><br><span class="line">消息队列每个消息的最大长度有限制，每个消息队列总字节数有限制，系统的消息队列有限制；</span><br><span class="line"><span class="number">1.</span>查看消息队列的设置信息</span><br><span class="line">查看每个消息的最大长度：</span><br><span class="line">cat /proc/sys/kernel/msgmax</span><br><span class="line">查看每个消息队列总的字节数：</span><br><span class="line">cat /proc/sys/kernel/msgmnb</span><br><span class="line">查看消息队列的总数上限：</span><br><span class="line">cat /proc/sys/kernel/msgmni</span><br><span class="line"></span><br><span class="line"><span class="number">2.</span>调整消息队列的设置信息</span><br><span class="line">通过root用户修改/etc/sysctl.conf中的配置可调整上述参数的大小（如果本身/etc/sysctl.conf中没有相应的配置信息，则可以新增）：</span><br><span class="line">kernel.msgmni=<span class="number">65536</span></span><br><span class="line">kernel.msgmax=<span class="number">81920</span></span><br><span class="line">kernel.msgmnb=<span class="number">4194304</span></span><br><span class="line">修改后执行下面的命令生效：/sbin/sysctl -p</span><br></pre></td></tr></table></figure>
+
+<h4 id="gdb调试命令"><a href="#gdb调试命令" class="headerlink" title="gdb调试命令"></a>gdb调试命令</h4><h5 id="follow-fork-mode"><a href="#follow-fork-mode" class="headerlink" title="follow-fork-mode"></a>follow-fork-mode</h5><p>用法：set follow-fork-mode [parent|child]</p>
+<p>进入gdb后默认是parent，所以如果想要调试子进程，进入gdb后设置set follow-fork-mode child，然后设置子进程的断点。可用使用show follow-fork-mode 来查询当前fork模式。</p>
+<p>使用follow-fork-mode，只能调试一个进程，不能同时调试父子进程</p>
+<h5 id="detach-on-fork-mode"><a href="#detach-on-fork-mode" class="headerlink" title="detach-on-fork mode"></a>detach-on-fork mode</h5><p>用法：set detach-on-fork [on|off]</p>
+<p>on: 只调试父进程或子进程的其中一个(根据follow-fork-mode来决定)，这是默认的模式。</p>
+<p>off: 父子进程都在gdb的控制之下，其中一个进程正常调试(根据follow-fork-mode来决定)。另一个进程会被设置为暂停状态。</p>
+<p>如果设置了set detach-on-fork off且follow-fork-mode为parent，fork后子进程并不运行，而是处于暂停状态。</p>
+<h3 id="开始查看"><a href="#开始查看" class="headerlink" title="开始查看"></a>开始查看</h3><p>这里我们查看子进程，对源代码的main下断点，b main，r后set follow-fork-mode child；fork后单步到子进程中：</p>
+<p><img src="/assets/posts/post-146vje4/assets/1620310228316-0a2ee1ad-8b59-4db0-97ae-7f4525d34436.png" alt="截屏2021-05-06 22.10.24.png"></p>
+<p>此时另起终端：</p>
+<p><img src="/assets/posts/post-146vje4/assets/1620310266422-59a2788e-1861-415f-b96c-fec430d6bf77.png" alt="截屏2021-05-06 22.10.59.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E7%9F%A5%E8%AF%86%E7%82%B9/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E7%9F%A5%E8%AF%86%E7%82%B9/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-06/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(2)-fastbin_reverse_into_tcache/" title="how2heap(2)-fastbin_reverse_into_tcache"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">how2heap(2)-fastbin_reverse_into_tcache</div></div><div class="info-2"><div class="info-item-1">how2heap(2)-fastbin_reverse_into_tcache简介在前面的malloc源码中我们可以知道，当fastbin链表有free chunk而对应大小的tcachebin链表未满时会将fastbin中的chunk移动到fastbin中。由于fastbin和tcachebin都是采用LIFO（后入先出）的机制，因此放入之前和之后chunk的顺序正好相反，我们可以使用这一点来控制任意内存。 漏洞影响版本加入并开启tcache机制的所有glibc POC相关的_int_malloc源码分析为了让之后的文章解读更加准确，我们先来回顾一下fastbin chunk移入到tcachebin中的过程，触发移入要求：  申请堆块的大小在fastbin范围中 对应大小的tcachebin链表为空（因为在申请时tcachebin的优先级最高） 对应大小的fastbin链表上有至少两个空闲的chunk 在向fastbin申请chunk后链表上仍然有free chunk（呼应上一点） 不能触发任何异常  12345678910111213141516171819202122232...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(1)-fastbin_dup(fastbin%20double%20free)/" title="how2heap(1)-fastbin_dup(fastbin double free)"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">how2heap(1)-fastbin_dup(fastbin double free)</div></div><div class="info-2"><div class="info-item-1">how2heap(1)-fastbin_dup(fastbin double free)前言从这一小节开始我们开始讲述各类对堆的攻击方式，当然你可能有疑问在之前并没有了解过free的源码就怎么开始漏洞研究了呢？说的很对，虽然在我很早的文章中说明过一部分的漏洞以利用方式，但是并没有对漏洞成因进行深究；也就是说我们只知道“表面现象”而不知“深层次原因”。所以在之后讲述漏洞的篇章中都会对free源码进行讲解以更深的了解漏洞成因和防御措施。接下来我们转入正题。 简介在我很早的文章中说明过这个漏洞的成因–double free，相关文章链接如下： PWN入门（3-7-2）-fastbin_attack中的fastbin_double_free（基础） PWN入门（3-7-3）-fastbin_attack中的fastbin_double_free（例题）  （现在看来之前写的文章简直是黑历史）  当heap段中某一个堆块被进行二次释放就会在bin中形成circular list（循环链表），严重会导致任意内存读写。 漏洞影响版本所有glibc malloc版本 POC 之后文章如若未有额外...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="toc-number">1.</span> <span class="toc-text">计算机操作系统实验知识点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%80"><span class="toc-number">1.1.</span> <span class="toc-text">实验一</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B"><span class="toc-number">1.1.1.</span> <span class="toc-text">进程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD"><span class="toc-number">1.1.2.</span> <span class="toc-text">中断</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A1%AC%E4%B8%AD%E6%96%AD"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">硬中断</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BD%AF%E4%B8%AD%E6%96%AD"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">软中断</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A1%AC%E4%B8%AD%E6%96%AD%E5%92%8C%E8%BD%AF%E4%B8%AD%E6%96%AD%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">1.1.2.3.</span> <span class="toc-text">硬中断和软中断的区别</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#swap%EF%BC%88%E4%BA%A4%E6%8D%A2%EF%BC%89%E5%88%86%E5%8C%BA"><span class="toc-number">1.1.3.</span> <span class="toc-text">swap（交换）分区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E5%AD%98%E5%92%8C%E8%BE%85%E5%AD%98"><span class="toc-number">1.1.4.</span> <span class="toc-text">主存和辅存</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BB%E5%AD%98"><span class="toc-number">1.1.4.1.</span> <span class="toc-text">主存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BE%85%E5%AD%98"><span class="toc-number">1.1.4.2.</span> <span class="toc-text">辅存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E6%9C%BA"><span class="toc-number">1.1.4.3.</span> <span class="toc-text">处理机</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E4%BA%94%E6%80%81"><span class="toc-number">1.1.5.</span> <span class="toc-text">进程的五态</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%84%E4%B8%AA%E7%8A%B6%E6%80%81%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.5.1.</span> <span class="toc-text">各个状态的概念</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA"><span class="toc-number">1.1.5.1.1.</span> <span class="toc-text">创建</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%B0%B1%E7%BB%AA"><span class="toc-number">1.1.5.1.2.</span> <span class="toc-text">就绪</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%98%BB%E5%A1%9E"><span class="toc-number">1.1.5.1.3.</span> <span class="toc-text">阻塞</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C"><span class="toc-number">1.1.5.1.4.</span> <span class="toc-text">执行</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%BB%88%E6%AD%A2"><span class="toc-number">1.1.5.1.5.</span> <span class="toc-text">终止</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%8A%B6%E6%80%81%E5%9B%BE%E8%AF%B4%E6%98%8E"><span class="toc-number">1.1.5.2.</span> <span class="toc-text">状态图说明</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%BA%8C"><span class="toc-number">1.2.</span> <span class="toc-text">实验二</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Linux%E2%80%93fork%E5%87%BD%E6%95%B0%E5%8F%8Aexec%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text">Linux–fork函数及exec函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E5%86%99%E6%97%B6%E6%8B%B7%E8%B4%9D%E7%9A%84%E6%A6%82%E5%BF%B5%EF%BC%88COW%EF%BC%89"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">1. 写时拷贝的概念（COW）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E8%AF%A6%E7%BB%86"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">2. 详细</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%85%B3%E4%BA%8Efork%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.1.3.</span> <span class="toc-text">3. 关于fork函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%85%B3%E4%BA%8Eexec%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.1.4.</span> <span class="toc-text">4.关于exec函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%EF%BC%95-Copy-On-Write%E6%8A%80%E6%9C%AF%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.1.5.</span> <span class="toc-text">５.Copy On Write技术原理</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#fork%E5%87%BD%E6%95%B0%E6%8B%B7%E8%B4%9D%E7%9A%84%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4"><span class="toc-number">1.2.2.</span> <span class="toc-text">fork函数拷贝的内存空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#wait%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.3.</span> <span class="toc-text">wait函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A1%B5%E8%A1%A8"><span class="toc-number">1.2.4.</span> <span class="toc-text">页表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A1%B5%E8%A1%A8%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-number">1.2.4.1.</span> <span class="toc-text">页表的概念</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%A4%E7%BA%A7%E9%A1%B5%E8%A1%A8%E7%9A%84%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2"><span class="toc-number">1.2.4.2.</span> <span class="toc-text">两级页表的地址转换</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E6%8A%80%E6%9C%AF"><span class="toc-number">1.2.4.3.</span> <span class="toc-text">虚拟存储技术</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E4%B8%89-Linux%E8%BF%9B%E7%A8%8B%E9%80%9A%E4%BF%A1"><span class="toc-number">1.3.</span> <span class="toc-text">实验三-Linux进程通信</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E9%81%93%EF%BC%88pipe%EF%BC%89"><span class="toc-number">1.3.1.</span> <span class="toc-text">管道（pipe）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%97%A0%E5%90%8D%E7%AE%A1%E9%81%93%EF%BC%88%E6%99%AE%E9%80%9A%E7%AE%A1%E9%81%93%EF%BC%89"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">无名管道（普通管道）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%89%E5%90%8D%E7%AE%A1%E9%81%93%EF%BC%88FIFO%EF%BC%89"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">有名管道（FIFO）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%A1%E9%81%93%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">1.3.1.3.</span> <span class="toc-text">管道的实现机制</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98"><span class="toc-number">1.3.2.</span> <span class="toc-text">共享内存</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">原子操作</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%B4%E7%95%8C%E8%B5%84%E6%BA%90"><span class="toc-number">1.3.2.2.</span> <span class="toc-text">临界资源</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F%EF%BC%88Semaphore%EF%BC%89"><span class="toc-number">1.3.2.3.</span> <span class="toc-text">信号量（Semaphore）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">1.3.2.3.1.</span> <span class="toc-text">信号量的工作原理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BA%8C%E5%85%83%E4%BF%A1%E5%8F%B7%E9%87%8F%EF%BC%88Binary-Semaphore%EF%BC%89"><span class="toc-number">1.3.2.3.2.</span> <span class="toc-text">二元信号量（Binary Semaphore）</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E5%A6%82%E4%BD%95%E8%8E%B7%E5%BE%97%E5%85%B1%E4%BA%AB%E8%B5%84%E6%BA%90"><span class="toc-number">1.3.2.3.3.</span> <span class="toc-text">进程如何获得共享资源</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Linux%E7%9A%84%E4%BF%A1%E5%8F%B7%E9%87%8F%E5%87%BD%E6%95%B0semget"><span class="toc-number">1.3.2.3.4.</span> <span class="toc-text">Linux的信号量函数semget</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Linux%E7%9A%84%E5%86%85%E5%AD%98%E5%85%B1%E4%BA%AB%E5%87%BD%E6%95%B0"><span class="toc-number">1.3.2.3.5.</span> <span class="toc-text">Linux的内存共享函数</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#shmget-%E2%80%93share-memory-get"><span class="toc-number">1.3.2.3.5.1.</span> <span class="toc-text">shmget()–share memory get</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#shmat-%E2%80%93share-memory-attach"><span class="toc-number">1.3.2.3.5.2.</span> <span class="toc-text">shmat()–share memory attach</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#shmdt-%E2%80%93share-memory-detach"><span class="toc-number">1.3.2.3.5.3.</span> <span class="toc-text">shmdt()–share memory detach</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#shmctl-%E2%80%93share-memory-control"><span class="toc-number">1.3.2.3.5.4.</span> <span class="toc-text">shmctl()–share memory control</span></a></li></ol></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="toc-number">1.3.2.3.6.</span> <span class="toc-text">使用共享内存的优缺点</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%AA%8C%E5%9B%9B"><span class="toc-number">1.4.</span> <span class="toc-text">实验四</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="toc-number">1.4.1.</span> <span class="toc-text">消息队列的定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Linux%E4%B8%AD%E6%9C%89%E5%85%B3%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.2.</span> <span class="toc-text">Linux中有关消息队列的函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#msgget-%E2%80%93message-get"><span class="toc-number">1.4.2.1.</span> <span class="toc-text">msgget()–message get</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#msgsnd-%E5%87%BD%E6%95%B0%E2%80%93message-send"><span class="toc-number">1.4.2.2.</span> <span class="toc-text">msgsnd()函数–message send</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#msgrcv-%E2%80%93message-receive"><span class="toc-number">1.4.2.3.</span> <span class="toc-text">msgrcv()–message receive</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#msgctl-%E5%87%BD%E6%95%B0%E2%80%93message-control"><span class="toc-number">1.4.2.4.</span> <span class="toc-text">msgctl()函数–message control</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8pwndbg%E6%9F%A5%E7%9C%8B%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97"><span class="toc-number">1.4.3.</span> <span class="toc-text">使用pwndbg查看消息队列</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BA%90%E7%A0%81"><span class="toc-number">1.4.3.1.</span> <span class="toc-text">源码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%89%E5%85%B3%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E5%91%BD%E4%BB%A4"><span class="toc-number">1.4.3.2.</span> <span class="toc-text">有关消息队列的命令</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ipcs"><span class="toc-number">1.4.3.2.1.</span> <span class="toc-text">ipcs</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B0%83%E6%95%B4%E6%9F%A5%E7%9C%8B%E7%B3%BB%E7%BB%9F%E5%AF%B9%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.4.3.3.</span> <span class="toc-text">调整查看系统对消息队列的设置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#gdb%E8%B0%83%E8%AF%95%E5%91%BD%E4%BB%A4"><span class="toc-number">1.4.3.4.</span> <span class="toc-text">gdb调试命令</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#follow-fork-mode"><span class="toc-number">1.4.3.4.1.</span> <span class="toc-text">follow-fork-mode</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#detach-on-fork-mode"><span class="toc-number">1.4.3.4.2.</span> <span class="toc-text">detach-on-fork mode</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E5%A7%8B%E6%9F%A5%E7%9C%8B"><span class="toc-number">1.4.4.</span> <span class="toc-text">开始查看</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

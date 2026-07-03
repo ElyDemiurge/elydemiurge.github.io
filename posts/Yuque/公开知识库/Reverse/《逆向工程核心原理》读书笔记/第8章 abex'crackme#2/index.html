@@ -1,0 +1,438 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第8章 abex'crackme#2 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第8章 abex’crackme#2本章分析一个非常简单的crackme文件，帮助大家继续熟悉调试器与反汇编代码。先简单介绍Visual Basic的文件结构及分析方法。 本章分析第二个crackme文件abex’crackme#2，它使用Visual Basic语言编写，你会感受到与使用Visual C++或Assembly编写的文件相比具有不同的形态。 提示——————————————————">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第8章 abex&#39;crackme#2">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC8%E7%AB%A0%20abex'crackme#2/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第8章 abex’crackme#2本章分析一个非常简单的crackme文件，帮助大家继续熟悉调试器与反汇编代码。先简单介绍Visual Basic的文件结构及分析方法。 本章分析第二个crackme文件abex’crackme#2，它使用Visual Basic语言编写，你会感受到与使用Visual C++或Assembly编写的文件相比具有不同的形态。 提示——————————————————">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-04/800/450">
+<meta property="article:published_time" content="2020-02-07T11:28:53.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.555Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-04/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第8章 abex'crackme#2",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC8%E7%AB%A0%20abex'crackme#2/",
+  "image": "https://picsum.photos/seed/blog-cover-04/800/450",
+  "datePublished": "2020-02-07T11:28:53.000Z",
+  "dateModified": "2026-07-03T14:46:17.555Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC8%E7%AB%A0%20abex'crackme#2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第8章 abex\'crackme#2',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-04/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第8章 abex'crackme#2</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第8章 abex'crackme#2</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-07T11:28:53.000Z" title="发表于 2020-02-07 19:28:53">2020-02-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.555Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>17分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第8章-abex’crackme-2"><a href="#第8章-abex’crackme-2" class="headerlink" title="第8章 abex’crackme#2"></a>第8章 abex’crackme#2</h1><p>本章分析一个非常简单的crackme文件，帮助大家继续熟悉调试器与反汇编代码。先简单介绍<strong>Visual Basic</strong>的文件结构及分析方法。</p>
+<p>本章分析第二个crackme文件abex’crackme#2，它使用Visual Basic语言编写，你会感受到与使用Visual C++或Assembly编写的文件相比具有不同的形态。</p>
+<p>提示——————————————————————————————————————</p>
+<p>讲解中出现的内存（栈）地址随用户PC环境的不同而变化。希望各位调试时注意这一点。你现在感到调试很难是正常的，投入大量时间和精力后，就会逐渐熟悉起来。</p>
+<hr>
+<h2 id="8-1运行abex’crackme-2"><a href="#8-1运行abex’crackme-2" class="headerlink" title="8.1运行abex’crackme#2"></a>8.1运行abex’crackme#2</h2><p>运行之后才能了解它是什么样的程序，如图8-1所示。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581075284696-54e35838-b217-4be0-b267-28571dee1a8c.png" alt="QQ截图20200207193435.png"></p>
+<p>图8-1 运行画面</p>
+<p>这个程序具有典型的crackme形态，要求我们找出程序的序列号。从单独输入Name来看，生成Serial时才会用到Name字符串（依据经验推测）。输入合适的Name与Serial，按Check按钮，如图8-2所示。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581075384237-10728d07-667e-43c5-8d31-943751dcb325.png" alt="QQ截图20200207193606.png"></p>
+<p>图8-2“Wrong serial!”消息框</p>
+<p>弹出“Wrong serial!”消息框，即使多次尝试其他值也依然是这个结果。下面通过调试仔细分析其代码。</p>
+<p>提示——————————————————————————————————————</p>
+<p>若上述示例文件（abexcm2-voiees.exex）无法运行，请先把附带的MSVBVM60.dll文件复制到示例文件相同路径下再操作。</p>
+<hr>
+<h2 id="8-2Visual-Basic文件的特征"><a href="#8-2Visual-Basic文件的特征" class="headerlink" title="8.2Visual Basic文件的特征"></a>8.2Visual Basic文件的特征</h2><p>要调试的abex’s crackme#2文件由Visual Basic编写而成。调试前最好先了解Visual Basic文件的特征。</p>
+<h3 id="8-2-1VB专用引擎"><a href="#8-2-1VB专用引擎" class="headerlink" title="8.2.1VB专用引擎"></a>8.2.1VB专用引擎</h3><p><span style="color: #F5222D">VB文件使用名为MSVBVM60.dll</span>（Microsoft Visual Basic Virtual Machine6.0)<strong><span style="color: #F5222D">的VB专用引擎</span></strong>（也称为The Thunder Runtime Engine)。</p>
+<p><strong>举个使用VB引擎的例子，显示消息框时，VB代码中要调用MsgBox()函数。其实，VB编辑器真正调用的是MSVBVM60.d11里的rtcMsgBox）函数，在该函数内部通过调用user32.dll里的MessageBoxW()函数（Win32API)来工作（也可以在VB代码中直接调用user32.dll里的MessageBoxW())。</strong></p>
+<h3 id="8-2-2本地代码和伪代码"><a href="#8-2-2本地代码和伪代码" class="headerlink" title="8.2.2本地代码和伪代码"></a>8.2.2本地代码和伪代码</h3><p>根据使用的编译选项的不同，VB文件可以编译为**<span style="color: #F5222D">本地代码（Ncode）</span><strong>与</strong><span style="color: #F5222D">伪代码（Pcode）</span><strong>。</strong><span style="color: #F5222D">本地代码一般使用易于调试器解析的IA-32指令；而伪代码是一种解释器（Interpreter)语言，它使用由VB引擎实现虚拟机并可自解析的指令（字节码）。</span>**因此，若想准确解析VB的伪代码，就需要分析VB引擎并实现模拟器。</p>
+<p>提示——————————————————————————————————————</p>
+<p>伪代码具有与Java（Java虚拟机）、Python（Python专用引擎）类似的形态结构。<strong>使用伪代码的好处是非常方便代码移植</strong>（编写&#x2F;发布针对特定平台的引擎，用户代码借助它几乎可以不加任何修改地在指定平台上运行）。</p>
+<hr>
+<h3 id="8-2-3事件处理程序"><a href="#8-2-3事件处理程序" class="headerlink" title="8.2.3事件处理程序"></a>8.2.3事件处理程序</h3><p>VB主要用来编写GUI程序，IDE用户界面本身也最适合于GUI编程。<strong>由于VB程序采用Windows操作系统的事件驱动方式工作，所以在main()或WinMain</strong>**()**<strong>中并不存在用户代码（希望调试的代码），用户代码存在于各个事件处理程序（event handler)之中。</strong></p>
+<p>就上述abex’crackme#2而言，<strong>用户代码在点击Check按钮时触发的事件处理程序内</strong>。</p>
+<h3 id="8-2-4未文档化的结构体"><a href="#8-2-4未文档化的结构体" class="headerlink" title="8.2.4未文档化的结构体"></a>8.2.4未文档化的结构体</h3><p>VB中使用的各种信息（Dialog、Control、Form、Module、Function等）以<span style="color: #F5222D">结构体</span>形式保存在文件内部。由于微软未正式公开这种结构体信息，所以调试VB文件会难一些。</p>
+<h2 id="8-3开始调试"><a href="#8-3开始调试" class="headerlink" title="8.3开始调试"></a>8.3开始调试</h2><p>运行OllyDbg，查看abex’crackme#2文件的反汇编代码，如图8-3所示。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581129227224-6ff698e6-78d2-4a47-a70d-a9b2bd8f72b7.png" alt="QQ截图20200208103340.png"></p>
+<p>图8-3EP</p>
+<p>执行程序后，在EP代码中首先要做的是调用VB引擎的主函数（ThunRTMain()）。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581129411274-a651ffbc-5e7a-438c-91c1-6694d0f4d503.png" alt="QQ截图20200208103644.png"></p>
+<p>EP的地址为401238。401238地址处的PUSH 401E14命令用来把RT MainStruct结构体的地址（401E14)压入栈。然后40123D地址处的CALL 00401232命令调用401232地址处的JMP DWORD PTR DS:[4010A0]指令。该JMP指令会跳转至VB引擎的主函数ThunRTMain()（前面压入栈的401E14的值作为ThunRTMain()的参数）。</p>
+<p>以上3行代码是VB文件的全部启动代码。虽然非常简单，但有3个方面需要各位留意。</p>
+<h3 id="8-3-1间接调用"><a href="#8-3-1间接调用" class="headerlink" title="8.3.1间接调用"></a>8.3.1间接调用</h3><p>40123D地址处的CALL 401232命令用于调用ThunRTMain()函数，这里使用了较为特别的技法。不是直接转到MSVBVM60.dll里的ThunRTMain()函数，而是通过中间401232地址处的JMP命令跳转。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581129664318-6afa6b89-512b-429a-8ac5-90d5b70a5695.png" alt="QQ截图20200208104053.png"></p>
+<p>这就是VC++、VB编译器中常用的<span style="color: #F5222D">间接调用法</span>（Indirect Call）。</p>
+<p>提示——————————————————————————————————————</p>
+<p>4010A0地址是IAT（Import Address Table，导入地址表）区域，包含着MSVBVM60，ThunRTMain()函数的实际地址。第13章将详细讲解IAT。</p>
+<hr>
+<h3 id="8-3-2RT-MainStruct结构体"><a href="#8-3-2RT-MainStruct结构体" class="headerlink" title="8.3.2RT_MainStruct结构体"></a>8.3.2RT_MainStruct结构体</h3><p>要注意的是ThunRTMain()函数的参数RT_MainStruct结构体。这里，RT_MainStruct结构体存在于401E14地址处，如图8-4所示。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581130026428-6f76c4e4-d464-42a9-b26e-08d298503f8e.png" alt="QQ截图20200208104657.png"></p>
+<p>图8-4 RT_MainStruct</p>
+<p>微软未公开RT_MainStruct，但是有国外的逆向分析高手已经完成了对RT_MainStruct结构体的分析，并公布在网络上。</p>
+<p>RT_MainStruct结构体的成员是其他结构体的地址。也就是说，VB引擎通过参数传递过来的RT_MainStruct结构体获取程序运行需要的所有信息。</p>
+<p>此处省略对RT_MainStruct结构体的详细说明。</p>
+<p>8.3.3 ThunRTMain()函数</p>
+<p>前面提到了ThunRTMain()函数，下面了解一下。</p>
+<p>图8-5显示了ThunRTMain()代码的开始部分，可以看到内存地址完全不同了。这是MSVBVM60.dll模块的地址区域。换言之，我们分析的不是程序代码，而是VB引擎代码（现在还不需要分析如此庞大的代码）。对VB文件的讲解到此为止，继续回到abex’crackme#2。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581130239181-34a89c59-0059-4d4a-ba24-da6610ddb0ab.png" alt="QQ截图20200208105031.png"></p>
+<p>图8-5 ThunRTMain()代码开始</p>
+<p>总结一下：</p>
+<p>EP代码（地址：401238）（PUSH 401E14）-&gt;把RT MainStruct结构体的地址（401E14)压入栈-&gt;CALL 00401232（地址：40123D）-&gt;JMP DWORD PTR DS:[4010A0]-&gt;跳转至VB引擎的主函数ThunRTMain()（为MSVBVM60.dll模块的地址区域）（4010A0地址是IAT（Import Address Table，导入地址表）区域，包含着MSVBVM60，ThunRTMain()函数的实际地址。）-&gt;（以上代码称之为VB文件的启动代码）-&gt;ThunRTMain()函数的参数RT_MainStruct结构体（地址：401E14）（RT_MainStruct结构体的成员是其他结构体的地址。也就是说，VB引擎通过参数传递过来的RT_MainStruct结构体获取程序运行需要的所有信息）</p>
+<p>注：前面压入栈的401E14的值作为ThunRTMain()的参数</p>
+<h2 id="8-4分析-crackme"><a href="#8-4分析-crackme" class="headerlink" title="8.4分析 crackme"></a>8.4分析 crackme</h2><p>要“打补丁”的代码到底在哪呢?应该先找到解决问题的线索。以各位现在的水平，分析RT_MainStruct结构体不是件容易的事，要想一个更简单的方法才行。这种思路就是利用图8-2中的错误消息框与字符串。</p>
+<h3 id="8-4-1检索字符串"><a href="#8-4-1检索字符串" class="headerlink" title="8.4.1检索字符串"></a>8.4.1检索字符串</h3><p>使用OllyDbg中的字符串检索功能（选择All referenced text strings)（右键-&gt;查找-&gt;所有参考文本字符串），显示出图8-6所示的窗口。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581131329151-75aebd56-3c7d-4190-a825-687017e66461.png" alt="QQ截图20200208110840.png"></p>
+<p>图8-6 All referenced text strings</p>
+<p>可以在上面窗口中看到消息框显示的字符串。双击相应字符串（“Wrong serial”），转到其地址处，如图8-7所示。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581131501303-2ce7b1a1-c144-4236-b5e5-7fb9885a98b4.png" alt="QQ截图20200208111134.png"></p>
+<p>图8-7 403458地址</p>
+<p>消息框的标题（“Wrong serial！”）、内容（“Nope，this serial is wrong!”)，还有实际调用消息框函数的代码（4034A6）都显示出来了。</p>
+<p>从编程的观点来看，使用某种算法生成序列号，通过比较用户输入的序列号与字符串，代码分为TRUE（序列号相同）与FALSE（序列号不同）两大部分。换言之，上述代码的前后存在字符串比较代码，且序列号正确时程序代码会调用消息框输出成功消息（序列号正确时调用消息框，这一点可由图8-6中的字符串类比推测出来）。</p>
+<p>在图8-7中略微向上拖动滚动条，果然（如前预测）看到了包含条件转移语句的代码（参考图8-8）。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581131710734-a18cae6b-246b-4c92-a8ca-c65040041c3c.png" alt="QQ截图20200208111503.png"></p>
+<p>图8-8条件转移指令</p>
+<p>调用403329地址的__vbaVarTstEq()函数，比较（TEST命令）返回值（AX)后，由403332地址的条件转移指令（正指令）决定执行“真”代码还是“假”代码。</p>
+<p>上述代码使用的汇编指令说明—————————————————————————————–</p>
+<p>TEST：逻辑比较（Logical Compare)</p>
+<p>与bit-wise logical（按位运算）‘AND’一样（仅改变EFLAGS寄存器而不改变操作数的值）若2个操作数中一个为0，则AND运算结果被置为0→ZF&#x3D;1。</p>
+<p>JE：条件转移指令（Jump if equal)</p>
+<p>若ZF&#x3D;1，则跳转。</p>
+<hr>
+<h3 id="8-4-2查找字符串地址"><a href="#8-4-2查找字符串地址" class="headerlink" title="8.4.2查找字符串地址"></a>8.4.2查找字符串地址</h3><p>图8-8中403329地址处的__vbaVarTstEq()函数为字符串比较函数，其上方的2个PUSH指令为比较函数的参数，即比较的字符串（联想到C语言的strcmp()函数而推测出的）。</p>
+<p>调试至403329地址处。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581132078271-22f3ee5c-1e26-4e1c-8497-873e8f601e1d.png" alt="QQ截图20200208112109.png"></p>
+<p>00403321地址处的SS；[EBP-44]表达的是什么呢?“IA-32基本说明”与“栈帧”中讲过，SS是栈段，EBP是基址指针寄存器。换言之，SS:[EBP-44]指的是栈内地址，它恰好又是函数中声明的局部对象的地址（局部对象存储在栈区）。在此状态下查看栈（这时你需要在程序框中输入：ReverseCore，abcd1234并且按下程序中的check按钮），如图8-9所示（栈地址会随调试环境的不同而改变）。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581132677324-0bbb9221-1e5b-4c8e-9f79-97ebabef55cb.png" alt="QQ截图20200208113107.png"></p>
+<p>图8-9 栈</p>
+<p>查看存储在栈中的内存地址（19F1BC、19F1AC），如图8-10所示。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581133001741-aca3de24-a50d-4004-b248-d497932b34bc.png" alt="QQ截图20200208113634.png"></p>
+<p>图8-10 栈内存</p>
+<p>提示——————————————————————————————————————</p>
+<p>OllyDbg中有一个更方便的查找命令，使用时不需要输入地址。在代码窗口或栈窗口中使用鼠标选中指定地址，使用右键菜单中的Follow in dump或Follow in dump→Memory address命令即可。</p>
+<hr>
+<p>与C++的string类一样，VB字符串使用可变长度的字符串类型。所以就像在图8-10看到的一样，直接显示的不是字符串，而是16字节大小的数据（这就是VB中使用的字符串对象）。</p>
+<p>不同的值被这样统一起来，仅方框显示的值是不同的，看上去就像内存地址一样（可变长度字符串类型内部持有实际动态分配的字符串缓存地址）。</p>
+<p><strong>在OllyDbg的Dump窗口中选择右键菜单Long-Address with ASCII dump（长型-&gt;ASCII数据地址）命令。该命令可以把Dump窗口的查看形式变得与栈窗口一样，特别是针对字符串地址时可以将相应字符串显示出来（若想返回原视图，使用鼠标右键菜单的Hex-Hex&#x2F;ASCII（16个字节）命令即可）。</strong></p>
+<p>如图8-11所示，EDX（0019F1A8）最终是实际的serial值，EAX（0019F1B8）是用户输入的serial值（请注意VB使用Unicode字符串）。进入字符串所在地址可以看到实际的字符串。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581133598907-d978aabc-1f11-4d31-841f-ef477a53ffdf.png" alt="QQ截图20200208114556.png"></p>
+<p>图8-11 Long-Address with ASCII dump</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581134248286-be86d5e1-7d87-44e0-888a-c123360ef4e4.png" alt="QQ截图20200208115721.png"></p>
+<p>（注：读者的ASCII窗口为乱码，应该是中文环境导致（猜的））</p>
+<p>提示——————————————————————————————————————</p>
+<p>图8-10~图8-12中的Unicode字符串地址是不一样的（读者是一次性调试的，因此地址是相同的）。原因在于它们不是在同一调试过程中截图的，而是经过多次调试重启截取的，所以字符串的地址发生了变化。<span style="color: #F5222D">VB默认使用基于Unicode的可变长度字符串对象。可变长度字符串对象会根据需要在内部随时动态分配&#x2F;释放内存。因此，每次运行时字符串的地址会有所不同。此外，调试时无法一眼看全实际字符串，这也是调试的困难之一。</span></p>
+<hr>
+<p>运行Crackme程序，输入Name&#x3D;“ReverseCore”、Serial&#x3D;“B6C9DAC9”，会弹出成功的消息框，如图8-13所示。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581134363978-73a188be-beef-4854-9fe4-46984882bd3c.png" alt="QQ截图20200208115910.png"></p>
+<p>图8-13“Congratulations!”消息框</p>
+<p>消息框表明找到了正确的Serial并破解成功。但Name与Serial之间是什么关系呢?为了测试，向Name中输入另一个值，Serial保持不变，程序显示错误信息。这证明了最初的推测，即程序采用了“以Name字符串为基础随时生成Serial”的算法。</p>
+<h3 id="8-4-3生成Serial的算法"><a href="#8-4-3生成Serial的算法" class="headerlink" title="8.4.3生成Serial的算法"></a>8.4.3生成Serial的算法</h3><p>本节讲述生成Serial字符串的算法。</p>
+<p><strong>查找函数开始部分</strong></p>
+<p>很显然，图8-8中的条件转移代码属于某个函数。该函数可能就是Check按钮的事件处理程序。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581131710734-a18cae6b-246b-4c92-a8ca-c65040041c3c.png" alt="QQ截图20200208111503.png"></p>
+<p>图8-8条件转移指令</p>
+<p>原因在于选择Check按钮后，该函数会被调用执行，且含有用户代码来弹出成功&#x2F;失败消息框。</p>
+<p>最好倒着向上一点点地查找函数开始部分。向上拖动滚动条即可见到图8-14所示的代码。仔细看一下00402ED0地址处的命令。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581134622419-1b435435-8f4e-4970-bb58-5fd720e14e76.png" alt="QQ截图20200208120333.png"></p>
+<p>上述代码是典型的栈帧代码，开始执行函数就会形成<span style="color: #F5222D">栈帧</span>。由此得知该位置就是函数开始部分，<strong>即Check按钮的事件处理程序。</strong></p>
+<p>汇编指令————————————————————————————————————–</p>
+<p>VB文件的函数之间存在着NOP指令（图8-14的402ECC~402ECF地址区）。</p>
+<p>NOP:No Operation，不执行任何动作的指令（只消耗CPU时钟）。</p>
+<hr>
+<p>为了准确分析代码，在402ED0处设置断点（F2）后开始调试。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581134838431-c53801ce-06b3-4c81-83dd-2ddfccbfc6b0.png" alt="QQ截图20200208120657.png"></p>
+<p>图8-14按钮的事件处理程序</p>
+<h3 id="8-4-4预测代码"><a href="#8-4-4预测代码" class="headerlink" title="8.4.4预测代码"></a>8.4.4预测代码</h3><p>如果你有编程或逆向分析经验，就可以预测出生成序列号的方法。若是Win32API程序，则有如下特点。</p>
+<ul>
+<li>读取Name字符串（使用GetWindowText、GetDlgltemText等API）。<ul>
+<li>启动循环，对字符加密（XOR、ADD、SUB等）。</li>
+</ul>
+</li>
+</ul>
+<p>上述文件使用VB引擎函数编写而成，也有类似的原理。若预测正确，从图8-14的事件处理程序起始代码开始调试，查找到读取Name字符串的部分后，紧接着就会出现加密循环。</p>
+<p>提示—————————————————————————————————————–</p>
+<p>调试前先预测代码的实现，这是个好习惯。若预测有误也没关系，从头开始调试即可。但若是有幸预测正确，则可以节省大量调试时间。</p>
+<hr>
+<h3 id="8-4-5读取Name字符串的代码"><a href="#8-4-5读取Name字符串的代码" class="headerlink" title="8.4.5读取Name字符串的代码"></a>8.4.5读取Name字符串的代码</h3><p>记住：我们已经在402ED0处设置了断点</p>
+<p>在402F98处设置断点，按下F9开始执行程序</p>
+<p>在程序框中输入：“ReverseCore”和“abcd1234”如下图：</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581147440557-fdc95141-9d57-4cd0-91cb-a8919d679044.png" alt="QQ截图20200208153713.png"></p>
+<p>点击“check”按钮，程序来到：402ED0地址处，按下F9继续执行：程序来到：402F98地址处。</p>
+<p><strong><span style="color: #F5222D">注意—————————————————————————————————————–</span></strong></p>
+<p><strong><span style="color: #F5222D">若当OD中显示如下图时，在Dump窗口中按下Ctrl+G转到此时的ESP所指向的地址。（千万别再404000处瞎找，读者就是卡在这里非常长时间）</span></strong></p>
+<p><strong><span style="color: #F5222D">———————————————————————————————————————-</span></strong></p>
+<p>我此时的ESP指向：0019F084，来到如图8-15：</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581147855011-c9471bd4-c97c-41ec-bb06-f8c906e6d379.png" alt="QQ截图20200208154408.png"></p>
+<p>图8-15</p>
+<p>继续调试：单步步过402F98。</p>
+<p><strong>要查找的是Name字符串，在VB中，字符串使用字符串对象（这与C语言使用char数组不同），如图8-15查看内存，很难认出实际的字符串。因此把OlyDbg的Dump窗口更改为Long-Addresswith ASCII dump视图模式。</strong></p>
+<p>更改视图方式后，就可以直接看到VB字符串对象存储实际字符串的缓存地址了。在该状态下运行到402F98地址处的CALL命令，值存储到字符串对象，如图8-17所示。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581148043230-8c3937e5-4bc2-47f0-b002-7bc11c2b6c72.png" alt="QQ截图20200208154711.png"></p>
+<p>图8-17 Name字符串</p>
+<p>Name字符串（以字符串对象形式）存储到19F078地址。</p>
+<h3 id="8-4-6加密循环"><a href="#8-4-6加密循环" class="headerlink" title="8.4.6加密循环"></a>8.4.6加密循环</h3><p>继续调试，遇到如下循环，即一系列循环语句。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581148623853-053e6eef-14d5-48b3-be97-d508cec81a23.png" alt="QQ截图20200208155655.png"></p>
+<p>简单讲解上述循环的动作原理，就像在链表中使用next指针引用下一个元素一样，_vbaVarForlnit()、__vbaVarForNext()可以使逆向分析人员在字符串对象中逐个引用字符。并且设置loop count（EBX）使其按指定次数运转循环。</p>
+<p>提示——————————————————————————————————————</p>
+<p>实测仅使用接收的Name字符串中的前4个字符。在代码内检查字符串的长度，若少于4个字符，就会弹出错误消息框。</p>
+<hr>
+<p>至此我们已经查找到了所有希望查看的部分，接下来了解一下加密方法。</p>
+<h3 id="8-4-7加密方法"><a href="#8-4-7加密方法" class="headerlink" title="8.4.7加密方法"></a>8.4.7加密方法</h3><p>PS:输入的Name字符串为“ReverseCore”。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581148870151-de1f2004-cffc-457e-831a-a234215340f2.png" alt="QQ截图20200208160046.png"><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581148871016-4333c4e7-8ab5-4838-95cc-4636c112a589.png" alt="QQ截图20200208160058.png"></p>
+<p>在40323D中下断点，按F9调试至此，看一下栈：（中文为乱码，因此借用一下书上的）</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581149832899-de5b62a1-39c5-47ee-ab2f-c86447d6a91e.png" alt="QQ截图20200208161705.png"></p>
+<p>运行如下函数，将加密后的值存储到ECX寄存器所指的缓冲区。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581149968947-d2d0dd17-17b3-464d-92b2-6db9e9f09025.png" alt="QQ截图20200208161921.png"></p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581150087625-49db9696-3ef8-41af-b7f3-d7ffe6624899.png" alt="QQ截图20200208162119.png"></p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581150156378-a5a97283-68b7-480e-a65a-5bc3d1f5e014.png" alt="QQ截图20200208162220.png"></p>
+<p>加密方法整理如下。</p>
+<p>（1)从给定的Name字符串前端逐一读取字符（共4次）。</p>
+<p>（2）将字符转换为数字（ASCII代码）</p>
+<p>（3）向变换后的数字加64。</p>
+<p>（4）再次将数字转换为字符。</p>
+<p>（5）连接变换后的字符。</p>
+<h2 id="8-5小结"><a href="#8-5小结" class="headerlink" title="8.5小结"></a>8.5小结</h2><p>从破解层面看，示例是个很容易说明的文件。但对于代码逆向分析初学者而言，其中包含了大量内容（VB文件、字符串加密），若要一一学习，分量就显得非常多。</p>
+<p>若跟随调试时进展不顺，请不要轻易放弃。看着上面的说明，各位可能会觉得我调试得过于简单了（特别是讲解有关事件处理程序代码的部分），但是我为了编写该章节已经重启了10多次。</p>
+<p>错过要查找的代码时就要重启调试，需要不断重启以跟踪VB字符串对象内部的字符串缓冲区。各位也要经历这样一个过程才能提高调试水平。因此，现在暂时跳过还不懂的部分，达到一定水平后再挑战。</p>
+<h2 id="Q-A"><a href="#Q-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><p>Q.除了前面介绍的方法，还有别的方法吗?</p>
+<p>A.当然，还有很多呢。破解方法不是一成不变的。即便是同一个文件，也可以尝试使用不同方法，不断尝试才能提高水平。</p>
+<p>Q.破解很多crackme文件能够帮助提高逆向分析水平吗?</p>
+<p>A.的确对提高逆向分析水平有一定帮助，但我建议初学者分析crackme是想让他们感受代码逆向分析的乐趣。代码逆向分析领域中要学习的内容非常多，若感受不到其中的乐趣很容易半途而废。所以，<strong><span style="color: #F5222D">如果通过分析crackme文件感受到了逆向分析的乐趣，学习起来就不会觉得太难。但也不要过分沉溺于crackme程序的分析，只要能从中感受到乐趣足矣。</span></strong></p>
+<p>Q.“调试到403329”的含义是“在403329地址处设置断点，然后运行Run（F9）命令”吗?</p>
+<p>A.使用断点可快速到达指定位置。也可使用StepInto（F7)&#x2F;StepOver(F8)命令调试到相应地址处。</p>
+<p><strong><span style="color: #F5222D">Q.如图8-10所示，若想查看栈内存，该怎么办呢？?</span></strong></p>
+<p><strong><span style="color: #F5222D">A.在OllyDbg的Dump窗中使用移动命令（Ctrl+G)即可。或者在图8-9的栈窗口中选择12FAB8，再选择鼠标右键菜单中的Follow in dump项。抑或在图8-8中选择403321地址后，使用鼠标右键莱单中的Follow in dump-Memory Address命令。</span></strong></p>
+<p><span style="color: #F5222D"></span></p>
+<p>Q.为何要在“TEST AX，AX”指令中比较2个一样的项？</p>
+<p>A.为了检测AX是否为0。只要把它想成汇编语法的特征即可。比如图8-8的40332F地址处有如下指令：</p>
+<p>TEST AX,AX</p>
+<p>JE403408</p>
+<p>将上述汇编代码转换为C语言语句，如下所示：</p>
+<p>if(AX&#x3D;&#x3D;0)</p>
+<p>goto 403408</p>
+<p>“原来汇编语法是这样子啊”，这样想就好。</p>
+<p>Q.您如何在图8-14的代码中查找到了Check按钮的事件处理程序?</p>
+<p>A.参考图8-6～图8-8的代码，把“Wrong serial”字符串定为目标，然后查找引用该字符串的代码（因为代码所属区域即是按钮的事件处理程序）。从查找到的代码开始，向上拖动滑动条，找到生成栈帧（函数开始）的部分。</p>
+<p>Q.加密字符串的代码复杂难懂，看也看不明白，您是怎么知道的呢?</p>
+<p>A.我找出“ReverseCore”字符串的地址后，在查找访问该字符串的代码过程中发现了加密代码。而且，仔细逐行调试也能发现。对于初学者而言，这些不是一下子就能理解的内容。<strong><span style="color: #F5222D">不断努力、反复调试</span></strong>，就会慢慢明白。</p>
+<p>Q.读取Name的位置是StackFrame形成后第四个call语句，您是如何知道的?</p>
+<p>A.先找到处理程序再反复调试该代码。在此过程中边注意观察寄存器、栈边调试代码，就会看到如下指令。</p>
+<p><img src="/assets/posts/8-abex-crackme-2-ftad7a/assets/1581150619172-b49f46df-3f9f-4d52-91e2-4906882499d3.png" alt="QQ截图20200208163008.png"></p>
+<p>上面00402FB6地址处的命令把字符串的地址设置到EAX寄存器。由此可以推出[EBP-88]变量即是字符串对象，且值是由00402F98地址处的CALL指令设置的。只要反复调试就会知道这一点，各位不断挑战后也终将了解。</p>
+<p>Q.其他部分都明白，但加密部分太难了。除了不断调试外，还有别的方法吗？</p>
+<p>A.有些读者初次接触这些汇编代码形式的加密代码，感到很难是十分正常的，我也一样。但可以明确告诉大家，即便一再抱怨，只要不断看代码，一个月、两个月…一年后就会觉得简单一些了。坚持就是胜利。</p>
+<p>Q.为什么402ED0地址处没有Check按钮的注释?</p>
+<p>A.这个注释是我为便于讲解手动添加的。由于没有特别说明，可能让大家误以为它是OllyDbg默认提供的注释。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC8%E7%AB%A0%20abex'crackme#2/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC8%E7%AB%A0%20abex'crackme#2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-04/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC9%E7%AB%A0%20Process%20Explorer%E2%80%94%E2%80%94%E6%9C%80%E4%BC%98%E7%A7%80%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7/" title="第9章 Process Explorer——最优秀的进程管理工具"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第9章 Process Explorer——最优秀的进程管理工具</div></div><div class="info-2"><div class="info-item-1">第9章 Process Explorer——最优秀的进程管理工具9.1 Process ExplorerProcess Explorer是Windows操作系统下最优秀的进程管理工具。 https://technet.microsoft.com/en-us/sysinternals/bb896653.aspx 它是Mark Russinovich开发的进程管理实用程序。Mark Russinovich创办了著名的sysinternals（目前已并入微软旗下），他有着渊博的Windows操作系统知识，开发并公布了许多实用程序（FileMon、RegMon、TcpView、Dbg View、AutoRuns、RootKit Revealer等），也是《深入解析Windows操作系统》一书的合著者。他曾公开过FileMon与RegMon的源代码。在Windows操作系统缺乏各种信息资料的早期，这些源码对系统驱动开发者而言就像沙漠中的绿洲。  图9-1 Process Explore 运行画面 言归正传，一起看一下Process Explorer的运行界面（参考图9-1）。它拥有Wind...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC7%E7%AB%A0%20%E6%A0%88%E5%B8%A7/" title="第7章 栈帧"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第7章 栈帧</div></div><div class="info-2"><div class="info-item-1">第7章 栈帧本章我们将学习栈帧（Stack Frame）相关知识，栈帧在程序中用于声明局部变量、调用函数。理解了栈帧，就能轻松掌握保存在其中的函数参数和局部变量，这对我们调试代码也是很有帮助的。 目标  理解栈帧的运行原理。 编写简单的程序，通过调试观察栈帧情况。 详细讲解几个简单的汇编指令。  7.1栈帧简言之，栈帧就是利用EBP（栈帧指针，请注意不是ESP）寄存器访问栈内局部变量、参数、函数返回地址等的手段。通过前面关于IA-32寄存器的学习我们知道，ESP寄存器承担着栈顶指针的作用，而EBP寄存器则负责行使栈帧指针的职能。程序运行中，ESP寄存器的值随时变化，访问栈中函数的局部变量、参数时，若以ESP值为基准编写程序会十分困难，并且也很难使CPU引用到准确的地址。所以，调用某函数时，先要把用作基准点（函数起始地址）的ESP值保存到EBP，并维持在函数内部。这样，无论ESP的值如何变化，以EBP的值为基准（base)能够安全访问到相关函数的局部变量、参数、返回地址，这就是EBP寄存器作为栈帧指针的作用。 接下来看看栈帧对应的汇编代码。  借助栈帧技术管理函数调用时，无论函数调...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC8%E7%AB%A0-abex%E2%80%99crackme-2"><span class="toc-number">1.</span> <span class="toc-text">第8章 abex’crackme#2</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#8-1%E8%BF%90%E8%A1%8Cabex%E2%80%99crackme-2"><span class="toc-number">1.1.</span> <span class="toc-text">8.1运行abex’crackme#2</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-2Visual-Basic%E6%96%87%E4%BB%B6%E7%9A%84%E7%89%B9%E5%BE%81"><span class="toc-number">1.2.</span> <span class="toc-text">8.2Visual Basic文件的特征</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-1VB%E4%B8%93%E7%94%A8%E5%BC%95%E6%93%8E"><span class="toc-number">1.2.1.</span> <span class="toc-text">8.2.1VB专用引擎</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-2%E6%9C%AC%E5%9C%B0%E4%BB%A3%E7%A0%81%E5%92%8C%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="toc-number">1.2.2.</span> <span class="toc-text">8.2.2本地代码和伪代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-3%E4%BA%8B%E4%BB%B6%E5%A4%84%E7%90%86%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.2.3.</span> <span class="toc-text">8.2.3事件处理程序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-4%E6%9C%AA%E6%96%87%E6%A1%A3%E5%8C%96%E7%9A%84%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.2.4.</span> <span class="toc-text">8.2.4未文档化的结构体</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-3%E5%BC%80%E5%A7%8B%E8%B0%83%E8%AF%95"><span class="toc-number">1.3.</span> <span class="toc-text">8.3开始调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-1%E9%97%B4%E6%8E%A5%E8%B0%83%E7%94%A8"><span class="toc-number">1.3.1.</span> <span class="toc-text">8.3.1间接调用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-2RT-MainStruct%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.3.2.</span> <span class="toc-text">8.3.2RT_MainStruct结构体</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-4%E5%88%86%E6%9E%90-crackme"><span class="toc-number">1.4.</span> <span class="toc-text">8.4分析 crackme</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-1%E6%A3%80%E7%B4%A2%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.4.1.</span> <span class="toc-text">8.4.1检索字符串</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-2%E6%9F%A5%E6%89%BE%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%9C%B0%E5%9D%80"><span class="toc-number">1.4.2.</span> <span class="toc-text">8.4.2查找字符串地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-3%E7%94%9F%E6%88%90Serial%E7%9A%84%E7%AE%97%E6%B3%95"><span class="toc-number">1.4.3.</span> <span class="toc-text">8.4.3生成Serial的算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-4%E9%A2%84%E6%B5%8B%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.4.</span> <span class="toc-text">8.4.4预测代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-5%E8%AF%BB%E5%8F%96Name%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-number">1.4.5.</span> <span class="toc-text">8.4.5读取Name字符串的代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-6%E5%8A%A0%E5%AF%86%E5%BE%AA%E7%8E%AF"><span class="toc-number">1.4.6.</span> <span class="toc-text">8.4.6加密循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-7%E5%8A%A0%E5%AF%86%E6%96%B9%E6%B3%95"><span class="toc-number">1.4.7.</span> <span class="toc-text">8.4.7加密方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-5%E5%B0%8F%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">8.5小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Q-A"><span class="toc-number">1.6.</span> <span class="toc-text">Q&amp;A</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

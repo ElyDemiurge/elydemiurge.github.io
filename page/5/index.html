@@ -1,0 +1,365 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Cyberangel 的博客">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cyberangel&#39;s Blog">
+<meta property="og:url" content="https://elydemiurge.github.io/page/5/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="Cyberangel 的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://elydemiurge.github.io/img/butterfly-icon.png">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://elydemiurge.github.io/img/butterfly-icon.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/page/5/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Cyberangel\'s Blog',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Cyberangel's Blog</h1><div id="site-subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(6)-poison_null_byte/" title="how2heap(6)-poison_null_byte"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="how2heap(6)-poison_null_byte"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(6)-poison_null_byte/" title="how2heap(6)-poison_null_byte">how2heap(6)-poison_null_byte</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-28T12:11:15.000Z" title="发表于 2021-04-28 20:11:15">2021-04-28</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">how2heap(6)-poison_null_byte简介PWN入门（3-2-1）-堆中的off-by-one poison_null_byte和off-by-one本质都是相同的只是名字不同罢了，这里我们再结合libc-2.27.so和free源码再来仔细的看一下。这里再多说几句，poison_null_byte的本质是malloc滥用向前合并和向后合并造成的，其最核心的东西是mchunk_size中的PREV_INUSE和mchunk_prev_size。 漏洞影响版本所有glibc malloc版本 POCPOC源码123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100101102103104105106107108109110111112113#...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(4)-tcache_house_of_spirit%EF%BC%88%E5%AF%B9%E4%B8%89%E4%B8%AA%E6%A0%87%E5%BF%97%E4%BD%8D%E7%9A%84%E7%A0%94%E7%A9%B6%E3%80%81%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90%EF%BC%89/" title="how2heap(4)-tcache_house_of_spirit（对三个标志位的研究、内存对齐）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="how2heap(4)-tcache_house_of_spirit（对三个标志位的研究、内存对齐）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(4)-tcache_house_of_spirit%EF%BC%88%E5%AF%B9%E4%B8%89%E4%B8%AA%E6%A0%87%E5%BF%97%E4%BD%8D%E7%9A%84%E7%A0%94%E7%A9%B6%E3%80%81%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90%EF%BC%89/" title="how2heap(4)-tcache_house_of_spirit（对三个标志位的研究、内存对齐）">how2heap(4)-tcache_house_of_spirit（对三个标志位的研究、内存对齐）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-27T02:02:35.000Z" title="发表于 2021-04-27 10:02:35">2021-04-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">how2heap(4)-tcache_house_of_spirit（对三个标志位的研究、内存对齐）简介[PWN入门（3-17-1）-Tcache Attack中的house of spirit（基础）](..&#x2F;..&#x2F;..&#x2F;PWN入门&#x2F;PWN入门（3-17-1）-Tcache Attack中的house of spirit（基础）&#x2F;PWN入门（3-17-1）-Tcache Attack中的house of spirit（基础）.md) 这种攻击方式之前我们说过，在这篇文章中我们深入研究一下。 漏洞影响版本所有开启glibc malloc的版本 POC123456789101112131415161718192021222324252627282930313233343536373839404142#include &lt;stdio.h&gt;#include &lt;stdlib.h&gt;#include &lt;assert.h&gt;int main()&#123;	setbuf(stdout, NULL);	printf...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(3)-tcache_poisoning/" title="how2heap(3)-tcache_poisoning"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="how2heap(3)-tcache_poisoning"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(3)-tcache_poisoning/" title="how2heap(3)-tcache_poisoning">how2heap(3)-tcache_poisoning</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-27T00:05:07.000Z" title="发表于 2021-04-27 08:05:07">2021-04-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">how2heap(3)-tcache_poisoning简介之前我们说过tcache_poisoning这种攻击方式： [PWN入门（3-16-1）-Tcache Attack中的Tcache Poisoning（基础）](..&#x2F;..&#x2F;..&#x2F;PWN入门&#x2F;PWN入门（3-16-1）-Tcache Attack中的Tcache Poisoning（基础）&#x2F;PWN入门（3-16-1）-Tcache Attack中的Tcache Poisoning（基础）.md) 这里再来简单的说一下，我们通过堆溢出或UAF修改tcachebin中的free chunk的next指针进而malloc申请控制任意内存的地址。当然tcache_poisoning和fastbin中修改fd指针的效果是一样的，但是所需要绕过的检查是不相同的，这里我们之后再说。 漏洞影响版本所有启用tcachebin机制的glibc malloc POCPOC-glibc-2.27、glibc-2.29123456789101112131415161718192021222324...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(2)-fastbin_reverse_into_tcache/" title="how2heap(2)-fastbin_reverse_into_tcache"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="how2heap(2)-fastbin_reverse_into_tcache"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(2)-fastbin_reverse_into_tcache/" title="how2heap(2)-fastbin_reverse_into_tcache">how2heap(2)-fastbin_reverse_into_tcache</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-23T07:11:57.000Z" title="发表于 2021-04-23 15:11:57">2021-04-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">how2heap(2)-fastbin_reverse_into_tcache简介在前面的malloc源码中我们可以知道，当fastbin链表有free chunk而对应大小的tcachebin链表未满时会将fastbin中的chunk移动到fastbin中。由于fastbin和tcachebin都是采用LIFO（后入先出）的机制，因此放入之前和之后chunk的顺序正好相反，我们可以使用这一点来控制任意内存。 漏洞影响版本加入并开启tcache机制的所有glibc POC相关的_int_malloc源码分析为了让之后的文章解读更加准确，我们先来回顾一下fastbin chunk移入到tcachebin中的过程，触发移入要求：  申请堆块的大小在fastbin范围中 对应大小的tcachebin链表为空（因为在申请时tcachebin的优先级最高） 对应大小的fastbin链表上有至少两个空闲的chunk 在向fastbin申请chunk后链表上仍然有free chunk（呼应上一点） 不能触发任何异常  12345678910111213141516171819202122232...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E7%9F%A5%E8%AF%86%E7%82%B9/" title="计算机操作系统实验知识点"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="计算机操作系统实验知识点"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E7%9F%A5%E8%AF%86%E7%82%B9/" title="计算机操作系统实验知识点">计算机操作系统实验知识点</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-21T08:38:03.000Z" title="发表于 2021-04-21 16:38:03">2021-04-21</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">计算机操作系统实验知识点 注：一些在学校学的计算机操作系统知识点，方便查询…  实验一进程僵尸进程：僵尸进程是当子进程比父进程先结束，而父进程又没有回收子进程，释放子进程占用的资源，此时子进程将成为一个僵尸进程。 中断中断是指在CPU正常运行期间，由于内外部事件或由程序预先安排的事件引起的CPU暂时停止正在运行的程序，转而为该内部或外部事件或预先安排的事件服务的程序中去，服务完毕后再返回去继续运行被暂时中断的程序。Linux中通常分为外部中断（又叫硬件中断）和内部中断（又叫异常）。 硬中断由与系统相连的外设(比如网卡、硬盘)自动产生的。主要是用来通知操作系统系统外设状态的变化。比如当网卡收到数据包的时候，就会发出一个中断。我们通常所说的中断指的是硬中断(hardirq)。 软中断软中断是软件实现的中断，也就是程序运行时其他程序对它的中断：比如说在调试程序时下的断点一般为软件断点。 硬中断和软中断的区别 软中断是执行中断指令产生的，而硬中断是由外设引发的。 硬中断的中断号是由中断控制器提供的，软中断的中断号由指令直接指出，无需使用中断控制器。 硬中断是可屏蔽的，软中断不可屏蔽。 硬...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(1)-fastbin_dup(fastbin%20double%20free)/" title="how2heap(1)-fastbin_dup(fastbin double free)"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="how2heap(1)-fastbin_dup(fastbin double free)"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(1)-fastbin_dup(fastbin%20double%20free)/" title="how2heap(1)-fastbin_dup(fastbin double free)">how2heap(1)-fastbin_dup(fastbin double free)</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-19T11:36:51.000Z" title="发表于 2021-04-19 19:36:51">2021-04-19</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">how2heap(1)-fastbin_dup(fastbin double free)前言从这一小节开始我们开始讲述各类对堆的攻击方式，当然你可能有疑问在之前并没有了解过free的源码就怎么开始漏洞研究了呢？说的很对，虽然在我很早的文章中说明过一部分的漏洞以利用方式，但是并没有对漏洞成因进行深究；也就是说我们只知道“表面现象”而不知“深层次原因”。所以在之后讲述漏洞的篇章中都会对free源码进行讲解以更深的了解漏洞成因和防御措施。接下来我们转入正题。 简介在我很早的文章中说明过这个漏洞的成因–double free，相关文章链接如下： PWN入门（3-7-2）-fastbin_attack中的fastbin_double_free（基础） PWN入门（3-7-3）-fastbin_attack中的fastbin_double_free（例题）  （现在看来之前写的文章简直是黑历史）  当heap段中某一个堆块被进行二次释放就会在bin中形成circular list（循环链表），严重会导致任意内存读写。 漏洞影响版本所有glibc malloc版本 POC 之后文章如若未有额外...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/%E9%98%85%E5%89%8D%E5%BF%85%E7%9C%8B/" title="阅前必看"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="阅前必看"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/%E9%98%85%E5%89%8D%E5%BF%85%E7%9C%8B/" title="阅前必看">阅前必看</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-05T09:31:48.000Z" title="发表于 2021-04-05 17:31:48">2021-04-05</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">阅前必看入坑pwn大概也有大半年时间了，最近发现自己对堆底层的知识不够牢固：只知其一不知其二。尤其是对unlink过程和unsortedbin等数据结构为双向循环链表的bins掌握模棱两可，因此打算对malloc源码进行下手，重点分析_int_malloc函数，然后在已有的参考资料帮助下构建出“glibc malloc知识体系”。参考资料会在最后一篇文章中列出，大师傅们看个笑话就行了（逃~ 文章主要以调试为主，目标是读透malloc源码（程序例子都是本菜鸡写的），每篇文章都具有针对性并且大部分文章还有我画的图（以PPT形式呈现，可免费下载）；由于本人精力有限，很难保证每篇文章都没有错误，如有错误或用词不当可以在文章下面指出，这里先谢谢师傅们。 文章将从今天开始陆续发出。。。。。。 这里是第一篇（后续文章顺序可能有所调整）： ..&#x2F;_int_malloc（1）-与fastbin相关的分配机制&#x2F;_int_malloc（1）-与fastbin相关的分配机制.md </div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%884-4%EF%BC%89-largebin%E7%A0%94%E7%A9%B6/" title="_int_malloc（4-4）-largebin研究"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="_int_malloc（4-4）-largebin研究"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%884-4%EF%BC%89-largebin%E7%A0%94%E7%A9%B6/" title="_int_malloc（4-4）-largebin研究">_int_malloc（4-4）-largebin研究</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-04-01T08:53:30.000Z" title="发表于 2021-04-01 16:53:30">2021-04-01</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">_int_malloc（4-4）-largebin研究这一小节我们来详细的了解下largebin的分配机制，和之前一样我们仍然使用一个例子来了解。这一篇文章相当于对之前内容的一个补充，强烈建议参考后面的PPT文件！！！ 例子 例子来自：https://xz.aliyun.com/t/6596  123456789101112131415161718192021222324252627282930313233343536#include&lt;stdio.h&gt;#include&lt;stdlib.h&gt;int main()&#123;    unsigned long *pa, *pb, *p1, *p2, *p3, *p4, *p5, *p6, *p7, *p8, *p9, *p10, *p11, *p12, *p13, *p14;    unsigned long *p;    pa = malloc(0xb0);    pb = malloc(0x20);    p1 = malloc(0x400);    p2 = malloc(0x20);    p3 = ma...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%884-3%EF%BC%89-%E4%BB%8Etop_chunk%E4%B8%AD%E7%94%B3%E8%AF%B7%E5%A0%86%E5%9D%97%E5%92%8C%E4%B8%80%E4%BA%9B%E4%B8%8D%E9%87%8D%E8%A6%81%E7%9A%84%E8%B0%83%E8%AF%95%E8%BF%87%E7%A8%8B/" title="_int_malloc（4-3）-从top_chunk中申请堆块和一些不重要的调试过程"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="_int_malloc（4-3）-从top_chunk中申请堆块和一些不重要的调试过程"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%884-3%EF%BC%89-%E4%BB%8Etop_chunk%E4%B8%AD%E7%94%B3%E8%AF%B7%E5%A0%86%E5%9D%97%E5%92%8C%E4%B8%80%E4%BA%9B%E4%B8%8D%E9%87%8D%E8%A6%81%E7%9A%84%E8%B0%83%E8%AF%95%E8%BF%87%E7%A8%8B/" title="_int_malloc（4-3）-从top_chunk中申请堆块和一些不重要的调试过程">_int_malloc（4-3）-从top_chunk中申请堆块和一些不重要的调试过程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-03-25T00:35:52.000Z" title="发表于 2021-03-25 08:35:52">2021-03-25</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">_int_malloc（4-3）-从top_chunk中申请堆块和一些不重要的调试过程malloc(0x90)接上一小节，第一个malloc终于调试完毕，该说的东西也很仔细的说过了。现在我们来看一下bin的情况：  现在我们还没有看过free的代码，因此我们直接单步步过free，来看一下结果： 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657pwndbg&gt; binstcachebinsemptyfastbins......emptyunsortedbinall: 0x555555756bf0 —▸ 0x5555557562f0 —▸ 0x7ffff7dcdca0 (main_arena+96) ◂— 0x555555756bf0smallbinsemptylargebins0x500: 0x5555557566b0 —▸ 0x7ffff7dce0d0 (main_arena+1168) ◂— 0x555555756...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%884-2%EF%BC%89-arena%E4%B8%AD%E7%9A%84binmap%E3%80%81%E5%88%9D%E5%A7%8B%E5%8C%96last_remainder/" title="_int_malloc（4-2）-arena中的binmap、初始化last_remainder"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="_int_malloc（4-2）-arena中的binmap、初始化last_remainder"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%884-2%EF%BC%89-arena%E4%B8%AD%E7%9A%84binmap%E3%80%81%E5%88%9D%E5%A7%8B%E5%8C%96last_remainder/" title="_int_malloc（4-2）-arena中的binmap、初始化last_remainder">_int_malloc（4-2）-arena中的binmap、初始化last_remainder</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-03-22T08:33:48.000Z" title="发表于 2021-03-22 16:33:48">2021-03-22</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">_int_malloc（4-2）-arena中的binmap、初始化last_remainder 接上一小节的内容我们继续调试。这一小节和下一小节的PPT解析在下一篇文章中，可以去那里下载。由于个人精力有限,PPT的内容仅供参考,一切以文章内容为准!  开始调试第三次while循环在上一小节的末尾中iters并不大于MAX_ITERS，因此不会跳出循环而是执行下一次的循环。 1234while ((victim = unsorted_chunks (av)-&gt;bk) != unsorted_chunks (av)) //判断unsortedbin是否为空       &#123;    		......		&#125;  现在unsortedbin链表中已经为空，不再会进入while循环，而是直接执行while循环之后的代码： 1234567#if USE_TCACHE      /* If all the small chunks we found ended up cached, return one now.  */      if (return_cached)  ...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/4/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/#content-inner">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/#content-inner">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/#content-inner">47</a><a class="extend next" rel="next" href="/page/6/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/"><span class="card-category-list-name">Misc - CTFWriteUp</span><span class="card-category-list-count">127</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%E5%88%B7%E9%A2%98/"><span class="card-category-list-name">刷题</span><span class="card-category-list-count">77</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/"><span class="card-category-list-name">比赛</span><span class="card-category-list-count">49</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%EF%BC%88%E5%AD%A6%E6%A0%A1CTF%E6%96%B0%E7%94%9F%E8%B5%9B%EF%BC%89%EF%BC%88%E7%BB%9D%E5%AF%86%E5%AF%86%E6%96%87%EF%BC%89%E8%BF%99%E4%BB%96%E5%96%B5%E7%9A%84%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%EF%BC%88ASCII%E8%A7%84%E5%BE%8B%EF%BC%89/"><span class="card-category-list-name">（学校CTF新生赛）（绝密密文）这他喵的到底是什么？（ASCII规律）</span><span class="card-category-list-count">1</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/"><span class="card-category-list-name">Reverse & PWN - CTFWriteUp</span><span class="card-category-list-count">116</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/PWN/"><span class="card-category-list-name">PWN</span><span class="card-category-list-count">8</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/Reverse/"><span class="card-category-list-name">Reverse</span><span class="card-category-list-count">108</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/"><span class="card-category-list-name">公开知识库</span><span class="card-category-list-count">224</span></a></li>
+          </ul></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/12/">
+            <span class="card-archive-list-date">
+              十二月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/11/">
+            <span class="card-archive-list-date">
+              十一月 2022
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/10/">
+            <span class="card-archive-list-date">
+              十月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/07/">
+            <span class="card-archive-list-date">
+              七月 2022
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/01/">
+            <span class="card-archive-list-date">
+              一月 2022
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2021/12/">
+            <span class="card-archive-list-date">
+              十二月 2021
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2021/11/">
+            <span class="card-archive-list-date">
+              十一月 2021
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">467</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">850.9k</div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-07-03T14:46:23.043Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"><script>window.typedJSFn = {
+  init: str => {
+    window.typed = new Typed('#subtitle', Object.assign({
+      strings: str,
+      startDelay: 300,
+      typeSpeed: 150,
+      loop: true,
+      backSpeed: 50,
+    }, null))
+  },
+  run: subtitleType => {
+    if (true) {
+      if (typeof Typed === 'function') {
+        subtitleType()
+      } else {
+        btf.getScript('https://cdn.jsdelivr.net/npm/typed.js@3.0.0/dist/typed.umd.min.js').then(subtitleType)
+      }
+    } else {
+      subtitleType()
+    }
+  },
+  processSubtitle: (content, extraContents = []) => {
+    if (true) {
+      const sub = ["Cyberangel 的博客"].slice()
+
+      if (extraContents.length > 0) {
+        sub.unshift(...extraContents)
+      }
+
+      if (typeof content === 'string') {
+        sub.unshift(content)
+      } else if (Array.isArray(content)) {
+        sub.unshift(...content)
+      }
+
+      sub.length > 0 && typedJSFn.init(sub)
+    } else {
+      document.getElementById('subtitle').textContent = typeof content === 'string' ? content :
+        (Array.isArray(content) && content.length > 0 ? content[0] : '')
+    }
+  }
+}
+btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+</script><script>function subtitleType () {
+  typedJSFn.processSubtitle(["Cyberangel 的博客"])
+}
+typedJSFn.run(subtitleType)</script></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

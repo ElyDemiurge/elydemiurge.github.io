@@ -1,0 +1,350 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难) | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难) 这道题到后期不能动态调试，极其恶心，程序流程看都看不到，还好有交叉引用  查壳之后打开程序：（需要dll文件） 输入123之后，提示：  单击确定之后，显示出来了wrong。复习一下hook的原理 程序显示了”sucessed hooked”已经成功的hook了，简单说hook技术就是在程序运">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难)">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/Reverse%20&%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-%E5%AE%89%E6%B4%B5%E6%9D%AF%202019-crackMe(hook%E3%80%81SM4%E5%8A%A0%E5%AF%86%EF%BC%8CSEH%EF%BC%8Cbase64%E6%8D%A2%E8%A1%A8%E3%80%81%E6%9E%81%E5%85%B6%E9%9A%BE)/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难) 这道题到后期不能动态调试，极其恶心，程序流程看都看不到，还好有交叉引用  查壳之后打开程序：（需要dll文件） 输入123之后，提示：  单击确定之后，显示出来了wrong。复习一下hook的原理 程序显示了”sucessed hooked”已经成功的hook了，简单说hook技术就是在程序运">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-05/800/450">
+<meta property="article:published_time" content="2020-07-18T06:30:36.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.360Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-05/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难)",
+  "url": "https://elydemiurge.github.io/posts/Yuque/Reverse%20&%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-%E5%AE%89%E6%B4%B5%E6%9D%AF%202019-crackMe(hook%E3%80%81SM4%E5%8A%A0%E5%AF%86%EF%BC%8CSEH%EF%BC%8Cbase64%E6%8D%A2%E8%A1%A8%E3%80%81%E6%9E%81%E5%85%B6%E9%9A%BE)/",
+  "image": "https://picsum.photos/seed/blog-cover-05/800/450",
+  "datePublished": "2020-07-18T06:30:36.000Z",
+  "dateModified": "2026-07-03T14:46:15.360Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-%E5%AE%89%E6%B4%B5%E6%9D%AF%202019-crackMe(hook%E3%80%81SM4%E5%8A%A0%E5%AF%86%EF%BC%8CSEH%EF%BC%8Cbase64%E6%8D%A2%E8%A1%A8%E3%80%81%E6%9E%81%E5%85%B6%E9%9A%BE)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-05/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-07-18T06:30:36.000Z" title="发表于 2020-07-18 14:30:36">2020-07-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.360Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Reverse-PWN-CTFWriteUp/">Reverse &amp; PWN - CTFWriteUp</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Reverse-PWN-CTFWriteUp/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="BUUCTF-安洵杯-2019-crackMe-hook、SM4加密，SEH，base64换表、极其难"><a href="#BUUCTF-安洵杯-2019-crackMe-hook、SM4加密，SEH，base64换表、极其难" class="headerlink" title="BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难)"></a>BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难)</h1><blockquote>
+<p>这道题到后期不能动态调试，极其恶心，程序流程看都看不到，还好有交叉引用</p>
+</blockquote>
+<p>查壳之后打开程序：（需要dll文件）</p>
+<p>输入123之后，提示：</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595053936492-599bb91b-6184-4e11-ba35-7bbf2359bf66.png" alt="TIM截图20200718143208.png"></p>
+<p>单击确定之后，显示出来了wrong。复习一下hook的原理</p>
+<p>程序显示了”sucessed hooked”已经成功的hook了，简单说hook技术就是在程序运行的时候通过几种技术手段来改变程序流程走向操作者指定的函数，常见的是在调用api函数时，会先运行操作者的函数，然后再进入到原本应该调用的函数上，</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595053994442-1b8d8c4c-4840-4773-80a1-250b61859039.png"></p>
+<p>将程序扔到IDA中：</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595054134933-f3a14f2e-85ba-4667-82e8-4a06095dc7a6.png" alt="TIM截图20200718143526.png"></p>
+<p>屁都没有，将程序扔到OD中动调：</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595054258397-1742e281-dca1-4575-b8b2-102aee790181.png" alt="TIM截图20200718143726.png"></p>
+<p>在输入之后下断点，输入的数据保存在地址22A1E4中:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595070943854-e66108cc-3fe1-447e-89d6-660d0bf81a85.png" alt="TIM截图20200718190223.png"></p>
+<p>为了方便，对IDA中的基址进行修改：</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595056321909-89cf06e8-1827-4e1a-bcc4-94303a0faeef.png" alt="TIM截图20200718151135.png"></p>
+<p>下断点之后，向程序中试探性的输入“123456789”</p>
+<p>接下来OD中有一个call 00221A4，在IDA的汇编中找到他</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595056385121-6ddcfd9b-682a-4dc7-8799-aaf9071dc6af.png" alt="TIM截图20200718151258.png"></p>
+<p>原来是系统函数，不用管他，直接单步步过</p>
+<p>接下来有一个：</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595056401483-75da1776-82bd-4c93-971a-19967f201e0f.png" alt="TIM截图20200718151315.png"></p>
+<p>由于存在hook函数,我们必须小心,在通常情况下系统函数是可以自动忽略的,但现在存在hook,会修改程序的流程,我们在OD中单步步入:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595055545549-2bc740ae-2aa1-49b7-9e2b-600691ef7ce9.png" alt="TIM截图20200718145852.png"></p>
+<p>可见,程序并没有执行到MessageBoxW函数,而是执行到了另外一个函数,这个函数sub_222AB0存在字符串:</p>
+<p>Str&#x3D;&#x3D;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+&#x2F;</p>
+<p>在IDA中对其进行交叉引用,来到:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595056459647-17824686-ad97-4cf6-abb6-c23caa5c56a1.png" alt="TIM截图20200718151411.png"></p>
+<p>哎呀,for循环就不看了(我懒),OD动调直接可以得出结果,对数据进行跟随可以得到:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595055841886-9ad368fe-45b5-4cf6-b320-3863c38fc72a.png" alt="TIM截图20200718150325.png"></p>
+<p>变换后的Str&#x3D;&#x3D;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+&#x2F;</p>
+<p>接下来就遇到了AddVectoredExceptionHandler函数,简单的介绍他一下:</p>
+<p>简单点来说这个函数是用来添加<span style="color: #333333">异常VEH向量</span></p>
+<p><span style="color: #333333">但是注册异常干什么呢?</span></p>
+<p><span style="color: #333333">OD中步过MessageBoxA函数,</span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">当OD执行到</span>00223458    C700 01000000   mov dword ptr ds:[eax],0x1时,触发程序的异常,OD直接卡死退出,出题人绝对是故意的,看来只能使用IDA了</p>
+<p><span style="color: #333333">在IDA中双击进入Handler函数:</span></p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057223267-13a839a7-3016-49cf-b3b2-565eea9448dc.png" alt="TIM截图20200718152657.png"></p>
+<p>我们这个位置的函数，SetUnhandledExceptionFilter：</p>
+<p>SetUnhandledExceptionFilter函数设定了一个函数，用于再报错后转入到这个函数运行,这里的目的应该是和前面使用的hook一样，为了不被发现这个函数的调用，</p>
+<p>双击进入sub_221172函数</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057465452-3664f444-d38e-4e38-b915-ca8def44cca3.png" alt="TIM截图20200718153053.png"></p>
+<p>有点复杂,应该是某种加密方式</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057616757-12340228-e3f7-4462-9c61-b0e7fbeed85d.png" alt="TIM截图20200718153329.png"></p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057657455-2ebc2bb3-171c-47f4-a9f7-ceebed592227.png" alt="TIM截图20200718153406.png"></p>
+<p>应该是sm4的加密方式:<a target="_blank" rel="noopener" href="https://blog.csdn.net/sinat_38259539/article/details/90810706">https://blog.csdn.net/sinat_38259539&#x2F;article&#x2F;details&#x2F;90810706</a></p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057738315-e237f349-c101-4c68-8ba5-16fa1ec35abd.png" alt="TIM截图20200718153527.png"></p>
+<p>查看dword_227A78:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057772468-c0284458-6c4a-4a95-ab59-62aea30f7327.png" alt="TIM截图20200718153604.png"></p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057795111-fc793844-d884-446a-9e42-59ccf3c12f7c.png" alt="TIM截图20200718153627.png"></p>
+<p>双击进入sub_2214E0:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057832038-83e70414-9436-4c6f-b867-4d7757a4df71.png" alt="TIM截图20200718153705.png"></p>
+<p>进入sub_2219A0,来到:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057863938-150d7052-c35f-4c9e-9eee-c4d598f7ad7c.png" alt="TIM截图20200718153735.png"></p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057889730-2ad4a712-deb8-44d1-bfbf-34648a74c950.png" alt="TIM截图20200718153759.png"></p>
+<p>实锤了,sm4加密:</p>
+<p>返回到:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595057967988-fe387912-5211-4431-86f4-f7cf6ddb9696.png" alt="TIM截图20200718153913.png"></p>
+<p>进入TopLevelExceptionFilter,修改函数类型为void</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595058041521-412d7782-0e1d-4222-b1f4-59b21c733639.png" alt="TIM截图20200718154024.png"></p>
+<p>for循环是将Str2进行两两交换,下面的sub_22126C是对byte_22A180进行某种操作,后返回值赋值给Str1,最后调用函数sub_221136对Str1与Str2(1UTAOIkpyOSWGv&#x2F;mOYFY4R!!)进行比较,因此,要success,必须使Str1&#x3D;&#x3D;1UTAOIkpyOSWGv&#x2F;mOYFY4R!!</p>
+<p>双击进入sub_22126C:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595072530414-346f6988-9727-4d9b-860a-e83f66743cc2.png" alt="TIM截图20200718194152.png"></p>
+<p>由此可见这里又对Str&#x3D;&#x3D;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+&#x2F;进行了变换,OD也无法使用,只能硬看了:</p>
+<p>里面还有个函数:sub_2210FF,双击进入:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595074998409-a2d9521c-1e38-460d-91e2-32156d560e7c.png" alt="TIM截图20200718202310.png"></p>
+<p>附上令则师傅的wp:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595075161972-faa6bf41-1c07-4d6d-baf5-57f89f808f94.png"></p>
+<blockquote>
+<p>这里就是一个base64，但是是将‘&#x3D;’换成了‘！’，还要注意对应选址的时候有一个+24，<br>这里我当时的做法是直接将原来的数值算出，然后减去24，再进入缓冲区重新组合成，可能出现见出减出负数的错误，但是我们可以使用%63，也可以得到这个值。<br>然后看到师傅的脚本将这里当作是偏移base64的寻址表来写的，所以将这里的加减看作是变表。是将表再向右移了24个长度，然后前面多出来的补到后面去，到解密完成以后是byte类型，直接可以使用hex()。</p>
+</blockquote>
+<p>我们大致分析结束，但是并没有看到我们输入的flag进行运算，估计又被隐藏起来了,对输入的unk_22A1E4进行交叉引用,来到:</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595075575315-1659532f-4928-4c5c-a822-e4236d158f5c.png" alt="TIM截图20200718203236.png"></p>
+<p>其中三个参数，一个为我们输入的flag，一个为我们前面看到sm4加密的位置的参量，一个为生成Str1时使用的参数，也就是被base64加密的那个值，进入这个函数：</p>
+<p><img src="/assets/posts/buuctf-2019-crackme-hook-sm4-seh-base64-vijreh/assets/1595075675550-6632451a-75d9-4a36-a281-09e0f022153b.png" alt="TIM截图20200718203426.png"></p>
+<p>这是其中的函数，其实也是sm4加密，</p>
+<p>整理下思路：</p>
+<p>输入（22A1E4）</p>
+<ul>
+<li>-&gt;sub_222AB0（变换base64索引表）-&gt;Handler</li>
+<li>-&gt;sub_221172使用where_are_u_now? sm4加密生成unk_22A218</li>
+<li>-&gt;TopLevelExceptionFilter()-&gt;变换Str2（1UTAOIkpyOSWGv&#x2F;mOYFY4R!!）</li>
+<li>-&gt;进行sub_22126C(byte_22A180)再次 变换base64索引表并对其进行base64加密 :  byte_22A180进行交叉引用发现调用sub_221131函数（SM4加密，参数有输入的unk_22A218）,对byte_22A180进行初始化]</li>
+<li>-&gt;返回值赋值给Str1</li>
+<li><ul>
+<li><blockquote>
+<p>进行比较</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<p>令则师傅的wp如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">ss = <span class="string">&#x27;1UTAOIkpyOSWGv/mOYFY4R!!&#x27;</span></span><br><span class="line">s = []</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(ss)):</span><br><span class="line">	s.append(ss[i])</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,<span class="built_in">len</span>(s),<span class="number">2</span>):</span><br><span class="line">	(s[i],s[i+<span class="number">1</span>]) = (s[i+<span class="number">1</span>],s[i])</span><br><span class="line"><span class="built_in">print</span>(s)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(s))</span><br><span class="line">arr_s = []</span><br><span class="line">strr = <span class="string">&#x27;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/&#x27;</span></span><br><span class="line"><span class="comment">#这里也是变表了，但是只是大小写</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">22</span>):</span><br><span class="line">	arr_s.append((strr.find(s[i])-<span class="number">24</span>)%<span class="number">63</span>)<span class="number">4</span></span><br><span class="line"><span class="comment">#这里将+24理解为加减，在这个位置单独运算，并使用%63防止出现负数</span></span><br><span class="line">arr_s.append(<span class="number">0</span>)</span><br><span class="line">arr_s.append(<span class="number">0</span>)</span><br><span class="line"><span class="built_in">print</span>(arr_s)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(arr_s))</span><br><span class="line">arr_41A180 = []</span><br><span class="line"><span class="comment">#这里就是形成缓冲区自己手动还原base64的解密</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>,<span class="built_in">len</span>(arr_s),<span class="number">4</span>):</span><br><span class="line">	v3 = <span class="number">0</span></span><br><span class="line">	<span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>):</span><br><span class="line">		v3 |= (arr_s[i+j] &lt;&lt; (<span class="number">6</span>* (<span class="number">3</span>-j)))</span><br><span class="line">	<span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">3</span>):</span><br><span class="line">		arr_41A180.append((v3 &gt;&gt; <span class="number">8</span> * (<span class="number">2</span> -j)) &amp; <span class="number">0xff</span>)</span><br><span class="line"><span class="built_in">print</span>(arr_41A180)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(arr_41A180))</span><br></pre></td></tr></table></figure>
+
+<p>然后得到的其实为：</p>
+<p>[‘0x59’, ‘0xd0’, ‘0x95’, ‘0x29’, ‘0xd’, ‘0xf2’, ‘0x40’, ‘0x6’, ‘0x14’, ‘0xf4’, ‘0x8d’, ‘0x27’, ‘0x69’, ‘0x6’, ‘0x87’, ‘0x4e’]</p>
+<p>我们简单处理为：0x59d095290df2400614f48d276906874e</p>
+<p>这就是sm4加密后的密文，其中密钥为”where_are_u_now?”我们将其转化为16进制数：0x77686572655f6172655f755f6e6f773f</p>
+<p>然后我们解密sm4，使用pysm4：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pysm4 <span class="keyword">import</span> encrypt, decrypt</span><br><span class="line">cipher_num = <span class="number">0x59d095290df2400614f48d276906874e</span></span><br><span class="line">mk = <span class="number">0x77686572655f6172655f755f6e6f773f</span></span><br><span class="line">clear_num = decrypt(cipher_num, mk)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">hex</span>(clear_num)[<span class="number">2</span>:].replace(<span class="string">&#x27;L&#x27;</span>,<span class="string">&#x27;&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>得到：534d34666f524578636570696f4e3f21</p>
+<p>将这个十六进制数改为字符串：SM4foRExcepioN?!</p>
+<p>flag{SM4foRExcepioN?!}</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-%E5%AE%89%E6%B4%B5%E6%9D%AF%202019-crackMe(hook%E3%80%81SM4%E5%8A%A0%E5%AF%86%EF%BC%8CSEH%EF%BC%8Cbase64%E6%8D%A2%E8%A1%A8%E3%80%81%E6%9E%81%E5%85%B6%E9%9A%BE)/">https://elydemiurge.github.io/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-%E5%AE%89%E6%B4%B5%E6%9D%AF%202019-crackMe(hook%E3%80%81SM4%E5%8A%A0%E5%AF%86%EF%BC%8CSEH%EF%BC%8Cbase64%E6%8D%A2%E8%A1%A8%E3%80%81%E6%9E%81%E5%85%B6%E9%9A%BE)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-05/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-FlareOn1-Bob%20Doge%EF%BC%88dnspy%E5%8A%A8%E6%80%81%E8%B0%83%E8%AF%95%EF%BC%89/" title="BUUCTF-FlareOn1-Bob Doge（dnspy动态调试）"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">BUUCTF-FlareOn1-Bob Doge（dnspy动态调试）</div></div><div class="info-2"><div class="info-item-1">BUUCTF-FlareOn1-Bob Doge（dnspy动态调试）查壳之后调试一下就出来了：  flag{3rmahg3rd.b0b.d0ge@flare-on.com} </div></div></div></a><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-GKCTF2020-Chellys%20identity%EF%BC%88%E8%B6%85%E7%BA%A7%E9%9A%BE%EF%BC%89/" title="BUUCTF-GKCTF2020-Chellys identity（超级难）"><img class="cover" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">BUUCTF-GKCTF2020-Chellys identity（超级难）</div></div><div class="info-2"><div class="info-item-1">BUUCTF-GKCTF2020-Chellys identity（超级难）这道题不想多说什么，真的是难，必须结合OD才能理解函数的意思。 在我的电脑上程序的基址为：  IDA中函数注释如下：  解密脚本如下： 1234567891011121314151617181920212223242526272829303132333435#include &lt;iostream&gt;using namespace std;int zhishu(int num)&#123;    for (int i = 2; i &lt; num; i++)    &#123;        if (!(num % i))            return 0;    &#125;    return 1;&#125;int jm(int num)&#123;    int sum = 0;    for (int i = 2; i &lt; num; i++)        if (zhishu(i))            sum += i;    return sum ^ num;&#12...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#BUUCTF-%E5%AE%89%E6%B4%B5%E6%9D%AF-2019-crackMe-hook%E3%80%81SM4%E5%8A%A0%E5%AF%86%EF%BC%8CSEH%EF%BC%8Cbase64%E6%8D%A2%E8%A1%A8%E3%80%81%E6%9E%81%E5%85%B6%E9%9A%BE"><span class="toc-number">1.</span> <span class="toc-text">BUUCTF-安洵杯 2019-crackMe(hook、SM4加密，SEH，base64换表、极其难)</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

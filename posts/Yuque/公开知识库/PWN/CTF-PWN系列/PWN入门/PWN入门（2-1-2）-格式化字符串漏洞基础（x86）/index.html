@@ -1,0 +1,323 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（2-1-2）-格式化字符串漏洞基础（x86） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（2-1-2）-格式化字符串漏洞基础（x86） 文接上篇  0x02 格式化字符串漏洞原理格式化串漏洞和普通的栈溢出有相似之处，但又有所不同，它们都是利用了程序员的疏忽大意来改变程序运行的正常流程。 接下来我们就来看一下格式化字符串的漏洞原理。 首先，什么是格式化字符串呢，print()、fprint()等*print()系列的函数可以按照一定的格式将数据进行输出，举个最简单的例子: 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（2-1-2）-格式化字符串漏洞基础（x86）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-2%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%9F%BA%E7%A1%80%EF%BC%88x86%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（2-1-2）-格式化字符串漏洞基础（x86） 文接上篇  0x02 格式化字符串漏洞原理格式化串漏洞和普通的栈溢出有相似之处，但又有所不同，它们都是利用了程序员的疏忽大意来改变程序运行的正常流程。 接下来我们就来看一下格式化字符串的漏洞原理。 首先，什么是格式化字符串呢，print()、fprint()等*print()系列的函数可以按照一定的格式将数据进行输出，举个最简单的例子: 1">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-07/800/450">
+<meta property="article:published_time" content="2020-08-15T04:28:16.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.717Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-07/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（2-1-2）-格式化字符串漏洞基础（x86）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-2%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%9F%BA%E7%A1%80%EF%BC%88x86%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-07/800/450",
+  "datePublished": "2020-08-15T04:28:16.000Z",
+  "dateModified": "2026-07-03T14:46:15.717Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-2%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%9F%BA%E7%A1%80%EF%BC%88x86%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（2-1-2）-格式化字符串漏洞基础（x86）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-07/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（2-1-2）-格式化字符串漏洞基础（x86）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（2-1-2）-格式化字符串漏洞基础（x86）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-15T04:28:16.000Z" title="发表于 2020-08-15 12:28:16">2020-08-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.717Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（2-1-2）-格式化字符串漏洞基础（x86）"><a href="#PWN入门（2-1-2）-格式化字符串漏洞基础（x86）" class="headerlink" title="PWN入门（2-1-2）-格式化字符串漏洞基础（x86）"></a>PWN入门（2-1-2）-格式化字符串漏洞基础（x86）</h1><blockquote>
+<p>文接上篇</p>
+</blockquote>
+<h2 id="0x02-格式化字符串漏洞原理"><a href="#0x02-格式化字符串漏洞原理" class="headerlink" title="0x02 格式化字符串漏洞原理"></a>0x02 格式化字符串漏洞原理</h2><p>格式化串漏洞和普通的栈溢出有相似之处，但又有所不同，它们都是利用了程序员的疏忽大意来改变程序运行的正常流程。</p>
+<p>接下来我们就来看一下格式化字符串的漏洞原理。</p>
+<p>首先，什么是格式化字符串呢，print()、fprint()等*print()系列的函数可以按照一定的格式将数据进行输出，举个最简单的例子:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;My Name is:  %s&quot;</span> , <span class="string">&quot;bingtangguan&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>执行该函数后将返回字符串:My Name is:bingtangguan</p>
+<p>该printf函数的第一个参数就是格式化字符串，它来告诉程序将数据以什么格式输出。上面的例子相信只要学过C语言、上过大学考过计算机二级的都耳熟能详，如果这个都不知道，接下来我真不知道该怎么写了。但是我还是觉得有必要把printf()函数好好写一下。</p>
+<p>printf()函数的一般形式为:printf(“format”， 输出表列)，我们对format比较关心，看一下它的结构吧:%[标志][输出最小宽度][.精度][长度]类型，其中跟格式化字符串漏洞有关系的主要有以下几点:</p>
+<p>1、输出最小宽度:用十进制整数来表示输出的最少位数。若实际位数多于定义的宽度，则按实际位数输出，若实际位数少于定义的宽度则补以空格或0。</p>
+<p>2、类型:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">%c：输出字符，配上%n可用于向指定地址写数据。</span><br><span class="line"> </span><br><span class="line">%d：输出十进制整数，配上%n可用于向指定地址写数据。</span><br><span class="line"> </span><br><span class="line">%x：输出16进制数据，如%i$x表示要泄漏偏移i处4字节长的16进制数据，%i$lx表示要泄漏偏移i处8字节长的16进制数据，32bit和64bit环境下一样。</span><br><span class="line"> </span><br><span class="line">%p：输出16进制数据，与%x基本一样，只是附加了前缀0x，在32bit下输出4字节，在64bit下输出8字节，可通过输出字节的长度来判断目标环境是32bit还是64bit。</span><br><span class="line"> </span><br><span class="line">%s：输出的内容是字符串，即将偏移处指针指向的字符串输出，如%i$s表示输出偏移i处地址所指向的字符串，在32bit和64bit环境下一样，可用于读取GOT表等信息。</span><br><span class="line"> </span><br><span class="line">%n：将%n之前printf已经打印的字符个数赋值给偏移处指针所指向的地址位置，如%100×10$n表示将0x64写入偏移10处保存的指针所指向的地址（4字节），而%$hn表示写入的地址空间为2字节，%$hhn表示写入的地址空间为1字节，%$lln表示写入的地址空间为8字节，在32bit和64bit环境下一样。有时，直接写4字节会导致程序崩溃或等候时间过长，可以通过%$hn或%$hhn来适时调整。</span><br><span class="line"> </span><br><span class="line">%n是通过格式化字符串漏洞改变程序流程的关键方式，而其他格式化字符串参数可用于读取信息或配合%n写数据。</span><br></pre></td></tr></table></figure>
+
+<p>关于printf()函数的使用，正常我们使用printf()函数应该是这样的:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> str[<span class="number">100</span>];</span><br><span class="line"><span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>,str);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s&quot;</span>,str);</span><br></pre></td></tr></table></figure>
+
+<p>这是正确的使用方式，但是也有的人会这么用:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> str[<span class="number">100</span>];</span><br><span class="line"><span class="built_in">scanf</span>(<span class="string">&quot;%s&quot;</span>,str);</span><br><span class="line"><span class="built_in">printf</span>(str)</span><br></pre></td></tr></table></figure>
+
+<p>然后，悲剧就发生了，我们可以对比一下这两段代码，很明显，第二个程序中的printf()函数参数我们是可控的，<span style="color: #F5222D">我们在控制了format参数之后结合printf()函数的特性就可以进行相应的攻击。</span></p>
+<h3 id="特性一-printf-函数的参数个数不固定"><a href="#特性一-printf-函数的参数个数不固定" class="headerlink" title="# 特性一: printf()函数的参数个数不固定"></a># 特性一: printf()函数的参数个数不固定</h3><p>我们可以利用这一特性进行越界数据的访问。我们先看一个正常的程序:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span>&#123;</span><br><span class="line">    <span class="type">int</span> a=<span class="number">1</span>,b=<span class="number">2</span>,c=<span class="number">3</span>;</span><br><span class="line">    <span class="type">char</span> buf[]=<span class="string">&quot;test&quot;</span>;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s %d %d %d\n&quot;</span>,buf,a,b,c);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们编译之后运行:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bingtangguan@ubuntu:~/Desktop/format$ gcc -fno-stack-protector -o format format.c</span><br><span class="line">bingtangguan@ubuntu:~/Desktop/format$ ./format </span><br><span class="line"><span class="built_in">test</span> 1 2 3</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们做一下测试，我们增<u>加一个printf()的format参数</u>，改为:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s %d %d %d %x\n&quot;</span>,buf,a,b,c),编译后运行:</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">bingtangguan@ubuntu:~/Desktop/format$ gcc -z execstack -fno-stack-protector -o format1 format.c</span><br><span class="line">format.c: In <span class="keyword">function</span> ‘main’:</span><br><span class="line">format.c:6:1: warning: format ‘%x’ expects a matching ‘unsigned int’ argument [-Wformat=]</span><br><span class="line"> <span class="built_in">printf</span>(<span class="string">&quot;%s %d %d %d %x\n&quot;</span>,buf,a,b,c);</span><br><span class="line"> ^</span><br><span class="line">bingtangguan@ubuntu:~/Desktop/format$ ./format1</span><br><span class="line"><span class="built_in">test</span> 1 2 3 c30000</span><br></pre></td></tr></table></figure>
+
+<p>虽然gcc在编译的时候提示了一个warning，但还是编译通过了，我们运行后发现多输出了一个C30000，这是个什么数据呢，我们用gdb调试一下看看吧，我们在printf()函数处下个断点，然后运行程序，程序停在了printf()函数入口处0xb7e652f0 __printf+0 push   %ebx。大家可能发现了我的gdb 有点不大一样，是因为我用了一个叫做gdb-dashboard的可视化工具，个人感觉还是比较方便的，可以实时的查看寄存器、内存、反汇编等，感兴趣的同学可以去github下载安装一下试试:<a target="_blank" rel="noopener" href="https://github.com/cyrus-and/gdb-dashboard">https://github.com/cyrus-and/gdb-dashboard</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">bingtangguan@ubuntu:~/Desktop/format$ gdb ./format1</span><br><span class="line">GNU gdb (Ubuntu 7.8-1ubuntu4) 7.8.0.20141001-cvs</span><br><span class="line">Copyright (C) 2014 Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.  Type <span class="string">&quot;show copying&quot;</span></span><br><span class="line">and <span class="string">&quot;show warranty&quot;</span> <span class="keyword">for</span> details.</span><br><span class="line">This GDB was configured as <span class="string">&quot;i686-linux-gnu&quot;</span>.</span><br><span class="line">Type <span class="string">&quot;show configuration&quot;</span> <span class="keyword">for</span> configuration details.</span><br><span class="line">For bug reporting instructions, please see:</span><br><span class="line">&lt;http://www.gnu.org/software/gdb/bugs/&gt;.</span><br><span class="line">Find the GDB manual and other documentation resources online at:</span><br><span class="line">&lt;http://www.gnu.org/software/gdb/documentation/&gt;.</span><br><span class="line">For <span class="built_in">help</span>, <span class="built_in">type</span> <span class="string">&quot;help&quot;</span>.</span><br><span class="line">Type <span class="string">&quot;apropos word&quot;</span> to search <span class="keyword">for</span> commands related to <span class="string">&quot;word&quot;</span>...</span><br><span class="line">Reading symbols from ./format1...(no debugging symbols found)...<span class="keyword">done</span>.</span><br><span class="line">&gt;&gt;&gt; start</span><br><span class="line">Temporary breakpoint 1 at 0x8048429</span><br><span class="line">Starting program: /home/bingtangguan/Desktop/format/format1 </span><br><span class="line">─── Output/messages ────────────────────────────────────────────────────────────</span><br><span class="line">Temporary breakpoint 1, 0x08048429 <span class="keyword">in</span> main ()</span><br><span class="line">─── Assembly ───────────────────────────────────────────────────────────────────</span><br><span class="line">0x08048425 main+10 push   %ebp</span><br><span class="line">0x08048426 main+11 mov    %esp,%ebp</span><br><span class="line">0x08048428 main+13 push   %ecx</span><br><span class="line">0x08048429 main+14 sub    <span class="variable">$0x24</span>,%esp</span><br><span class="line">0x0804842c main+17 movl   <span class="variable">$0x1</span>,-0xc(%ebp)</span><br><span class="line">0x08048433 main+24 movl   <span class="variable">$0x2</span>,-0x10(%ebp)</span><br><span class="line">0x0804843a main+31 movl   <span class="variable">$0x3</span>,-0x14(%ebp)</span><br><span class="line">─── Expressions ────────────────────────────────────────────────────────────────</span><br><span class="line">─── History ────────────────────────────────────────────────────────────────────</span><br><span class="line">─── Memory ─────────────────────────────────────────────────────────────────────</span><br><span class="line">─── Registers ──────────────────────────────────────────────────────────────────</span><br><span class="line">   eax 0x00000001      ecx 0xbffff070      edx 0xbffff094      ebx 0xb7fc1000  </span><br><span class="line">   esp 0xbffff054      ebp 0xbffff058      esi 0x00000000      edi 0x00000000  </span><br><span class="line">   eip 0x08048429   eflags [ PF SF IF ]     cs 0x00000073       ss 0x0000007b  </span><br><span class="line">   ds 0x0000007b       es 0x0000007b       fs 0x00000000       gs 0x00000033  </span><br><span class="line">─── Source ─────────────────────────────────────────────────────────────────────</span><br><span class="line">─── Stack ──────────────────────────────────────────────────────────────────────</span><br><span class="line">[0] from 0x08048429 <span class="keyword">in</span> main+14</span><br><span class="line">(no arguments)</span><br><span class="line">─── Threads ────────────────────────────────────────────────────────────────────</span><br><span class="line">[1] <span class="built_in">id</span> 3590 name format1 from 0x08048429 <span class="keyword">in</span> main+14</span><br><span class="line">────────────────────────────────────────────────────────────────────────────────</span><br><span class="line">&gt;&gt;&gt; <span class="built_in">break</span> <span class="built_in">printf</span></span><br><span class="line">Breakpoint 2 at 0xb7e652f0: file printf.c, line 28.</span><br><span class="line">&gt;&gt;&gt; r</span><br><span class="line">Starting program: /home/bingtangguan/Desktop/format/format1 </span><br><span class="line">─── Output/messages ────────────────────────────────────────────────────────────</span><br><span class="line">Breakpoint 2, __printf (format=0x8048510 <span class="string">&quot;%s %d %d %d %xn&quot;</span>) at printf.c:28</span><br><span class="line">28  printf.c: No such file or directory.</span><br><span class="line">─── Assembly ───────────────────────────────────────────────────────────────────</span><br><span class="line">0xb7e652f0 __printf+0 push   %ebx</span><br><span class="line">0xb7e652f1 __printf+1 sub    <span class="variable">$0x18</span>,%esp</span><br><span class="line">0xb7e652f4 __printf+4 call   0xb7f3d90b &lt;__x86.get_pc_thunk.bx&gt;</span><br><span class="line">0xb7e652f9 __printf+9 add    <span class="variable">$0x15bd07</span>,%ebx</span><br><span class="line">─── Expressions ────────────────────────────────────────────────────────────────</span><br><span class="line">─── History ────────────────────────────────────────────────────────────────────</span><br><span class="line">─── Memory ─────────────────────────────────────────────────────────────────────</span><br><span class="line">─── Registers ──────────────────────────────────────────────────────────────────</span><br><span class="line">   eax 0xbffff03f      ecx 0xbffff070      edx 0xbffff094      ebx 0xb7fc1000  </span><br><span class="line">   esp 0xbffff00c      ebp 0xbffff058      esi 0x00000000      edi 0x00000000  </span><br><span class="line">   eip 0xb7e652f0   eflags [ PF ZF IF ]     cs 0x00000073       ss 0x0000007b  </span><br><span class="line">   ds 0x0000007b       es 0x0000007b       fs 0x00000000       gs 0x00000033  </span><br><span class="line">─── Source ─────────────────────────────────────────────────────────────────────</span><br><span class="line">Cannot access <span class="string">&quot;/build/buildd/glibc-2.19/stdio-common/printf.c&quot;</span></span><br><span class="line">─── Stack ──────────────────────────────────────────────────────────────────────</span><br><span class="line">[0] from 0xb7e652f0 <span class="keyword">in</span> __printf+0 at printf.c:28</span><br><span class="line">arg format = 0x8048510 <span class="string">&quot;%s %d %d %d %xn&quot;</span></span><br><span class="line">[1] from 0x08048466 <span class="keyword">in</span> main+75</span><br><span class="line">(no arguments)</span><br><span class="line">─── Threads ────────────────────────────────────────────────────────────────────</span><br><span class="line">[1] <span class="built_in">id</span> 3594 name format1 from 0xb7e652f0 <span class="keyword">in</span> __printf+0 at printf.c:28</span><br></pre></td></tr></table></figure>
+
+<p>我们查看一下此时的栈布局:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; x/<span class="number">10</span>x $sp</span><br><span class="line"><span class="number">0xbffff00c</span>: <span class="number">0x08048466</span>  <span class="number">0x08048510</span>  <span class="number">0xbffff03f</span>  <span class="number">0x00000001</span></span><br><span class="line"><span class="number">0xbffff01c</span>: <span class="number">0x00000002</span>  <span class="number">0x00000003</span>  <span class="number">0x00c30000</span>  <span class="number">0x00000001</span></span><br><span class="line"><span class="number">0xbffff02c</span>: <span class="number">0x080482bd</span>  <span class="number">0xbffff2c4</span></span><br></pre></td></tr></table></figure>
+
+<p>我们已经看到了0x00c30000，根据第一节我们对栈帧布局的认识，我们可以想象一下调用printf()函数后的栈的布局是什么样的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; x/<span class="number">20</span>x $sp</span><br><span class="line"><span class="number">0xbffff00c</span>: <span class="number">0x08048466</span>  <span class="number">0x08048510</span>  <span class="number">0xbffff03f</span>  <span class="number">0x00000001</span></span><br><span class="line"><span class="number">0xbffff01c</span>: <span class="number">0x00000002</span>  <span class="number">0x00000003</span>  <span class="number">0x00c30000</span>  <span class="number">0x00000001</span></span><br><span class="line"><span class="number">0xbffff02c</span>: <span class="number">0x080482bd</span>  <span class="number">0xbffff2c4</span>  <span class="number">0x0000002f</span>  <span class="number">0x0804a000</span></span><br><span class="line"><span class="number">0xbffff03c</span>: <span class="number">0x740484d2</span>  <span class="number">0x00747365</span>  <span class="number">0x00000003</span>  <span class="number">0x00000002</span></span><br><span class="line"><span class="number">0xbffff04c</span>: <span class="number">0x00000001</span>  <span class="number">0xb7fc13c4</span>  <span class="number">0xbffff070</span>  <span class="number">0x00000000</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-2-1-2-x86-18d0viv/assets/1597465724907-385e68d7-2390-4e4c-8222-77b9a378f89a.png"></p>
+<p>看了上面的图，相信大家已经很明白了吧，只要我们能够控制format的，我们就可以一直读取内存数据。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%s %d %d %d %x %x %x %x %x %x %x %xn&quot;</span>,buf,a,b,c)</span><br><span class="line">bingtangguan@ubuntu:~/Desktop/format$ ./format2</span><br><span class="line">test <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> c30000 <span class="number">1</span> <span class="number">80482b</span>d bf8bf301 <span class="number">2f</span> <span class="number">804</span>a000 <span class="number">740484</span>d2 <span class="number">747365</span></span><br></pre></td></tr></table></figure>
+
+<p>上一个例子只是告诉我们可以利用%x一直读取栈内的内存数据，可是这并不能满足我们的需求，我们要的是任意地址读取，当然，这也是可以的，我们通过下面的例子进行分析:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> *argv[])</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> str[<span class="number">200</span>];</span><br><span class="line">    fgets(str,<span class="number">200</span>,<span class="built_in">stdin</span>);</span><br><span class="line">    <span class="built_in">printf</span>(str);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>有了上一个小例子的经验，我们可以直接尝试去读取str[]的内容呢</p>
+<p>gdb调试，单步运行完call   0x8048340 &lt;fgets@plt&gt;后输入:</p>
+<p>AAAA%08x%08x%08x%08x%08x%08x(学过C语言的肯定知道%08x的意义，不明白的也不要紧，可以先看一下后面的特性三，我这里就不再多说了)</p>
+<p>然后我们执行到printf()函数，观察此时的栈区，特别注意一下0x41414141(这是我们str的开始):</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; x/<span class="number">10</span>x $sp</span><br><span class="line"><span class="number">0xbfffef70</span>: <span class="number">0xbfffef88</span>  <span class="number">0x000000c8</span>  <span class="number">0xb7fc1c20</span>  <span class="number">0xb7e25438</span></span><br><span class="line"><span class="number">0xbfffef80</span>: <span class="number">0x08048210</span>  <span class="number">0x00000001</span>  <span class="number">0x41414141</span>  <span class="number">0x78383025</span></span><br><span class="line"><span class="number">0xbfffef90</span>: <span class="number">0x78383025</span>  <span class="number">0x78383025</span></span><br></pre></td></tr></table></figure>
+
+<p>继续执行，看我们能获得什么，我们成功的读到了AAAA:</p>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AAAA000000c8b7fc1c20b7e25438080482100000000141414141</span><br></pre></td></tr></table></figure>
+
+<p>这时候我们需要借助printf()函数的另一个重要的格式化字符参数%s，我们可以用%s来获取指针指向的内存数据。</p>
+<p>那么我们就可以这么构造尝试去获取0x41414141地址上的数据:</p>
+<p>x41x41x41x41%08x%08x%08x%08x%08x%s</p>
+<p>到现在，我们可以利用格式化字符串漏洞读取内存的内容，看起来好像也没什么用啊，就是读个数据而已，我们能不能利用这个漏洞修改内存信息(比如说修改返回地址)从而劫持程序执行流程呢，这需要看printf()函数的第二个特性。</p>
+<h3 id="特性二-利用-n格式符写入数据"><a href="#特性二-利用-n格式符写入数据" class="headerlink" title="# 特性二:利用%n格式符写入数据"></a># 特性二:利用%n格式符写入数据</h3><p><strong><span style="color: #F5222D">%n是一个不经常用到的格式符，它的作用是把前面已经打印的</span></strong><u><strong><span style="color: #F5222D">长度</span></strong></u><strong><span style="color: #F5222D">写入某个内存地址</span></strong>，看下面的代码:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">  <span class="type">int</span> num=<span class="number">66666666</span>;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Before: num = %d\n&quot;</span>, num);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;%d%n\n&quot;</span>, num, &amp;num);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;After: num = %d\n&quot;</span>, num);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以发现我们用%n成功修改了num的值:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">bingtangguan@ubuntu:~/Desktop/format$ ./format2</span><br><span class="line">Before: num = <span class="number">66666666</span></span><br><span class="line"><span class="number">66666666</span></span><br><span class="line">After: num = <span class="number">8</span></span><br></pre></td></tr></table></figure>
+
+<p>现在我们已经知道可以用构造的格式化字符串去访问栈内的数据，并且<span style="color: #F5222D">可以利用%n向内存中写入值</span>，那我们是不是可以修改某一个函数的返回地址从而控制程序执行流程呢，到了这一步细心的同学可能已经发现了，%n的作用只是将前面打印的字符串长度写入到内存中，而我们想要写入的是一个地址，而且这个地址是很大的。这时候我们就需要用到printf()函数的第三个特性来配合完成地址的写入。</p>
+<h3 id="特性三-自定义打印字符串宽度"><a href="#特性三-自定义打印字符串宽度" class="headerlink" title="# 特性三:自定义打印字符串宽度"></a># 特性三:自定义打印字符串宽度</h3><p>我们在上面的基础部分已经有提到关于打印字符串宽度的问题，**<span style="color: #F5222D">在格式符中间加上一个十进制整数来表示输出的最少位数，若实际位数多于定义的宽度，则按实际位数输出，若实际位数少于定义的宽度则补以空格或0。</span>**我们把上一段代码做一下修改并看一下效果:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">int</span> num=<span class="number">66666666</span>;</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Before: num = %d\n&quot;</span>, num);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;%.100d%n\n&quot;</span>, num, &amp;num);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;After: num = %d\n&quot;</span>, num);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到我们的num值被改为了100</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">bingtangguan@ubuntu:~/Desktop/format$ ./format2</span><br><span class="line">Before: num = 66666666</span><br><span class="line">00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</span><br><span class="line">66666666</span><br><span class="line">After: num = 100</span><br></pre></td></tr></table></figure>
+
+<p>看到这儿聪明的你肯定明白如何去覆盖一个地址了吧，比如说我们要把0x8048000这个地址写入内存，<strong>我们要做的就是把该地址对应的</strong><span style="color: #F5222D">10进制</span><strong>134512640作为格式符控制宽度即可:</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%.134512640d%n\n&quot;</span>, num, &amp;num);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;After: num = %xn&quot;</span>, num);</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，我们的num被成功修改为8048000</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">bingtangguan@ubuntu:~/Desktop/format$ ./format2</span><br><span class="line">Before: num = <span class="number">66666666</span></span><br><span class="line">中间的<span class="number">0</span>省略...........</span><br><span class="line"><span class="number">00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000066666666</span></span><br><span class="line">After: num = <span class="number">8048000</span></span><br><span class="line">bingtangguan@ubuntu:~/Desktop/format$</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-2%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%9F%BA%E7%A1%80%EF%BC%88x86%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-2%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%9F%BA%E7%A1%80%EF%BC%88x86%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-07/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/64%E4%BD%8D%20Linux%20%E9%85%8D%E7%BD%AE%E7%BC%96%E8%AF%9132%E4%BD%8DELF%E6%96%87%E4%BB%B6/" title="64位 Linux 配置编译32位ELF文件"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">64位 Linux 配置编译32位ELF文件</div></div><div class="info-2"><div class="info-item-1">64位 Linux 配置编译32位ELF文件 确认主机为64位架构的内核，应该输出为amd64，执行：  1dpkg --print-architecture  2.      确认打开了多架构支持功能，应该输出为i386，执行： 1$ dpkg --print-foreign-architectures  如果没有，则需要手动打开，依次执行： 123$ sudo dpkg --add-architecture i386$ sudo apt-get update$ sudo apt-get dist-upgrade  3. 安装gcc multilab，执行： 1sudo apt-get install gcc-multilib g++-multilib  12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808182838485868...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-1%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-%EF%BC%88%E6%A0%88%EF%BC%89%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86%E5%A4%8D%E4%B9%A0/" title="PWN入门（2-1-1）-格式化字符串漏洞-（栈）前置知识复习"><img class="cover" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（2-1-1）-格式化字符串漏洞-（栈）前置知识复习</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-1-1）-格式化字符串漏洞-（栈）前置知识复习 文章改动于：https://www.anquanke.com/post/id/82713  0x00 序格式化字符串漏洞是一个很古老的漏洞了，现在几乎已经见不到这类漏洞的身影，但是作为漏洞分析的初学者来说，还是很有必要研究一下的，因为这是基础。 0x01 基础知识—栈在进行真正的格式化字符串攻击之前，我们需要了解一些基础知识，方便更好的理解该类漏洞。接下来我们就一起看一下栈相关的知识:    说到栈我们不得不提的就是函数调用与参数传递，因为栈的作用就是动态的存储函数之间的调用关系，从而保证在被调用函数返回时能够回到母函数中继续执行。 栈其实是一种数据结构，栈中的数据是先进后出(First In Last Out)，常见的操作有两种:压栈(PUSH)和弹栈(POP)， 用于标识栈属性的也有两个:栈顶(TOP)和栈底(BASE)。 PUSH:为栈增加一个元素。 POP:从栈中取出一个元素。 TOP:标识栈顶的位置，并且是动态变化的，每进行一次push操作，它会自增1，反之，每进行一次pop操作，它会自减1 BASE:标识...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-2%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%9F%BA%E7%A1%80%EF%BC%88x86%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（2-1-2）-格式化字符串漏洞基础（x86）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">0x02 格式化字符串漏洞原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%80%A7%E4%B8%80-printf-%E5%87%BD%E6%95%B0%E7%9A%84%E5%8F%82%E6%95%B0%E4%B8%AA%E6%95%B0%E4%B8%8D%E5%9B%BA%E5%AE%9A"><span class="toc-number">1.1.1.</span> <span class="toc-text"># 特性一: printf()函数的参数个数不固定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%80%A7%E4%BA%8C-%E5%88%A9%E7%94%A8-n%E6%A0%BC%E5%BC%8F%E7%AC%A6%E5%86%99%E5%85%A5%E6%95%B0%E6%8D%AE"><span class="toc-number">1.1.2.</span> <span class="toc-text"># 特性二:利用%n格式符写入数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%89%B9%E6%80%A7%E4%B8%89-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%89%93%E5%8D%B0%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AE%BD%E5%BA%A6"><span class="toc-number">1.1.3.</span> <span class="toc-text"># 特性三:自定义打印字符串宽度</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

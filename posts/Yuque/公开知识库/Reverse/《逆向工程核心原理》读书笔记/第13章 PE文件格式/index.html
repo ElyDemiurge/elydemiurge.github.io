@@ -1,0 +1,791 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第13章 PE文件格式 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第13章 PE文件格式本章将详细讲解Windows操作系统的PE（Portable Executable)文件格式相关知识。学习PE文件格式的过程中，也一起整理一下有关进程、内存、DLL等的内容，它们是Windows操作系统最核心的部分。 13.1介绍PE文件是Windows操作系统下使用的可执行文件格式。它是微软在UNIX平台的COFF（Common Object File Format,通用对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第13章 PE文件格式">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC13%E7%AB%A0%20PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第13章 PE文件格式本章将详细讲解Windows操作系统的PE（Portable Executable)文件格式相关知识。学习PE文件格式的过程中，也一起整理一下有关进程、内存、DLL等的内容，它们是Windows操作系统最核心的部分。 13.1介绍PE文件是Windows操作系统下使用的可执行文件格式。它是微软在UNIX平台的COFF（Common Object File Format,通用对">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-02/800/450">
+<meta property="article:published_time" content="2020-02-09T02:03:03.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.203Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-02/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第13章 PE文件格式",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC13%E7%AB%A0%20PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/",
+  "image": "https://picsum.photos/seed/blog-cover-02/800/450",
+  "datePublished": "2020-02-09T02:03:03.000Z",
+  "dateModified": "2026-07-03T14:46:17.203Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC13%E7%AB%A0%20PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第13章 PE文件格式',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-02/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第13章 PE文件格式</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第13章 PE文件格式</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-09T02:03:03.000Z" title="发表于 2020-02-09 10:03:03">2020-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.203Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">12.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>41分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第13章-PE文件格式"><a href="#第13章-PE文件格式" class="headerlink" title="第13章 PE文件格式"></a>第13章 PE文件格式</h1><p>本章将详细讲解Windows操作系统的PE（Portable Executable)文件格式相关知识。学习PE文件格式的过程中，也一起整理一下有关进程、内存、DLL等的内容，它们是Windows操作系统最核心的部分。</p>
+<h2 id="13-1介绍"><a href="#13-1介绍" class="headerlink" title="13.1介绍"></a>13.1介绍</h2><p>PE文件是Windows操作系统下使用的可执行文件格式。它是微软在UNIX平台的COFF（Common Object File Format,通用对象文件格式）基础上制作而成的。最初（正如Portable这个单词所代表的那样）设计用来提高程序在不同操作系统上的移植性，但实际上这种文件格式仅用在Windows系列的操作系统下。</p>
+<p><strong>PE文件是指32位的可执行文件，也称为PE32。64位的可执行文件称为PE+或PE32+，是PE（PE32)文件的一种扩展形式（请注意不是PE64）。</strong></p>
+<h2 id="13-2PE文件格式"><a href="#13-2PE文件格式" class="headerlink" title="13.2PE文件格式"></a>13.2PE文件格式</h2><p>PE文件种类如表13-1所示。</p>
+<p>表13-1 PE文件种类</p>
+<table>
+<thead>
+<tr>
+<th>种类</th>
+<th>主扩展名</th>
+<th>种类</th>
+<th>主扩展名</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可执行系列</td>
+<td>EXE、SCR</td>
+<td>驱动程序系列</td>
+<td>SYS、VXD、</td>
+</tr>
+<tr>
+<td>库系列</td>
+<td>DLL、OCX、CPL、DRV</td>
+<td>对象文件系列</td>
+<td>OBJ</td>
+</tr>
+</tbody></table>
+<p><strong><span style="color: #F5222D">严格地说，OBJ（对象）文件之外的所有文件都是可执行的。</span>DLL、SYS文件等虽然不能直接在Shell（Explorer.exe)中运行，但可以使用其他方法（调试器、服务等）执行。</strong></p>
+<p>根据——————————————————————————————————————</p>
+<p><strong>PE正式规范，编译结果OBJ文件也视为PE文件。但是OBJ文件本身不能以任何形式执行，在代码逆向分析中几乎不需要关注它。</strong></p>
+<hr>
+<p>下面以记事本（notepad.exe）程序进行简单说明，首先使用Hex Editor打开记事本程序。</p>
+<p>图13-1是notepad.exe文件的起始部分，也是PE文件的头部分（PE header）。notepad.exe文件运行需要的所有信息就存储在这个PE头中。如何加载到内存、从何处开始运行、运行中需要的DLL有哪些、需要多大的栈&#x2F;堆内存等，大量信息以结构体形式存储在PE头中。换言之，学习PE文件格式就是学习PE头中的结构体。</p>
+<p>提示——————————————————————————————————————</p>
+<p>书中将以WindowsXP SP3的notepad.exe为例进行说明，与其他版本Windows下的notepad.exe文件结构类似，但是地址不同。</p>
+<hr>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581214821594-111da9bd-0f09-4229-95b8-4f7a0bca868f.png" alt="QQ截图20200209101832.png"></p>
+<p>图13-1 notepad.exe文件</p>
+<h3 id="13-2-1基本结构"><a href="#13-2-1基本结构" class="headerlink" title="13.2.1基本结构"></a>13.2.1基本结构</h3><p>notepad.exe具有普通PE文件的基本结构。图13-2描述了notepad.exe文件加载到内存时的情形。其中包含了许多内容，下面逐一学习。</p>
+<p><span style="color: #000000">从DOS头（DOS header)到节区头（Section header)是</span><strong><span style="color: #F5222D">PE头</span></strong><span style="color: #000000">部分</span>，<strong>其下的节区合称</strong><span style="color: #F5222D">PE体</span>。<strong>文件中使用偏移（offset），内存中使用VA（Virtual Address，虚拟地址）来表示位置。文件加载到内存时，情况就会发生变化（节区的大小、位置等）。文件的内容一般可分为代码（.text)、数据（.data）、资源（.rsrc)节，分别保存。</strong></p>
+<p>提示—————————————————————————————————————–</p>
+<p>根据所用的不同开发工具（VB&#x2F;VC++&#x2F;Delphi&#x2F;etc)与编译选项，节区的名称、大小、个数、存储的内容等都是不同的。最重要的是它们按照不同的用途分类保存到不同的节中。</p>
+<hr>
+<p><strong>各</strong><span style="color: #F5222D">节区头</span><strong>定义了各节区在文件或内存中的大小、位置、属性等。</strong></p>
+<p>PE头与各节区的尾部存在一个区域，称为<strong>NULL填充（NULLpadding)</strong>。计算机中，为了提高处理文件、内存、网络包的效率，使用“<strong>最小基本单位</strong>”这一概念，PE文件中也类似。文件&#x2F;内存中节区的起始位置应该在各文件&#x2F;内存最小单位的倍数位置上，空白区域将用NULL填充（看图13-2，可以看到各节区起始地址的截断都遵循一定规则）。<img src="/assets/posts/13-pe-1jb7oh9/assets/1581215850519-bd20fe58-6c8c-42f1-8265-27174591bdcd.png" alt="QQ截图20200209103719.png"></p>
+<h3 id="13-2-2-VA-RVA"><a href="#13-2-2-VA-RVA" class="headerlink" title="13.2.2 VA&amp;RVA"></a>13.2.2 VA&amp;RVA</h3><p>VA指的是<strong>进程虚拟内存的绝对地址</strong>，RVA（Relative Virtual Address，<strong>相对虚拟地址</strong>）指从某个<strong>基准位置</strong>（ImageBase）开始的<strong>相对地址</strong>。VA与RVA满足下面的换算关系。</p>
+<p>RVA+ImageBase&#x3D;VA</p>
+<p>PE头内部信息大多以RVA形式存在。原因在于，PE文件（主要是DLL）加载到进程虚拟内存的特定位置时，该位置可能已经加载了其他PE文件（DLL）。此时必须通过<strong>重定位</strong>（Relocation）将其加载到其他空白的位置，若PE头信息使用的是VA，则无法正常访问。因此使用RVA来定位信息，即使发生了重定位，只要相对于基准位置的相对地址没有变化，就能正常访问到指定信息，不会出现任何问题。</p>
+<p>提示—————————————————————————————————————–</p>
+<p>32位WindowsOS中，<strong>各进程</strong>分配有4GB的虚拟内存，因此进程中VA值的范围是00000000~FFFFFFFF。</p>
+<hr>
+<h2 id="13-3PE头"><a href="#13-3PE头" class="headerlink" title="13.3PE头"></a>13.3PE头</h2><p><span style="color: #000000">前面提到过：从DOS头（DOS header)到节区头（Section header)是</span><strong><span style="color: #F5222D">PE头</span></strong><span style="color: #000000">部分</span></p>
+<p>PE头由许多<strong>结构体</strong>组成，现在开始逐一学习各结构体。此外还会详细讲解在代码逆向分析中起着重要作用的结构体成员。</p>
+<h3 id="13-3-1-DOS头"><a href="#13-3-1-DOS头" class="headerlink" title="13.3.1 DOS头"></a>13.3.1 DOS头</h3><p>微软创建PE文件格式时，人们正广泛使用DOS文件，所以微软充分考虑了PE文件对DOS文件的兼容性。其结果是在<strong>PE头的最前面添加了一个IMAGE_DOS_HEADER</strong><span style="color: #F5222D">结构体</span>，用来扩展已有的DOS EXE头。</p>
+<p>代码13-1 IMAGE_DOS_HEADER结构体</p>
+<p>typedef struct _IMAGE_DOS_HEADER {</p>
+<p>+0h WORD e_magic    &#x2F;&#x2F; Magic DOS signature MZ(4Dh 5Ah)     DOS签名</p>
+<p>+2h WORD e_cblp    &#x2F;&#x2F; Bytes on last page of file</p>
+<p>+4h WORD e_cp    &#x2F;&#x2F; Pages in file</p>
+<p>+6h WORD e_crlc    &#x2F;&#x2F; Relocations</p>
+<p>+8h WORD e_cparhdr   &#x2F;&#x2F; Size of header in paragraphs</p>
+<p>+0ah WORD e_minalloc   &#x2F;&#x2F; Minimun extra paragraphs needs</p>
+<p>+0ch WORD e_maxalloc  &#x2F;&#x2F; Maximun extra paragraphs needs</p>
+<p>+0eh WORD e_ss            &#x2F;&#x2F; intial(relative)SS value        DOS代码的初始化堆栈SS</p>
+<p>+10h WORD e_sp     &#x2F;&#x2F; intial SP value                       DOS代码的初始化堆栈指针SP</p>
+<p>+12h WORD e_csum     &#x2F;&#x2F; Checksum</p>
+<p>+14h WORD e_ip     &#x2F;&#x2F; intial IP value               DOS代码的初始化指令入口[指针IP]</p>
+<p>+16h WORD e_cs     &#x2F;&#x2F; intial(relative)CS value         DOS代码的初始堆栈入口</p>
+<p>+18h WORD e_lfarlc     &#x2F;&#x2F; File Address of relocation table</p>
+<p>+1ah WORD e_ovno         &#x2F;&#x2F; Overlay number</p>
+<p>+1ch WORD e_res[4]      &#x2F;&#x2F; Reserved words</p>
+<p>+24h WORD e_oemid      &#x2F;&#x2F; OEM identifier(for e_oeminfo)</p>
+<p>+26h WORD      e_oeminfo   &#x2F;&#x2F; OEM information;e_oemid specific</p>
+<p>+29h WORD e_res2[10]   &#x2F;&#x2F; Reserved words</p>
+<p>+3ch DWORD   e_lfanew</p>
+<p>} IMAGE_DOS_HEADER，*PIMAGE_DOS_HEADER</p>
+<p>IMAGEDOS HEADER结构体的大小为40个字节。在该结构体中必须知道2个重要成员：e_magic与e_lfanew。</p>
+<p><strong>e_magic：一个WORD类型，值是一个常数0x4D5A，用文本编辑器查看该值位‘MZ’，可执行文件必须都是’MZ’开头。</strong></p>
+<p><strong>e_lfanew：为32位可执行文件扩展的域，用来表示DOS头之后的NT头相对文件起始地址的偏移（换一种说法就是指示NT头的偏移，根据不同文件拥有可变值）</strong></p>
+<p>所有PE文件在开始部分（e_magic）都有DOS签名（“MZ”）。e_lfanew值指向NT头所在位置（NT头的名称为IMAGE_NT_HEADERS，后面将会介绍）。</p>
+<p>提示——————————————————————————————————————</p>
+<p>一个名叫Mark Zbikowski的开发人员在微软设计了DOS可执行文件，MZ即取自其名字的首字母。</p>
+<p>出处：<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/MarkZbikowski">http://en.wikipedia.org/wiki/MarkZbikowski</a></p>
+<p>———————————————————————————————————————–使用Hex Editor打开notepad.exe，查看IMAGE_DOS_HEADERS结构体，如图13-3所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581217198222-31c74ae8-752e-43dc-b3dc-9db3d5481694.png" alt="QQ截图20200209105949.png">图13-3 IMAGE DOS HEADERS</p>
+<p>根据PE规范，文件开始的2个字节为4D5A，e_lfanew值为000000E0（不是E0000000）。</p>
+<p>提示——————————————————————————————————————</p>
+<p>Intel系列的CPU以逆序存储数据，这称为小端序标识法。</p>
+<hr>
+<p>请尝试修改这些值，保存后运行。可以发现程序无法正常运行（因为根据PE规范，它已不再是PE文件了）。</p>
+<h3 id="13-3-2-DOS存根"><a href="#13-3-2-DOS存根" class="headerlink" title="13.3.2 DOS存根"></a>13.3.2 DOS存根</h3><p><strong>DOS存根（stub)在DOS头下方，是个可选项，且大小不固定（即使没有DOS存根，文件也能正常运行）。DOS存根由代码与数据混合而成，图13-4显示的就是notepad.exe的DOS存根。</strong></p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581217430805-346f0858-b14e-4a89-8400-ea8ebfa51966.png" alt="QQ截图20200209110343.png"></p>
+<p>图13-4 DOS存根</p>
+<p>图13-4中，文件偏移40~4D区域为16位的汇编指令。32位的WindowsOS中不会运行该命令（<strong>由于被识别为PE文件，所以完全忽视该代码</strong>）。在DOS环境中运行Notepad.exe文件，或者使用DOS调试器（debug.exe)运行它，可使其执行该代码（不认识PE文件格式，所以被识别为DOS EXE文件）。</p>
+<p>打开命令行窗口（cmd.exe)，输入如下命令（仅适用于Windows XP环境）。</p>
+<p>debug C:\Windows\notepad.exe</p>
+<p>在出现的光标位置上输入“u”指令（Unassemble，反汇编指令)，将会出现16位的汇编指令，如下所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581217709142-c41e38a4-cdc4-4824-8079-cf55028cfe4f.png" alt="QQ截图20200209110820.png"></p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581217745488-abeb9234-d810-44ba-b447-32e7bd0b21be.png" alt="QQ截图20200209110856.png"></p>
+<p>代码非常简单，在画面中输出字符串“This program cannot be run in DOS mode”后就退出。</p>
+<p>换言之，notepad.exe文件虽然是32位的PE文件，但是带有MS-DOS兼容模式，可以在DOS环境中运行，执行DOS EXE代码，输出“This program cannot be run in DOS mode”后终止。灵活使用该特性可以在一个可执行文件（EXE）中创建出另一个文件，它在DOS与Windows中都能运行（在DOS环境中运行16位DOS代码，在Windows环境中运行32位Windows代码）。</p>
+<p>如前所述，DOS存根是可选项，开发工具应该支持它（VB、VC++、Delphi等默认支持DOS存根）。</p>
+<h3 id="13-3-3-NT头"><a href="#13-3-3-NT头" class="headerlink" title="13.3.3 NT头"></a>13.3.3 NT头</h3><p>下面介绍NT头IMAGE_NT_HEADERS。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581217883726-23124ea0-b627-4d8d-babf-30bb13a0cf9f.png" alt="QQ截图20200209111112.png"></p>
+<p>IMAGE_NT_HEADERS<strong>结构体</strong>由3个成员组成，第一个成员为<strong>签名</strong>（Signature)<strong>结构体</strong>，其值为50450000h（“PE”00）。另外两个成员分别为<strong>文件头</strong>（File Header）与<strong>可选头</strong>（Optional Header)<strong>结构体（你没有看错，结构体中嵌套了3个结构体）</strong>。使用Hex Editor打开notepad.exe，查看其IMAGE_NT_HEADERS，如图13-5所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581218105875-18d72ae0-0971-4f9f-84e5-3c62b4ea4bd8.png" alt="QQ截图20200209111333.png"></p>
+<p>IMAGE_NT_HEADERS结构体的大小为F8，相当大。下面分别讲解文件头与可选头结构体。</p>
+<h3 id="13-3-4-NT头：文件头"><a href="#13-3-4-NT头：文件头" class="headerlink" title="13.3.4 NT头：文件头"></a>13.3.4 NT头：文件头</h3><p>文件头是表现文件大致属性的IMAGE_FILE_HEADER结构体。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581218214789-74b36604-148a-4a8c-a3bd-4ea3cfc019e2.png" alt="QQ截图20200209111642.png"></p>
+<p>IMAGE_FILE_HEADERS结构体中有如下4种重要成员（若它们设置不正确，将导致文件无法正常运行）。</p>
+<p><strong>#1.Machine</strong></p>
+<p>每个CPU都拥有唯一的Machine码，兼容32位Intelx86芯片的Machine码为14C。以下是定义在winnt.h文件中的Machine码。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581218348968-463ff917-f6de-4072-b0d2-da90869e92df.png" alt="QQ截图20200209111818.png"><img src="/assets/posts/13-pe-1jb7oh9/assets/1581218349924-23ec3860-e3c1-42a4-9480-8e16fbaf260b.png" alt="QQ截图20200209111830.png"></p>
+<p><strong>#2.NumberOfSections</strong></p>
+<p>前面提到过，PE文件把代码、数据、资源等依据属性分类到各节区中存储。</p>
+<p>NumberOfSections用来指出文件中存在的节区数量。该值一定要大于0，且当定义的节区数量与实际节区不同时，将发生运行错误。</p>
+<p><strong>#3.SizeOfOptionalHeader</strong></p>
+<p>IMAGE_NT_HEADER结构体的最后一个成员为IMAGE_OPTIONAL_HEADER32<strong>结构体</strong>。SizeOfOptionalHeader成员用来指出IMAGE_OPTIONAL_HEADER32结构体的长度。**IMAGE_OPTIONAL_HEADER32结构体由C语言编写而成，故其大小已经确定。**但是Windows的PE装载器需要查看IMAGE_FILE_HEADER的SizeOfOptionalHeader值，从而识别出IMAGE_OPTIONAL_HEADER32结构体的大小。</p>
+<p>（IMAGE_NT_HEADERS:NT头）-&gt;（IMAGE_FILE_HEADER:NT头:文件头）-&gt;<strong>SizeOfOptionalHeader</strong>（指出NT头:可选头的长度**）**</p>
+<p>**-&gt;(**IMAGE_OPTIONAL_HEADER32:NT头：可选头）</p>
+<p>PE32+格式的文件中使用的是IMAGE_OPTIONAL_HEADER64结构体，而不是IMAGE_OPTIONAL_HEADER32结构体。2个结构体的尺寸是不同的，所以需要在SizeOfOptionalHeader成员中明确指出结构体的大小。</p>
+<p>提示——————————————————————————————————————</p>
+<p>借助IMAGE_DOS_HEADER的e_lfanew成（为32位可执行文件扩展的域，用来表示DOS头之后的NT头相对文件起始地址的偏移）与IMAGE_FILE_HEADER的SizeOfOptionalHeader成员，可以创建出一种脱离常规的PE文件（PE Patch)（也有人称之为“麻花”PE文件）。</p>
+<hr>
+<p><strong>#4.Characteristics</strong></p>
+<p>该字段用于标识文件的属性，文件是否是可运行的形态、是否为DLL文件等信息，以bit OR形式组合起来。</p>
+<p>以下是定义在winnt.h文件中的Characteristics值（<strong>请记住0002h与2000h这两个值</strong>）。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581219303780-e031e305-8559-4a56-8ea3-c4803833a147.png" alt="QQ截图20200209113444.png"><img src="/assets/posts/13-pe-1jb7oh9/assets/1581219305027-b765770f-bff7-4bc3-b102-dfc92897094a.png" alt="QQ截图20200209113452.png"></p>
+<p>另外，PE文件中Characteristics的值有可能不是0002h吗（不可执行）?是的，确实存在这种情况。比如类似*.obj的object文件及resource DLL文件等。</p>
+<p>最后讲一下IMAGE_FILE_HEADER的<strong>TimeDateStamp</strong>成员。该成员的值不影响文件运行，用来记录编译器创建此文件的时间。但是有些开发工具（VB、VC++）提供了设置该值的工具，而有些开发工具（Delphi)则未提供（且随所用选项的不同而不同）。</p>
+<p><strong>IMAGE_FILE_HEADER</strong></p>
+<p>在Hex Editor中查看notepad.exe的IMAGE_FILE_HEADER结构体。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581219554326-f27e1944-f7ce-4a05-a1f5-3c44fb975a30.png" alt="QQ截图20200209113856.png"></p>
+<p>为使大家理解图13-6，以结构体成员的形式表示如下。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581219603401-1819622e-8955-4b01-96e4-41bbbefa7d61.png" alt="QQ截图20200209113944.png"></p>
+<h3 id="13-3-5-NT头：可选头"><a href="#13-3-5-NT头：可选头" class="headerlink" title="13.3.5 NT头：可选头"></a>13.3.5 NT头：可选头</h3><p><strong>IMAGE_OPTIONAL_HEADER32（在前面你见过它）是PE头结构体中最大的。</strong></p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581219741369-4803c904-e6aa-4fe2-be56-e4ac18a70de4.png" alt="QQ截图20200209114157.png"><img src="/assets/posts/13-pe-1jb7oh9/assets/1581219742257-23d5fd7b-cc0d-468e-bcef-bb0538c65cde.png" alt="QQ截图20200209114209.png"></p>
+<p>在IMAGE_OPTIONAL_HEADER32结构体中需要关注下列成员。这些值是文件运行必需的，设置错误将导致文件无法正常运行。</p>
+<p><strong>#1.Magic</strong></p>
+<p>为IMAGE_OPTIONAL_HEADER32结构体时，Magic码为10B；为IMAGE_OPTIONAL_HEADER64结构体时，Magic码为20B。</p>
+<p><strong>#2.AddressOfEntryPoint</strong></p>
+<p>AddressOfEntryPoint持有EP的RVA（Relative Virtual Address，<strong>相对虚拟地址</strong>）值。该值指出程序最先执行的代码起始地址，相当重要。</p>
+<p><strong>#3.ImageBase</strong></p>
+<p>进程虚拟内存的范围是0-FFFFFFFF（32位系统）。PE文件被加载到如此大的内存中时，ImageBase指出文件的优先装入地址。</p>
+<p>EXE、DLL文件被装载到用户内存的0<del>7FFFFFFF中，SYS文件被载入内核内存的80000000</del>FFFFFFFF中。一般而言，使用开发工具（VB&#x2F;VC++&#x2F;Delphi)创建好EXE文件后，其ImageBase的值为00400000，DLL文件的ImageBase值为10000000（当然也可以指定为其他值）。</p>
+<p><strong>执行PE文件时，PE装载器先创建进程，再将文件载入内存，然后把EIP寄存器的值设置为ImageBase+AddressOfEntryPoint。</strong></p>
+<p><strong>#4.SectionAlignment,FileAlignment</strong></p>
+<p>PE文件的Body部分（<span style="color: #F5222D">PE体</span>）划分为若干节区，这些节存储着不同类别的数据。FileAlignment指定了<strong>节区在磁盘</strong>文件中的<strong>最小单位</strong>，而SectionAlignment则指定了<strong>节区在内存</strong>中的<strong>最小单位</strong>（一个文件中，FileAlignment与SectionAlignment的值可能相同，也可能不同）。磁盘文件或内存的节区大小必定为FileAlignment或SectionAlignment值的整数倍。</p>
+<p><strong>#5.SizeOflmage</strong></p>
+<p>加载PE文件到内存时，SizeOflmage指定了PEImage在虚拟内存中所占空间的大小。一般而言，文件的大小与加载到内存中的大小是不同的（节区头中定义了各节装载的位置与占有内存的大小，后面会讲到）。</p>
+<p><strong>#6.SizeOfHeader</strong></p>
+<p>SizeOfHeader用来指出整个PE头的大小。该值也必须是FileAlignment的整数倍。<span style="color: #F5222D">第一节区所在位置与SizeOfHeader距文件开始偏移的量相同。</span></p>
+<p><strong>#7.Subsystem</strong></p>
+<p>该Subsystem值用来区分系统驱动文件（<em>.sys）与普通的可执行文件（</em>.exe，*.dll)。Subsystem成员可拥有的值如表13-2所示。</p>
+<p>表13-2 Subsystem</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Driver文件</td>
+<td>系统驱动（如：ntfs.sys）</td>
+</tr>
+<tr>
+<td>2</td>
+<td>GUI文件</td>
+<td>窗口应用程序（如：notepad.exe）</td>
+</tr>
+<tr>
+<td>3</td>
+<td>CUI文件</td>
+<td>控制台应用程序（如：cmd.exe）</td>
+</tr>
+</tbody></table>
+<p><strong>#8.NumberOfRvaAndSizes</strong></p>
+<p>NumberOfRvaAndSizes 用来指定DataDirectory（IMAGE_OPTIONAL_HEADER32结构体的最后一个成员）数组的个数。虽然结构体定义中明确指出了数组个数为IMAGE_NUMBEROF_DIRECTORY_ENTRIES(16)，但是PE装载器通过查看NumberOfRvaAndSizes值来识别数组大小，换言之，数组大小也可能不是16。</p>
+<p><strong>#9.DataDirectory</strong></p>
+<p>DataDirectory是由IMAGE_DATA_DIRECTORY结构体（又在IMAGE_OPTIONAL_HEADER32嵌套了一个结构体）组成的数组，数组的每项都有被定义的值。代码13-7列出了各数组项。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581220939315-f48aab94-3d1f-41ca-b627-9d03fbeab306.png" alt="QQ截图20200209120209.png"></p>
+<p><strong>将此处所说的Directory想成某个结构体数组即可。希望各位重点关注标红的EXPORT&#x2F;IMPORT&#x2F;RESOURCE、TLS Direction。特别需要注意的是IMPORT与EXPORT Directory，它们是PE头中非常重要的部分，后面会单独讲解。其余部分不怎么重要，大致了解一下即可。</strong></p>
+<p><strong>IMAGE OPTIONAL HEADER</strong></p>
+<p>前面简要介绍了重要成员组。现在查看notepad.exe的IMAGE_OPTIONAL_HEADER整个结构体。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581223822863-8160b623-93ff-4bba-aeb1-d17ceec80c08.png" alt="QQ截图20200209125013.png"></p>
+<p>图13-7 notepad.exe的IMAGE_OPTIONAL_HEADER</p>
+<p>图13-7中，Hex Editor（HxD)描述的是notepad.exe的IMAGE OPTIONALHEADER结构体区域。结构体各成员的值及其说明如代码13-8所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581224243555-d10f9a58-7895-41f4-9a0a-a843f84df0a8.png" alt="QQ截图20200209125639.png"><img src="/assets/posts/13-pe-1jb7oh9/assets/1581224249438-8190aee4-aae3-45b6-8927-27ff3e2fddba.png" alt="QQ截图20200209125709.png"></p>
+<h3 id="13-3-6-节区头"><a href="#13-3-6-节区头" class="headerlink" title="13.3.6 节区头"></a>13.3.6 节区头</h3><p>节区头中定义了各节区属性。看节区头之前先思考一下：前面提到过，PE文件中的**code(代码）、data（数据）、resource（资源)**等按照属性分类存储在不同节区，设计PE文件格式的工程师们之所以这样做，一定有着某些好处。</p>
+<p>我认为把PE文件创建成多个节区结构的好处是，这样可以保证程序的安全性。若把code与data放在一个节区中相互纠缠（实际上完全可以这样做）很容易引发安全问题，即使忽略过程的烦琐。</p>
+<p>假如向字符串data写数据时，由于某个原因导致溢出（输入超过缓冲区大小时），那么其下的code（指令）就会被覆盖，应用程序就会崩溃。因此，PE文件格式的设计者们决定把具有相似属性的数据统一保存在一个被称为“节区”的地方，然后需要把各节区属性记录在节区头中（节区属性中有文件&#x2F;内存的起始位置、大小、访问权限等）。</p>
+<p>换言之，需要为每个code&#x2F;data&#x2F;resource分别设置不同的特性、访问权限等，如表13-3所示。</p>
+<p>表13-3 不同内存属性的访问权限</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>访问权限</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>code</td>
+<td>执行，读取权限</td>
+</tr>
+<tr>
+<td>data</td>
+<td>非执行，读写权限</td>
+</tr>
+<tr>
+<td>resource</td>
+<td>非执行，读取权限</td>
+</tr>
+</tbody></table>
+<p>至此，大家应当对节区头的作用有了大致了解。</p>
+<p><strong>IMAGE_SECTION_HEADER</strong></p>
+<p>节区头是由IMAGE_SECTION_HEADER结构体组成的数组，每个结构体对应一个节区。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581224679494-1457d1cd-57b1-4f62-bd3f-0ef03d97eeb1.png" alt="QQ截图20200209130412.png"></p>
+<p>表13-4中列出了IMAGE_SECTION_HEADER结构体中要了解的重要成员（不使用其他成员）。</p>
+<p><span style="color: #F5222D">表13-4 IMAGE_SECTION_HEADER结构体的重要成员</span></p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VirtualSize</td>
+<td>内存中节区所占的大小</td>
+</tr>
+<tr>
+<td>VirtualAddress</td>
+<td>内存中节区起始地址（RVA）</td>
+</tr>
+<tr>
+<td>SizeOfRawData</td>
+<td>磁盘文件中节区所占大小</td>
+</tr>
+<tr>
+<td>PointerToRawData</td>
+<td>磁盘文件中节区起始位置</td>
+</tr>
+<tr>
+<td>Charateristics</td>
+<td>节区属性</td>
+</tr>
+</tbody></table>
+<p>VirtualAddress与PointerToRawData不带有任何值，分别由（定义在IMAGE_OPTIONAL_HEADER32（NT头：可选头）中的）SectionAlignment与FileAlignment确定。</p>
+<p>VirtualSize与SizeOfRawData一般具有不同的值，即磁盘文件中节区的大小与加载到内存中的节区大小是不同的。</p>
+<p>Characterisitics由代码13-10中显示的值组合（bitOR)而成。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581225218665-5454dcdd-d0de-4c8a-9fac-60a939ad0b65.png" alt="QQ截图20200209131325.png"></p>
+<p>最后谈谈<strong>Name</strong>字段。Name成员不像C语言中的字符串一样以NULL结束，并且没有“必须使用ASCI值”的限制。PE规范未明确规定节区的Name，所以可以向其中放入任何值，甚至可以填充NULL值。所以节区的Name仅供参考，不能保证其百分之百地被用作某种信息（数据节区的名称也可叫做.code)。</p>
+<p>下面看一下notepad.exe的节区头数组（共有3个节区），如图13-8所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581225389483-1f0ad949-bbef-4532-8816-a5d1647b83a7.png" alt="QQ截图20200209131618.png">图13-8 notepad.exe的IMAGE_SECTION_HEADER结构体数组</p>
+<p>接着看一下各结构体成员，如代码13-11所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581225469969-9fe3f45b-194f-4fca-b098-dbdb92929ea6.png" alt="QQ截图20200209131738.png"></p>
+<p>提示——————————————————————————————————————</p>
+<p><strong>讲解PE文件时经常出现“映像”（Image)这一术语，希望各位牢记。PE文件加载到内存时，文件不会原封不动地加载，而要根据节区头中定义的节区起始地址、节区大小等加载。因此，磁盘文件中的PE与内存中的PE具有不同形态。</strong><span style="color: #F5222D">将装载到内存中的形态称为“映像”以示区别</span><strong>，使用这一术语能够很好地区分二者。</strong></p>
+<hr>
+<h2 id="13-4-RVA-to-RAW"><a href="#13-4-RVA-to-RAW" class="headerlink" title="13.4 RVA to RAW"></a>13.4 RVA to RAW</h2><p>理解了节区头后，下面继续讲解有关PE文件从磁盘到内存映射的内容。<strong><span style="color: #F5222D">PE文件加载到内存时，每个节区都要能准确完成内存地址与文件偏移间的映射。这种映射一般称为RVA to RAW</span></strong>，方法如下。</p>
+<p>（1）查找RVA所在节区。</p>
+<p>（2）使用简单的公式计算<strong>文件偏移</strong>。</p>
+<p><strong><span style="color: #F5222D">根据IMAGE_SECTION_HEADER（节区头）结构体，换算公式如下：</span></strong></p>
+<blockquote>
+<p><span style="color: #000000">RAW-PointerToRawData&#x3D;RVA-VirtualAddress&#x3D;Imagebase</span><br><strong><span style="color: #F5222D">RAW&#x3D;RVA-VirtualAddress（是使用RVA形式表示的值）+PointerToRawData</span></strong></p>
+</blockquote>
+<p><strong>Quiz</strong></p>
+<p>简单做个测试练习。图13-9描绘的是notepad.exe的文件与内存间的映射关系。请分别计算各个RVA（将计算器calc.exe切换到Hex模式计算会比较方便）。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581226000189-9c32d660-6e3c-4396-901f-c872c0c60641.png" alt="QQ截图20200209132628.png"></p>
+<p>Q1.RVA&#x3D;5000时，File Offset（文件偏移）&#x3D;?</p>
+<p>A1.首先查找RVA值所在节区。</p>
+<p>→RVA 5000位于第一个节区（.text)（假设ImageBase为01000000）。</p>
+<p>使用公式换算如下：</p>
+<p>→RAW&#x3D;5000(RVA)-1000(VirtualAddress，也就是VA)+400(Pointer ToRawData)&#x3D;4400</p>
+<hr>
+<p>复习一下，VA指的是<strong>进程虚拟内存的绝对地址</strong>，RVA（Relative Virtual Address，<strong>相对虚拟地址</strong>）指从某个<strong>基准位置</strong>（ImageBase）开始的<strong>相对地址</strong>。VA与RVA满足下面的换算关系。</p>
+<p>RVA+ImageBase&#x3D;VA</p>
+<p><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<p><span style="color: #F5222D">来自Q&amp;A：</span></p>
+<p><span style="color: #F5222D">Q.对图13-9及其下面的Quiz不是很理解。如何知道RVA5000包含在哪个节区呢？</span></p>
+<p><span style="color: #F5222D">A.图13-9是以节区头信息为基础绘制的。图（或节区头信息）中的.text节区是指VA01001000<del>01009000区域，转换为RVA形式后对应于RVA1000-</del>9000区域（即减去Imagebase值的01000000)。由此可知，RVA5000包含在.text节区中。</span></p>
+<p><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<p>Q2.RVA&#x3D;13314时，File Offset&#x3D;?</p>
+<p>A2.查找RVA值所在节区。</p>
+<p>→RVA13314位于第三个节区（.rsrc)。</p>
+<p>使用公式换算如下：</p>
+<p>→RAW&#x3D;13314(RVA)-B000(VA)+8400(Pointer ToRawData)&#x3D;10714</p>
+<p>Q3.RVA&#x3D;ABA8时，File Offset&#x3D;?</p>
+<p>A3.查找RVA值所在节区。</p>
+<p>→RVAABA8位于第二个节区（.data)。</p>
+<p>使用公式换算如下：</p>
+<p>→RAW&#x3D;ABA8(RVA)-9000(VA)+7C00(Pointer ToRawData)&#x3D;97A8(×)→计算结果为RAW&#x3D;97A8，但是该偏移在第三个节区（.rsrc)。RVA在第二个节区，而RAW在第三个节区，这显然是错误的。该情况表明“无法定义与RVA（ABA8）相对应的RAW值”。出现以上情况的原因在于，第二个节区的VirtualSize值要比SizeOfRawData值大。</p>
+<p>提示——————————————————————————————————————</p>
+<p>RVA与RAW（文件偏移）间的相互变换是PE头的最基本的内容，各位一定要熟悉并掌握它们之间的转换关系。</p>
+<hr>
+<p>像Q3一样，PE文件节区中因VirtualSize与SizeOfRawData值彼此不同而引起的奇怪、有趣的事还有很多（后面会陆续讲到）。</p>
+<p>以上就是对PE头基本结构体的介绍，接下来将继续学习PE头的核心内容—<span style="color: #F5222D">IAT（ImportAddress Table,导入地址表）与EAT（Export Address Table,导出地址表）</span>。</p>
+<h2 id="13-5-IAT"><a href="#13-5-IAT" class="headerlink" title="13.5 IAT"></a>13.5 IAT</h2><p>刚开始学习PE头时，最难过的一关就是<span style="color: #F5222D">IAT（Import Address Table，导入地址表）</span>。IAT保存的内容与Windows操作系统的核心进程、内存、DLL结构等有关。换句话说，只要理解了IAT，就掌握了Windows操作系统的根基。<strong>简言之，IAT是一种表格，用来记录程序正在使用哪些库中的哪些函数。</strong></p>
+<h3 id="13-5-1-DLL"><a href="#13-5-1-DLL" class="headerlink" title="13.5.1 DLL"></a>13.5.1 DLL</h3><p>讲解IAT前先学习一下有关DLL（Dynamic Linked Library)的知识（知其所以然，才更易理解），它支撑起了整座WindowsOS大厦。DLL翻译成中文为“动态链接库”，为何这样称呼呢?</p>
+<p>16位的DOS时代不存在DLL这一概念，只有“库”（Library）一说。比如在C语言中使用printf()函数时，编译器会先从C库中读取相应函数的二进制代码，然后插入（包含到）应用程序。也就是说，可执行文件中包含着printf()函数的二进制代码。Windows OS支持多任务，若仍采用这种包含库的方式，会非常没有效率。Windows操作系统使用了数量庞大的库函数（进程、内存、窗口、消息等）来支持32位的Windows环境。同时运行多个程序时，若仍像以前一样每个程序运行时都包含相同的库，将造成严重的内存浪费（当然磁盘空间的浪费也不容小觑）。因此，Windows OS设计者们根据需要引入了DLL这一概念，描述如下。</p>
+<ul>
+<li>不要把库包含到程序中，单独组成DLL文件，需要时调用即可。</li>
+<li>内存映射技术使加载后的DLL代码、资源在多个进程中实现共享。</li>
+<li>更新库时只要替换相关DLL文件即可，简便易行。</li>
+</ul>
+<p>加载DLL的方式实际有两种：一种是“<strong>显式链接</strong>”（Explicit Linking)，程序使用DLL时加载，使用完毕后释放内存；另一种是“<strong>隐式链接</strong>”（Implicit Linking)，程序开始时即一同加载DLL，程序终止时再释放占用的内存。**IAT提供的机制即与隐式链接有关。**下面使用OllyDbg打开notepad.exe来查看IAT。图13-10是调用CreateFileW()函数的代码，该函数位于kernel32.dll中。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581233942230-c33d9a7b-5589-4d53-9f2e-5af67f87f015.png" alt="QQ截图20200209153846.png"></p>
+<p>调用CreateFileW()函数时<strong>并非直接调用</strong>，而是通过获取01001104地址处的值来实现（所有API调用均采用这种方式）。</p>
+<p>地址01001104是notepad.exe中.text节区的内存区域（更确切地说是IAT内存区域）。01001104地址的值为7C8107F0，而7C8107F0地址即是加载到notepad.exe进程内存中的CreateFileW()函数（位于kernel32.dl库中）的地址。此处产生一个疑问。</p>
+<blockquote>
+<p>“直接使用CALL 7C8107F0指令调用函数不是更好、更方便吗?”</p>
+</blockquote>
+<p><span style="color: #F5222D">甚至还会有人问：“编译器直接写CALL 7C8107F0不是更准确、更好吗?”这是前面说过的DOS时代的方式。</span></p>
+<p><span style="color: #F5222D">事实上，notepad.exe程序的制作者编译（生成）程序时，并不知道该notepad.exe程序要运行在哪种  Windows（9X、2K、XP、Vista、7）、哪种语言（ENG、JPN、KOR等）、哪种服务包（ServicePack)下。上面列举出的所有环境中，kernel32.dll的版本各不相同，CreateFileW</span><span style="color: #F5222D">()</span><span style="color: #F5222D">函数的位置（地址）也不相同。为了确保在所有环境中都能正常调用CreateFileW</span><span style="color: #F5222D">()</span><span style="color: #F5222D">函数，编译器准备了要保存CreateFileW</span><span style="color: #F5222D">()</span><span style="color: #F5222D">函数实际地址的位置（01001104），并仅记下CALL DWORD PTR DS：[1004404]形式的指令。执行文件时，PE装载器将CreateFileW</span><span style="color: #F5222D">()</span><span style="color: #F5222D">函数的地址写到01001104位置。</span></p>
+<p><span style="color: #F5222D">编译器不使用CALL 7C8107F0语句的另一个原因在于DLL重定位。DLL文件的ImageBase值一般为10000000。比如某个程序使用a.dll与b.dll时，PE装载器先把a.dll装载到内存的10000000（ImageBase)处，然后尝试把b.dl也装载到该处。但是由于该地址处已经装载了a.dll，所以PE装载器查找其他空白的内存空间（ex:3E000000），然后将b.dl装载进去。</span></p>
+<p>这就是所谓的DLL重定位，它使我们无法对实际地址硬编码。另一个原因在于，PE头中表示地址时不使用VA，而是RVA。</p>
+<p>提示——————————————————————————————————————</p>
+<p>实际操作中无法保证DLL一定会被加载到PE头内指定的ImageBase处。但是<strong>EXE文件（生成进程的主体）却能准确加载到自身的ImageBase中，因为它拥有自己的虚拟空间。</strong></p>
+<hr>
+<p>PE头的IAT是代码逆向分析的核心内容。希望各位好好理解它。相信大家现在已经能够掌握IAT的作用了（后面讲解IAT结构为什么如此复杂时，希望各位也能很快了解）。</p>
+<h3 id="13-5-2-IMAGE-IMPORT-DESCRIPTOR"><a href="#13-5-2-IMAGE-IMPORT-DESCRIPTOR" class="headerlink" title="13.5.2 IMAGE_IMPORT_DESCRIPTOR"></a>13.5.2 IMAGE_IMPORT_DESCRIPTOR</h3><p>IMAGE_IMPORT_DESCRIPTOR结构体中记录着PE文件要导入哪些<strong>库文件</strong>。</p>
+<p>提示——————————————————————————————————————</p>
+<ul>
+<li>Import：导入，向库提供服务（函数）。</li>
+<li>Export:导出，从库向其他PE文件提供服务（函数）。</li>
+</ul>
+<hr>
+<p>IMAGE_IMPORT_DESCRIPTOR结构体如代码13-12所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581234628294-a54236b0-05ed-47de-8b21-8c67f8f7d253.png" alt="QQ截图20200209154934.png"></p>
+<p><strong>执行一个普通程序时往往需要导人多个库，导入多少库就存在多少个IMAGE_IMPORT_DESCRIPTOR结构体，这些结构体形成了数组，且结构体数组最后以NULL结构体结束。</strong></p>
+<p>IMAGE_IMPORT_DESCRIPTOR中的重要成员如表13-5所示（拥有全部RVA值）。</p>
+<p>表13-5 IMAGE_IMPORT_DESCRIPTOR结构体的重要成员</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>含义</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OriginalFirstThunk</td>
+<td>INT的地址（RVA）</td>
+<td></td>
+</tr>
+<tr>
+<td>Name</td>
+<td>库名称字符串的地址（RVA）</td>
+<td></td>
+</tr>
+<tr>
+<td>FirstThunk</td>
+<td>IAT的地址（RVA）</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong><span style="color: #F5222D">提示—————————————————————————————————————–</span></strong></p>
+<ul>
+<li><strong><span style="color: #F5222D">PE头中提到的“Table”即指数组。</span></strong></li>
+<li><strong><span style="color: #F5222D">INT与IAT是长整型（4个字节数据类型）数组，以NULL结束（未另外明确指出大小）。</span></strong></li>
+<li><strong><span style="color: #F5222D">INT中各元素的值为IMAGE_IMPORT_BY_NAME结构体指针（有时IAT也拥有相同的值）。</span></strong></li>
+<li><strong><span style="color: #F5222D">INT与IAT的大小应相同。</span></strong></li>
+</ul>
+<p><strong><span style="color: #F5222D">———————————————————————————————————————-</span></strong></p>
+<p>图13-11描述了notepad.exe之kernel32.dll的IMAGE_IMPORT_DESCRIPTOR结构。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581235181995-4e73ca1f-ecc9-4552-8100-76a50c04a5a3.png" alt="QQ截图20200209155921.png"></p>
+<p>图13-11中，<strong>INT与IAT的各元素同时指向相同地址，但也有很多情况下它们是不一致的</strong>（后面会陆续接触很多变形的PE文件，到时再逐一讲解）。</p>
+<p>下面了解一下PE装载器把导入函数输入至IAT的顺序。</p>
+<p><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581235352495-50841ebf-e971-4eef-9973-155c7de5c7d0.png" alt="QQ截图20200209160222.png"></p>
+<p><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<h3 id="13-5-3使用notepad-exe练习"><a href="#13-5-3使用notepad-exe练习" class="headerlink" title="13.5.3使用notepad.exe练习"></a>13.5.3使用notepad.exe练习</h3><p>下面以notepad.exe为对象逐一查看。先提一个问题：IMAGE_IMPORT_DESCRIPTOR结构体数组究竟存在于PE文件的哪个部分呢?</p>
+<p><span style="color: #F5222D">它不在PE头而在PE体中，但查找其位置的信息在PE头中，IMAGE_OPTIONAL_HEADER32.DataDirectory[1].VirtualAddress的值即是IMAGE_IMPORT_DESCRIPTOR结构体数组的起始地址（RVA值）。IMAGE_IMPORT_DESCRIPTOR结构体数组也被称为IMPORT Directory Table(只有了解上述全部称谓，与他人交流时才能没有障碍）。</span></p>
+<p><strong>IMAGE_OPTIONAL_HEADER32.DataDirectory[1]结构体的值如图13-12所示（第一个4字节为虚拟地址，第二个4字节为Size成员）。</strong></p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581235721044-7dee5907-cd4f-4a88-a393-473f1b8b8f93.png" alt="QQ截图20200209160826.png"></p>
+<p>图13-12 notepad.exe的IMAGE_OPTIONAL_HEADER32.DataDirectory[1]</p>
+<p>整理图13-12中的IMAGE_OPTIONAL_HEADER32.DataDirectory结构体数组的信息以便查看，如表13-6所示（加深的部分是与导入相关的信息）。</p>
+<p><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<p>表13-6 notepad.exe文件的DataDirectory数组-lmport</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581235873883-f11a6d30-273e-4b89-b89a-d1cbfc723c7a.png" alt="QQ截图20200209161106.png"></p>
+<p><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<p>像在图13-12中看到的一样，因为RVA是7604，故文件偏移为6A04。在文件中查看6A04，如图13-13所示（请使用“RVA to RAW”转换公式）。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581236049090-69aab323-933f-40ea-bbef-4057d0b61c73.png" alt="QQ截图20200209161356.png"></p>
+<p>图13-13 notepad.exe的IMAGE_IMPORT_DESCRIPTOR结构体数组</p>
+<p>图13-13中，阴影部分即为全部的IMAGE_IMPORT_DESCRIPTOR结构体数组，粗线框内的部分是结构体数组的第一个元素（也可以看到数组的最后是由NULL结构体组成的）。下面分别看一下粗线框中IMAGE_IMPORT_DESCRIPTOR结构体的各个成员，如表13-7所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581236275613-c384c281-b8d3-4043-af4b-ee1b7005cf0d.png" alt="QQ截图20200209161713.png"></p>
+<p>由于我们只是为了学习IAT，所以没有使用专业的PE Viewer，而是使用Hex Editor逐一查看（为方便起见，结构体的值（RVA）已经被转换为文件偏移（RAW）。希望各位亲自转换一下）。下面依序看看吧。</p>
+<p><strong>1.库名称（Name）</strong></p>
+<p><strong>Name是一个字符串指针，它指向导入函数所属的库文件名称。在图13-14的文件偏移6EAC（RVA：7AAC→RAW:6EAC)处看到字符串comdlg32.dll了吧？</strong></p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581236459871-5ea08124-9d40-430e-8bfc-d9a378f455cc.png" alt="QQ截图20200209162031.png"></p>
+<p><strong>2.OriginalFirstThunk-INT</strong></p>
+<p><strong>INT是一个包含导入函数信息（Ordinal，Name)的结构体指针数组。只有获得了这些信息，才能在加载到进程内存的库中准确求得相应函数的起始地址（请参考后面EAT的讲解）。</strong></p>
+<p>跟踪OriginalFirstThunk成员（RVA：7990→RAW：6D90）。</p>
+<p>图13-15是INT，由地址数组形式组成（数组尾部以NULL结束）。每个地址值分别指向IMAGE_IMPORT_BY NAME结构体（参考图13-11）。跟踪数组的第一个值7A7A（RVA），进入该地址，可以看到导入的API函数的名称字符串。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581237260116-105f2c51-5741-4253-a577-b32c5243009a.png" alt="QQ截图20200209163407.png"></p>
+<p>图13-15 INT</p>
+<p><strong>3.IMAGE_IMPORT_BY_NAME</strong></p>
+<p>RVA：7A7A即为RAW：6E7A。</p>
+<p>文件偏移6E7A最初的2个字节值（000F）为Ordinal，是库中函数的固有编号。Ordinal的后面为函数名称字符串PageSetupDlgW（同C语言一样，字符串末尾以Terminating NULL[‘\0’]结束）。</p>
+<p>如图13-16所示，INT是IMAGE_IMPORT_BY_NAME结构体指针数组（参考代码13-12）。数组的第一个元素指向函数的Ordinal值000F，函数的名称为PageSetupDlgW。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581237454082-cca48fc7-93d6-459e-889b-b339381cc9d6.png" alt="QQ截图20200209163726.png"></p>
+<p>图13-16 IMAGE IMPORT BY NAME</p>
+<p><strong>4.FirstThunk-IAT(Import Address Table)</strong></p>
+<p>IAT的RVA:12C4即为RAW：6C4。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581237635229-53ea6188-422c-46b0-b55b-3ead63ffbe90.png" alt="QQ截图20200209164015.png"></p>
+<p>图13-17 FirstThunk-IAT</p>
+<p>图13-17中文件偏移6C4-6EB区域即为IAT数组区域，对应于comdlg32.dll库。它与INT类似，由结构体指针数组组成，且以NULL结尾。</p>
+<p>IAT的第一个元素值被硬编码为76324906，该值无实际意义，notepad.exe文件加载到内存时，准确的地址值会取代该值。</p>
+<p>提示——————————————————————————————————————</p>
+<ul>
+<li>其实我的系统（Windows XP SP3）中，地址76324906即是comdlg32.dll!PageSetupDlgW函数的准确地址值。但是该文件在Windows7中也能顺利运行。运行notepad.exe进程时，PE装载器会使用相应API的起始地址替换该值。</li>
+<li>微软在制作服务包过程中重建相关系统文件，此时会硬编入准确地址（普通的DLL实际地址不会被硬编码到IAT中，通常带有与INT相同的值）。</li>
+<li>另外，普通DLL文件的ImageBase为10000000，所以经常会发生DLL重定位。但是Windows系统DLL文件（kernel32&#x2F;user32&#x2F;gdi32等）拥有自身固有的ImageBase，不会出现DLL重定位。</li>
+</ul>
+<hr>
+<p>下面使用OllyDbg查看notepad.exe的IAT，如图13-18所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581238760308-82a81a6c-734e-41bf-b2b2-93d9d1bde293.png" alt="QQ截图20200209165905.png"></p>
+<p>图13-18 notepad.exe的IAT</p>
+<p>notepad.exe的ImageBase值为01000000。所以comdlg32.dll!PageSetupDlgW函数的IAT地址为 010012C4，其值为76324906，它是API准确的起始地址值。</p>
+<p>提示——————————————————————————————————————</p>
+<p>若在其他OS（2000、Vista等）或服务包（SP1、SP2）中运行XP SP3notepad.exe，010012C4地址中会被设置为其他值（相应OS的comdlg32.dl!PageSetupDlgW地址）。</p>
+<hr>
+<p>进入7632490地址中，如图13-19所示，可以看到该处即为comdlg32.dll的PageSetupDlgW函数的起始位置。</p>
+<p>以上是对IAT的基本讲解，都是一些初学者不易理解的概念。反复阅读前面的讲解，并且实际进入相应地址查看学习，将非常有助于对概念的掌握。IAT是Windows逆向分析中的重要概念，一定要熟练把握。后面学习带有变形IAT的PE Patch文件时，会进一步学习IAT相关知识。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581238786142-19a26e2a-2fae-4666-a4ec-7137f65263c4.png" alt="QQ截图20200209165934.png"></p>
+<h2 id="13-6-EAT"><a href="#13-6-EAT" class="headerlink" title="13.6 EAT"></a>13.6 EAT</h2><p>Windows操作系统中，“库”是为了方便其他程序调用而集中包含相关函数的文件（DLL&#x2F;SYS)。Win32API是最具代表性的库，其中的kernel32.dll文件被称为最核心的库文件。</p>
+<p><span style="color: #F5222D">EAT是一种核心机制，它使不同的应用程序可以调用库文件中提供的函数。也就是说，只有通过EAT才能准确求得从相应库中导出函数的起始地址。</span>与前面讲解的IAT一样，PE文件内的特定结构体（IMAGE_EXPORT_DIRECTORY)保存着导出信息，且PE文件中<strong>仅有一个</strong>用来说明库EAT的IMAGE_EXPORT_DIRECTORY结构体。</p>
+<p>提示——————————————————————————————————————</p>
+<p>用来说明IAT的IMAGE_IMPORT_DESCRIPTOR结构体以数组形式存在，且拥有多个成员。这样是因为PE文件可以同时导入多个库。</p>
+<hr>
+<p>可以在PE文件的PE头中查找到IMAGE_EXPORT_DIRECTORY结构体的位置。IMAGE_OPTIONAL_HEADER32.DataDirectory[0].VirtualAddress值即是IMAGE_EXPORT_DIRECTORY结构体数组的起始地址（也是RVA的值）。</p>
+<p>图13-20显示的是kernel32.dll文件的IMAGE_OPTIONAL_HEADER32.DataDirectory[0](第一个4字节为VirtualAddress，第二个4字节为Size成员，参考代码13-6）。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581242288711-a495f219-6977-460b-84c4-26e8d06a6ec2.png" alt="QQ截图20200209175758.png"></p>
+<p>为便于查看，将图13-20中的IMAGE_OPTIONAL_HEADER32.DataDirectory结构体数组信息整理如下表13-8（深色部分为“导出”相关信息）。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581242349192-c10f5db4-4055-42cb-bc78-8751ffb31234.png" alt="QQ截图20200209175859.png"></p>
+<p>由于RVA值为262C，所以文件偏移为1A2C（希望各位多练习RVA与文件偏移间的转换过程）</p>
+<h3 id="13-6-1-IMAGE-EXPORT-DIRECTORY"><a href="#13-6-1-IMAGE-EXPORT-DIRECTORY" class="headerlink" title="13.6.1 IMAGE_EXPORT_DIRECTORY"></a>13.6.1 IMAGE_EXPORT_DIRECTORY</h3><p>IMAGE_EXPORT_DIRECTORY结构体如代码13-14所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581242457570-c56b457f-9567-4b4b-9de6-2faa31c7d9ff.png" alt="QQ截图20200209180047.png"></p>
+<p>下面讲解其中的重要成员（<strong>全部地址均为RVA</strong>），如表13-9所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581242522255-e23fb370-b9cc-427e-ad71-3c171795af19.png" alt="QQ截图20200209180147.png"></p>
+<p>图13-21描述的是kernel32.dll文件的IMAGE_EXPORT_DIRECTORY结构体与整个EAT结构。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581242600900-12ced865-b258-4bed-8a92-de505093e06a.png" alt="QQ截图20200209180300.png"></p>
+<p><strong>从库中获得函数地址的API为GetProcAddress()函数。该API用EAT来获取指定API的地址。GetProcAddress()API拥有函数名称，下面讲解它如何获取函数地址。理解了这一过程，就等于征服了EAT。</strong></p>
+<p><span style="color: #F5222D">GetProcAddress()操作原理—————————————————————————————–</span></p>
+<p><span style="color: #F5222D">（1）利用AddressOfNames成员转到“函数名称数组”。</span></p>
+<p><span style="color: #F5222D">（2）“函数名称数组”中存储着字符串地址。通过比较（strcmp)字符串，查找指定的函数名称（此时数组的索引称为name_index）。</span></p>
+<p><span style="color: #F5222D">（3）利用AddressOfNameOrdinals成员，转到orinal数组。</span></p>
+<p><span style="color: #F5222D">（4）在ordinal数组中通过name_index查找相应ordinal值。</span></p>
+<p><span style="color: #F5222D">（5）利用AddressOffunctions成员转到“函数地址数组”（EAT）。</span></p>
+<p><span style="color: #F5222D">（6）在“函数地址数组”中将刚刚求得的ordinal用作数组索引，获得指定函数的起始地址。</span></p>
+<p><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<p>图13-21描述的是kernel32.dll文件的情形。<strong>kernel32.dll中所有导出函数均有相应名称，AddressOfNameOrdinals数组的值以index&#x3D;ordinal的形式存在。但并不是所有的DLL文件都如此。</strong></p>
+<p><strong>导出函数中也有一些函数没有名称（仅通过ordinal导出），AddressOfNameOrdinals数组的值为index!&#x3D;ordinal。所以只有按照上面的顺序才能获得准确的函数地址。</strong></p>
+<p>提示——————————————————————————————————————</p>
+<p>对于没有函数名称的导出函数，可以通过Ordinal查找到它们的地址。从Ordinal值中减去IMAGE EXPORT DIRECTORY.Base成员后得到一个值，使用该值作为“函数地址数组”的索引，即可查找到相应函数的地址。</p>
+<hr>
+<h3 id="13-6-2使用kernel32-dll练习"><a href="#13-6-2使用kernel32-dll练习" class="headerlink" title="13.6.2使用kernel32.dll练习"></a>13.6.2使用kernel32.dll练习</h3><p>下面看看如何实际从kernel32.dll文件的EAT中查找AddAtomW函数（参考图13-21）。由表13-8可知，</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581242349192-c10f5db4-4055-42cb-bc78-8751ffb31234.png" alt="QQ截图20200209175859.png"></p>
+<p>kernel32.dll的IMAGE_EXPORT_DIRECTORY结构体RAW为1A2C。使用Hex Editor进入1A2C偏移处，如图13-22所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581246328622-4bc8a2b0-4999-4e2c-85d6-55054f1bf84b.png" alt="QQ截图20200209190518.png"></p>
+<p>图13-22 kernel32.dll的IMAGE_EXPORT_DIRECTORY结构体</p>
+<p>图13-22深色部分就是IMAGE_EXPORT_DIRECTORY结构体区域。该IMAGE_EXPORT_DIRECTORY结构体的各个成员如表13-10所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581246471415-947b546f-ac6b-44b9-a103-0045b12bacc9.png" alt="QQ截图20200209190718.png"><img src="/assets/posts/13-pe-1jb7oh9/assets/1581246472257-b12329af-afb8-42fd-ac07-6583359ff7d7.png" alt="QQ截图20200209190733.png"></p>
+<p>依照前面介绍的代码13-15的顺序查看。</p>
+<p><strong>1.函数名称数组</strong></p>
+<p>AddressOfNames成员的值为RVA&#x3D;353C，即RAW&#x3D;293C。使用Hex Editor查看该地址，如图13-23所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581246598810-87ffb22a-1d68-4e88-a31b-18dd0506626b.png" alt="QQ截图20200209190947.png"></p>
+<p>（方框中）此处为4字节RVA组成的数组。数组元素个数为NumberOfNames（3BA）。逐一跟随所有RVA值即可发现“函数名称字符串”。</p>
+<p><strong>2.查找指定函数名称</strong></p>
+<p>要查找的函数名称字符串为“AddAtomW”，只要在图13-23中找到RVA数组第三个元素的值（RVA：4BBD→RAW:3FBD)即可。</p>
+<p>进入相应地址就会看到“AddAtomW”字符串，如图13-24所示。此时“AddAtomW”函数名即是图13-23数组的第三个元素，数组索引为2。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581246851058-7201ea69-7bac-46e0-9e6a-a30f33a47822.png" alt="QQ截图20200209191326.png"></p>
+<p><strong>3.Ordinal数组</strong></p>
+<p>下面查找“AddAtomW”函数的Ordinal值。AddressOfNameOrdinals成员的值为RVA：4424→RVA：3824。</p>
+<p>在图13-25中可以看到，深色部分是由多个2字节的ordinal组成的数组（ordinal数组中的各元素大小为2个字节）。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581247055746-b22f294b-3d91-48af-a8b7-536dd4cde1b4.png" alt="QQ截图20200209191726.png"></p>
+<p><strong>4.ordinal</strong></p>
+<p>将2中求得的index值（2）应用到3中的Ordinal数组即可求得Ordinal(2)。</p>
+<p>AddressOfNameOrdinals[index]&#x3D;ordinal(index&#x3D;2,ordinal&#x3D;2)</p>
+<p><strong>5.函数地址数组-EAT</strong></p>
+<p>最后查找AddAtomW的实际函数地址。AddressOffunctions成员的值为RVA：2654→RVA:1A54。</p>
+<p>图13-26深色部分即为4字节函数地址RVA数组，它就是Export函数的地址。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581247645843-4b43bdfa-47b2-454c-ad20-6c9cb9e318d1.png" alt="QQ截图20200209192714.png"></p>
+<p><strong>6.AddAtomW函数地址</strong></p>
+<p>图13-26中，为了获取“AddAtomW”函数的地址，将图13-25中求得的Ordinal用作图13-26 数组的索引，得到RVA&#x3D;00326F1。</p>
+<p>AddressOfFunctions[ordinal]&#x3D;RVA(ordinal-2,RVA&#x3D;326F1)</p>
+<p>kernel32.dll的ImageBase&#x3D;7C7D0000。因此AddAtomW函数的实际地址（VA）为7C8026F1 （7C7D0000+326F1&#x3D;7C8026F1）。可以使用OllyDbg验证，如图13-27所示。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581248027654-0951be33-68b3-4d35-ab73-60f1b18f6bd6.png" alt="QQ截图20200209193337.png"></p>
+<p>如图13-27所示，7C8026F1地址（VA）处出现的就是要查找的AddAtomW函数。以上过程是在DLL文件中查找Export函数地址的方法，与使用GetProcAddressOAPI获取指定函数地址的方法最基本、最重要的部分到此就全部讲完了。<span style="color: #F5222D">要理解这些内容并不容易，若有不理解的暂且保留，通过实际操作慢慢理解。</span></p>
+<h2 id="13-7高级PE"><a href="#13-7高级PE" class="headerlink" title="13.7高级PE"></a>13.7高级PE</h2><p>前面我们花了相当长时间来学习PE文件格式相关知识。虽然可以根据PE规范逐一学习各结构体成员，但前面的学习中仅抽取与代码逆向分析息息相关的成员进行了说明。其中**IAT&#x2F;EAT相关内容是运行时压缩器（Run-time Packer)、反调试、DLL注入、API钩取等多种中高级逆向主题的基础知识。**希望各位多训练使用Hex Editor、铅笔、纸张逐一计算IAT&#x2F;EAT的地址，再找到文件&#x2F;内存中的实际地址。虽然要掌握这些内容并不容易，但是由于其在代码逆向分析中占有重要地位，所以只有掌握它们，才能学到高级逆向技术。</p>
+<h3 id="13-7-1-PEView-exe"><a href="#13-7-1-PEView-exe" class="headerlink" title="13.7.1 PEView.exe"></a>13.7.1 PEView.exe</h3><p>下面向各位介绍一个简单易用的PE Viewer应用程序（PEView.exe)（个人编写的免费公开SW）。</p>
+<p><img src="/assets/posts/13-pe-1jb7oh9/assets/1581248457776-b99a17c7-bed1-472e-9878-5e84f89ea083.png" alt="QQ截图20200209194046.png"></p>
+<p>图13-28PEView</p>
+<p>PEView中，PE头按不同结构体分类组织起来，非常方便查看，也能非常容易地在RVA与文件偏移间转换（与前面讲解的内容与术语略微不同。若二者都能熟练掌握，与他人沟通时会更加顺畅）。</p>
+<p>强烈建议各位自己制作一个PE Viewer。我刚开始学习PE头时（为了验证)就制作了一款基于控制台的PE Viewer，使用至今。亲手制作PE Viewer可以学到更多知识，纠正理解上的错误，更有利于进步。</p>
+<h3 id="13-7-2-Patched-PE"><a href="#13-7-2-Patched-PE" class="headerlink" title="13.7.2 Patched PE"></a>13.7.2 Patched PE</h3><p>顾名思义，PE规范只是一个建议性质的书面标准，查看各结构体内部会发现，其实有许多成员并未被使用。事实上，只要文件符合PE规范就是PE文件，利用这一点可以制作出一些脱离常识的PE文件。</p>
+<p>Patched PE指的就是这样的PE文件，这些PE文件仍然符合PE规范，但附带的PE头非常具有创意（准确地说，PE头纠缠放置到各处）。代码逆向分析中，Patched PE涉及的内容宽泛而有深度，详细讲解须另立主题。</p>
+<p>这里只介绍一点，但是足以颠覆前面对PE头的常规理解（但仍未违反PE规范）。</p>
+<p>在下列网站制作一个名为“tiny pe”的最小PE文件。</p>
+<blockquote>
+<p>http:&#x2F;blogs.securiteam.com&#x2F;index.php&#x2F;archives&#x2F;675</p>
+</blockquote>
+<p>它是正常的PE文件，大小只有411个字节。其IMAGE_NT_HEADERS结构体大小只有248个字节，从这一点来看，的确非常小。其他人也不断加入挑战，现在已经出现了304个字节的PE文件。有人访问上面网站后受到了刺激，制作了一个非常极端、非常荒唐的PE文件，在下列网址中可以看到。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://www.phreedom.org/solar/code/tinype/">http://www.phreedom.org/solar/code/tinype/</a></p>
+</blockquote>
+<p>进入网站后可以下载一个97字节的PE文件，它可以在WindowsXP中正常运行。并且网站记录了PE头与tiny pe的制作过程，认真阅读这些内容会有很大帮助（需要具备一点汇编语言的知识）。希望各位全部下载并逐一分析，技术水平必有显著提高。</p>
+<h2 id="13-8小结"><a href="#13-8小结" class="headerlink" title="13.8小结"></a>13.8小结</h2><p>这些PatchedPE文件能够帮助打破对PE文件的固有概念，对我、对普通的逆向分析人员都一样。正因如此，逆向分析技术学起来才更有意思。关于PE头需要再次强调的内容整理如下。</p>
+<ul>
+<li>PE规范只是一种标准规范而已（有许多内容未使用）。</li>
+<li>现在已知关于PE头的认识中有些是错误的（除tiny pe外，会出现更多操作PE头的创意技巧）。</li>
+<li>经常检验掌握的知识，发现不懂的马上补充学习。</li>
+</ul>
+<p>后面还会有机会详细分析、学习Patched PE文件有关知识，到时再向各位一一介绍有关操作PE头更多有趣而奇特的技巧。</p>
+<h2 id="Q-A"><a href="#Q-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><p>Q.前面的讲解中提到，执行文件加载到内存时会根据Imagebase确定地址，那么2个notepad程序同时运行时Imagebase都是10000000，它们会侵占彼此的空间区域，不是这样吗?</p>
+<p>A.<strong>生成进程（加载到内存）时，OS会单独为它分配4GB大小的虚拟内存。虚拟内存与实际物理内存是不同的。同时运行2个notepad时，各进程分别在自身独有的虚拟内存空间中，所以它们彼此不会重叠。这是由OS来保障的。因此，即使它们的Imagebase一样也完全没问题。</strong></p>
+<p>Q.不怎么理解“填充”（padding)这一概念。</p>
+<p>A.相信会有很多人想了解PE文件的“填充”这一概念，就当它是为了对齐“基本单位”而添加的“饶头”。“基本单位”这个概念在计算机和日常生活中都常见。</p>
+<p>比如，保管大量的橘子时并不是单个保管，而是先把它们分别放入一个个箱子中，然后再放入仓库。这些箱子就是“基本单位”。并且，说橘子数量时也很少说几个橘子，而说几箱橘子，这样称呼会更方便。橘子箱数增加很多时，就要增加保管仓库的数量。此时不会再说几箱橘子，而是说“几仓库的橘子”。事实上，这样保管橘子便于检索，查找时只要说出“几号仓库的几号箱子的第几个橘子”即可。也就是说，保存大量数据时成“捆”</p>
+<p>保管，整理与检索都会变得更容易。这种“基本单位”的概念也被融入计算机设计，还被应用到内存、硬盘等。各位一定听说过硬盘是用“扇区”这个单位划分的吧?</p>
+<p>同样，“基本单位（大小）”的概念也应用到了PE文件格式的节区。即使编写的代码（编译为机器语言）大小仅有100d字节，若节区的基本单位为1000d（400h)字节，那么代码节区最小也应该为1000d。其中100个字节区域为代码，其余900个字节区域填充着NULL(0)，后者称为NULL填充区域。内存中也使用“基本单位”的概念（其单位的大小比普通文件要略大一些）。那么PE文件中的填充是谁创建的呢?在开发工具（VC++&#x2F;VB等）中生成PE文件时由指定的编译选项确定。</p>
+<p>Q.经常在数字旁边见到字母“h”，它是什么单位?</p>
+<p>A.数字旁边的字母“h”是Hex的首字母，表示前面的数字为十六进制数。另外，十进制数用d（Decimal）、八进制数用o（Octal）、二进制数用b（Binary）标识。</p>
+<p>Q.如何只用Hex Editor识别出DOS存根、IMAGE_FILE_HEADER等部分呢？</p>
+<p>A.根据PE规范，IMAGEDOS_HEADER的大小为40个字节，DOS存根区域为40~PE签名区域。紧接在PE签名后的是IMAGE_FILE_HEADER，且该结构体的大小是已知的，所以也可以在Hex Editor中表示出来。也就是说，解析PE规范中定义的结构体及其成员的含义，即可区分出各组成部分（多看几次就熟悉了）。</p>
+<p>Q.IMAGE_FILE_HEADER的TimeDateStamp值为0x47918EA2，在PEView中显示为2008&#x2F;01&#x2F;19,05:46：10UTC，如何才能这样解析出来呢？</p>
+<p>A.使用C语言标准库中提供的ctime()函数，即可把4个字节的数字转换为实际的日期字符串。</p>
+<p>Q.PE映像是什么？</p>
+<p>A.PE映像这一术语是微软创建PE结构时开始使用的。一般是指PE文件运行时加载到内存中的形态。PE头信息中有一个SizeOflmage项，该项指出了PE映像所占内存的大小。当然，这个大小与文件的大小不一样。PE文件格式妙处之一就在于，其文件形态与内存形态是不同的。</p>
+<p>Q.不太明白EP这一概念。</p>
+<p>A.<strong>EP地址是程序中最早被执行的代码地址。CPU会最先到EP地址处，并从该处开始依次执行指令。</strong></p>
+<p>Q.用PEView打开记事本程序（notepad.exe)后，发现各节区的起始地址、大小等与示例中的不同，为什么会这样呢?</p>
+<p>A.notepad.exe文件随OS版本的不同而不同（其他所有系统文件也如此）。换言之，不同版本的OS下，系统文件的版本也是不同的。微软可能修改了代码、更改了编译选项，重新编译后再发布。</p>
+<p>Q.对图13-9及其下面的Quiz不是很理解。如何知道RVA5000包含在哪个节区呢？</p>
+<p>A.图13-9是以节区头信息为基础绘制的。图（或节区头信息）中的.text节区是指VA01001000<del>01009000区域，转换为RVA形式后对应于RVA1000-</del>9000区域（即减去Imagebase值的01000000)。由此可知，RVA5000包含在.text节区中。</p>
+<p><span style="color: #F5222D">Q.讲解节区头成员VirtualAddress时提到，它是内存中节区头的起始地址（RVA），VirtualAddress不就是VA吗?为什么要叫RVA呢?</span></p>
+<p><span style="color: #F5222D">A.“使用RVA值来表示节区头的成员VirtualAddress”，这样理解就可以了。节区头结构体（IMAGE SECTION_HEADER)的VirtualAddress成员与虚拟内存地址（VA，VirtualAddress)用的术语相同才引起这一混乱。此处“VirtualAddress成员指的是虚拟内存中相应节区的起始地址，它以RVA的形式保存”，如此理解即可。</span></p>
+<p><span style="color: #F5222D"></span>Q.查看某个文件时，发现其IMAGE_IMPORT_DESCRIPTOR结构体的OriginalFirstThunk成员为NULL，跟踪FirstFThunk成员，看到一个实际使用的APl的名称字符串数组（INT）。跟踪FirstThunk应该看到的是IAT而不是INT，这是怎么回事呢？</p>
+<p>A.PE装载器无法根据OriginalFirstThunk查找到API名称字符串数组（INT）时，就会尝试用FirstThunk查找。本来FirstThunk含义为IAT，但在实际内存中被实际的API函数地址覆盖掉了（此时INT与IAT虽然是相同区域，但仍然能够正常工作）。</p>
+<p><span style="color: #F5222D">Q.使用Windows7的notepad.exe测试，用PEView打开后，IAT起始地址为01001000，而用OllyDbg查看时IAT出现在00831000地址处。请问这是怎么回事呢？</span></p>
+<p><span style="color: #F5222D">A.这是由Windows Vista、7中使用的ASLR技术造成的。请参考第41章。</span></p>
+<p>Q.EAT讲解中提到的Ordinal究竟是什么？不太理解。</p>
+<p>A.**把Ordinal想成导出函数的固有编号就可以了。**有时候某些函数对外不会公开函数名，仅公开函数的固有编号（Ordinal）。导入并使用这类函数时，要先用Ordinal查找到相应函数的地址后再调用。比如下面示例（1）通过函数名称来获取函数地址，示例（2）则使用函数的Ordinal来取得函数地址。</p>
+<p>示例（1)pFunc&#x3D;GetProcAddress(“TestFunc”)；</p>
+<p>示例(2)pFunc&#x3D;GetProcAddress(5)；</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC13%E7%AB%A0%20PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC13%E7%AB%A0%20PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-02/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC14%E7%AB%A0%20%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9/" title="第14章 运行时压缩"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第14章 运行时压缩</div></div><div class="info-2"><div class="info-item-1">第14章 运行时压缩运行时压缩器（Run-Time Packer)是软件逆向分析学的常见主题。为了理解好它，需要掌握有关PE文件格式、操作系统的基本知识（进程、内存、DLL等），同时也要了解有关压缩&#x2F;解压缩算法的基本内容。其中许多部分已经在前面讲解过了，学习运行时压缩能够进一步帮助大家把前面学过的逆向分析知识系统化，做到融会贯通。 14.1数据压缩大家对于数据压缩都比较熟悉，下面简单梳理一下相关知识。数据压缩（Data Compression)是计算机工程的主要研究内容，经过数十年发展已经有了深入研究，今后还会不断出现更多、更好的算法。 如果日常生活中能够非常容易地压缩某个物体该多么方便啊！也就不再需要仓库、停车场、集装箱了，当然，得能压缩才行。而在数码世界，（只要不是压缩过的信息）任何信息都能轻松压缩。 不论哪种形态的文件（数据）都是由二进制（0或1）组成的，只要使用合适的压缩算法，就能缩减其大小。经过压缩的文件若能100%恢复，则称该压缩为“无损压缩”（Lossless DataCompression)；若不能恢复原状，则称该压缩为“有损压缩”（Loss Data ...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC12%E7%AB%A0%20%E7%A9%B6%E7%AB%9F%E5%BA%94%E5%BD%93%E5%A6%82%E4%BD%95%E5%AD%A6%E4%B9%A0%E4%BB%A3%E7%A0%81%E9%80%86%E5%90%91%E5%88%86%E6%9E%90%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89/" title="第12章 究竟应当如何学习代码逆向分析（重要）"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第12章 究竟应当如何学习代码逆向分析（重要）</div></div><div class="info-2"><div class="info-item-1">第12章 究竟应当如何学习代码逆向分析（重要）经常有人问：“怎么开始学代码逆向分析啊？帮帮我吧！”我开博客、写技术类书籍都是为了尽自己绵薄之力，帮助大家提高代码的逆向分析水平，并广泛传播逆向分析技术。这些若能给代码逆向技术的初学者们带来一点帮助，我就再无他求了。那么，到底如何才能学好代码逆向分析技术呢？下面我与各位分享自己的一点心得。 12.1逆向工程12.1.1任何学习都应当有目标自己需要有一个明确的目标，如“为了成为逆向技术专家”、“为了就业”、“感兴趣”、“想成为黑客”等。若无这样的明确目标，很难坚持学下去（半途而废的可能性很大）。并且，目标也能给大家指明方向。希望各位跟着自己的目标，一步步地往前走。 12.1.2拥有积极心态有些人有时会有一些误解与偏见。  “我不懂C语言……能学代码逆向分析吗?”一当然能。 “我没接触过汇编，就不能学代码逆向分析了吧？”→谁说的?能学好啊！ “我一点儿也不懂Windows的结构……也能学代码逆向分析吗?”→能学得很好的。  类似上面这些“我不懂XXX”、“我没接触过XXX”的话对开始学习代码逆向分析技术毫无意义。其实，这些话会让人产生恐惧...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC13%E7%AB%A0-PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">第13章 PE文件格式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#13-1%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">13.1介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-2PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.2.</span> <span class="toc-text">13.2PE文件格式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-1%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="toc-number">1.2.1.</span> <span class="toc-text">13.2.1基本结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-2-2-VA-RVA"><span class="toc-number">1.2.2.</span> <span class="toc-text">13.2.2 VA&amp;RVA</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-3PE%E5%A4%B4"><span class="toc-number">1.3.</span> <span class="toc-text">13.3PE头</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-1-DOS%E5%A4%B4"><span class="toc-number">1.3.1.</span> <span class="toc-text">13.3.1 DOS头</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-2-DOS%E5%AD%98%E6%A0%B9"><span class="toc-number">1.3.2.</span> <span class="toc-text">13.3.2 DOS存根</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-3-NT%E5%A4%B4"><span class="toc-number">1.3.3.</span> <span class="toc-text">13.3.3 NT头</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-4-NT%E5%A4%B4%EF%BC%9A%E6%96%87%E4%BB%B6%E5%A4%B4"><span class="toc-number">1.3.4.</span> <span class="toc-text">13.3.4 NT头：文件头</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-5-NT%E5%A4%B4%EF%BC%9A%E5%8F%AF%E9%80%89%E5%A4%B4"><span class="toc-number">1.3.5.</span> <span class="toc-text">13.3.5 NT头：可选头</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-3-6-%E8%8A%82%E5%8C%BA%E5%A4%B4"><span class="toc-number">1.3.6.</span> <span class="toc-text">13.3.6 节区头</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-4-RVA-to-RAW"><span class="toc-number">1.4.</span> <span class="toc-text">13.4 RVA to RAW</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-5-IAT"><span class="toc-number">1.5.</span> <span class="toc-text">13.5 IAT</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-5-1-DLL"><span class="toc-number">1.5.1.</span> <span class="toc-text">13.5.1 DLL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-5-2-IMAGE-IMPORT-DESCRIPTOR"><span class="toc-number">1.5.2.</span> <span class="toc-text">13.5.2 IMAGE_IMPORT_DESCRIPTOR</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-5-3%E4%BD%BF%E7%94%A8notepad-exe%E7%BB%83%E4%B9%A0"><span class="toc-number">1.5.3.</span> <span class="toc-text">13.5.3使用notepad.exe练习</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-6-EAT"><span class="toc-number">1.6.</span> <span class="toc-text">13.6 EAT</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-6-1-IMAGE-EXPORT-DIRECTORY"><span class="toc-number">1.6.1.</span> <span class="toc-text">13.6.1 IMAGE_EXPORT_DIRECTORY</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-6-2%E4%BD%BF%E7%94%A8kernel32-dll%E7%BB%83%E4%B9%A0"><span class="toc-number">1.6.2.</span> <span class="toc-text">13.6.2使用kernel32.dll练习</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-7%E9%AB%98%E7%BA%A7PE"><span class="toc-number">1.7.</span> <span class="toc-text">13.7高级PE</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#13-7-1-PEView-exe"><span class="toc-number">1.7.1.</span> <span class="toc-text">13.7.1 PEView.exe</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-7-2-Patched-PE"><span class="toc-number">1.7.2.</span> <span class="toc-text">13.7.2 Patched PE</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-8%E5%B0%8F%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">13.8小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Q-A"><span class="toc-number">1.9.</span> <span class="toc-text">Q&amp;A</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

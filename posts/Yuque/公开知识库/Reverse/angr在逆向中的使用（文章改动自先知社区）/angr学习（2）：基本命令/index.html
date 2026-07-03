@@ -1,0 +1,401 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>angr学习（2）：基本命令 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="angr学习（2）：基本命令参考资料：http:&#x2F;&#x2F;www.manongjc.com&#x2F;article&#x2F;68188.html 此篇文章翻译自：https:&#x2F;&#x2F;docs.angr.io&#x2F; Angr Documentation①导入angr模块以及加载二进制程序12&gt;&gt;&gt; import angr&gt;&gt;&gt; proj &#x3D; angr.Project(&#x27;&#x2F;bin&#x2F;tr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="angr学习（2）：基本命令">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%882%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="angr学习（2）：基本命令参考资料：http:&#x2F;&#x2F;www.manongjc.com&#x2F;article&#x2F;68188.html 此篇文章翻译自：https:&#x2F;&#x2F;docs.angr.io&#x2F; Angr Documentation①导入angr模块以及加载二进制程序12&gt;&gt;&gt; import angr&gt;&gt;&gt; proj &#x3D; angr.Project(&#x27;&#x2F;bin&#x2F;tr">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-04/800/450">
+<meta property="article:published_time" content="2020-05-15T00:43:17.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.101Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-04/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "angr学习（2）：基本命令",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%882%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/",
+  "image": "https://picsum.photos/seed/blog-cover-04/800/450",
+  "datePublished": "2020-05-15T00:43:17.000Z",
+  "dateModified": "2026-07-03T14:46:17.101Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%882%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'angr学习（2）：基本命令',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-04/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">angr学习（2）：基本命令</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">angr学习（2）：基本命令</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-05-15T00:43:17.000Z" title="发表于 2020-05-15 08:43:17">2020-05-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.101Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>14分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="angr学习（2）：基本命令"><a href="#angr学习（2）：基本命令" class="headerlink" title="angr学习（2）：基本命令"></a>angr学习（2）：基本命令</h1><p><strong>参考资料：</strong><a target="_blank" rel="noopener" href="http://www.manongjc.com/article/68188.html">http://www.manongjc.com/article/68188.html</a></p>
+<p>此篇文章翻译自：<a target="_blank" rel="noopener" href="https://docs.angr.io/">https://docs.angr.io/</a></p>
+<h2 id="Angr-Documentation"><a href="#Angr-Documentation" class="headerlink" title="Angr Documentation"></a>Angr Documentation</h2><h2 id="①导入angr模块以及加载二进制程序"><a href="#①导入angr模块以及加载二进制程序" class="headerlink" title="①导入angr模块以及加载二进制程序"></a>①导入angr模块以及加载二进制程序</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> angr</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj = angr.Project(<span class="string">&#x27;/bin/true&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="②了解导入的二进制程序的基本信息"><a href="#②了解导入的二进制程序的基本信息" class="headerlink" title="②了解导入的二进制程序的基本信息"></a>②了解导入的二进制程序的基本信息</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.arch <span class="comment">#架构</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.entry <span class="comment">#二进制程序入口点</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.filename <span class="comment">#程序名称以及位置</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="③二进制程序在虚拟地址空间的表示"><a href="#③二进制程序在虚拟地址空间的表示" class="headerlink" title="③二进制程序在虚拟地址空间的表示"></a>③二进制程序在虚拟地址空间的表示</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader<span class="comment">#是通过CLE模块将二进制对象加载并映射带单个内存空间</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.min_addr<span class="comment">#proj.loader 的低位地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.max_addr<span class="comment">#proj.loader 的高位地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.all_objects <span class="comment">#CLE加载的对象的完整列表</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.shared_objects<span class="comment">#这是一个从共享对象名称到对象的字典映射</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.all_elf_objects<span class="comment">#这是从ELF文件中加载的所有对象</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.all_pe_objects<span class="comment">#加载一个windows程序</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.main_object<span class="comment">#加载main对象</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.main_object.execstack<span class="comment">#这个二进制文件是否有可执行堆栈</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.main_object.pic<span class="comment">#这个二进制位置是否独立</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.extern_object<span class="comment">#这是“externs对象”，我们使用它来为未解析的导入和angr内部提供地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.kernel_object<span class="comment">#此对象用于为模拟的系统调用提供地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.loader.find_object_containing(<span class="number">0x400000</span>)<span class="comment">#获得对给定地址的对象的引用</span></span><br></pre></td></tr></table></figure>
+
+<p>直接与这些对象交互以从中提取元数据</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj = proj.loader.main_object<span class="comment">#指向一个对象</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.entry<span class="comment">#获取地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.min_addr, obj.max_addr<span class="comment">#地址的地位和高位</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.segments<span class="comment">#检索该对象的段</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.sections<span class="comment">#检索该对象的节</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.find_segment_containing(obj.entry)<span class="comment">#通过地址获得单独的段</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.find_section_containing(obj.entry)<span class="comment">#通过地址获得单独的节</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>addr = obj.plt[<span class="string">&#x27;abort&#x27;</span>]<span class="comment">#通过符号获取地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.reverse_plt[addr]<span class="comment">#通过地址获取符号</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.linked_base</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>obj.mapped_base<span class="comment">#显示对象的预链接基以及CLE实际映射到内存中的位置</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc = proj.loader.find_symbol(<span class="string">&#x27;malloc&#x27;</span>)<span class="comment">#接受一个名称或地址并返回一个符号对象</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.name<span class="comment">#获取符号名称</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.owner_obj</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.rebased_addr<span class="comment">#全局地址空间中的地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.linked_addr<span class="comment">#相对于二进制的预链接基的地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.relative_addr<span class="comment">#相对于对象库的地址</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.is_export</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>malloc.is_import<span class="comment">#这两个判断符号是import还是export</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>main_malloc = proj.loader.main_object.get_symbol(<span class="string">&quot;malloc&quot;</span>)<span class="comment">#不同于loader上的符号查找，在单个对象上，通过get_symbol获取给定名称的符号。</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>main_malloc.resolvedby<span class="comment">#提供了对用于解析符号的符号的引用</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：proj &#x3D; angr.Project(‘example’,load_options&#x3D;{“auto_load_libs”:False})</p>
+<p>auto_load_libs，支持或禁用CLE自动解析共享库依赖关系的尝试，并且默认为on。</p>
+<p>except_missing_libs为true，当二进制文件有无法解析的共享库依赖项时，将引发异常。</p>
+<p>将字符串列表传递给force_load_libs，所列出的内容将作为未解析的共享库依赖项处理，</p>
+<p>将字符串列表传递给skip_libs，以防止将该名称的任何库解析为依赖项。</p>
+<p>main_opts是一个从选项名到选项值的映射，</p>
+<p>lib_opts是一个从库名到字典的映射，将选项名映射到选项值。</p>
+<blockquote>
+<p>例：angr.Project(main_opts&#x3D;{‘backend’: ‘ida’, ‘arch’: ‘i386’}, lib_opts&#x3D;{‘libc.so.6’: {‘backend’: ‘elf’}})</p>
+</blockquote>
+<p>angr.sim_procedure#替换对库函数的外部调用，就是模仿库函数对状态的影响的python函数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>stub_func = angr.SIM_PROCEDURES[<span class="string">&#x27;stubs&#x27;</span>][<span class="string">&#x27;ReturnUnconstrained&#x27;</span>] <span class="comment">#这是一个类</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.hook(<span class="number">0x10000</span>, stub_func())<span class="comment">#与类的实例挂钩</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.is_hooked(<span class="number">0x10000</span>)<span class="comment">#是否挂钩</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.unhook(<span class="number">0x10000</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.hooked_by(<span class="number">0x10000</span>)<span class="comment">#这三条均是一些验证性的指令</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.hook(<span class="number">0x20000</span>, length=<span class="number">5</span>)</span><br><span class="line"><span class="meta">... </span><span class="keyword">def</span> <span class="title function_">my_hook</span>(<span class="params">state</span>):</span><br><span class="line"><span class="meta">... </span>state.regs.rax = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>#通过使用project .hook(addr)作为函数装饰器，可以指定现成函数作为钩子使用。还可以选择指定length关键字参数，使执行在钩子完成后向前跳转一些字节。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj.is_hooked(<span class="number">0x20000</span>)</span><br><span class="line"><span class="literal">True</span></span><br></pre></td></tr></table></figure>
+
+<p>使用proj.hook_symbol(name, hook)，它提供了一个符号的名称作为第一个参数，用于钩住该符号所在的地址</p>
+<h2 id="④：factory"><a href="#④：factory" class="headerlink" title="④：factory"></a>④：factory</h2><p>为了方便分析，foctory提供了几个常用的函数</p>
+<h3 id="4-1-Block：用于从给定地址提取基本代码块，angr以基本块为单位分析代码。。"><a href="#4-1-Block：用于从给定地址提取基本代码块，angr以基本块为单位分析代码。。" class="headerlink" title="4.1 Block：用于从给定地址提取基本代码块，angr以基本块为单位分析代码。。"></a>4.1 Block：用于从给定地址提取基本代码块，angr以基本块为单位分析代码。。</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>block = proj.factory.block(proj.entry)<span class="comment">#从程序的入口点提取一段代码</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>block.pp()  <span class="comment">#打印代码块</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>block.instructions<span class="comment">#该代码块共有多少条指令</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>block.instruction_addrs<span class="comment">#每条指令的地址</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>block.capstone<span class="comment">#capstone disassembly</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>block.vex<span class="comment">#VEX IRSB(这是python的内部地址，不是程序地址)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-States：proj-angr-Project-‘-bin-true’"><a href="#4-2-States：proj-angr-Project-‘-bin-true’" class="headerlink" title="4.2 States：proj &#x3D; angr.Project(‘&#x2F;bin&#x2F;true’)"></a>4.2 States：proj &#x3D; angr.Project(‘&#x2F;bin&#x2F;true’)</h3><p>这仅仅是一个初始化映像，但是要执行符号执行，还需要simstate，表示模拟程序状态的特定对象</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>state = proj.factory.entry_state()<span class="comment">#即就是simstate，SimState包含程序的内存、寄存器、文件系统数据……任何可以通过执行更改的“实时数据”均在SimState。</span></span><br></pre></td></tr></table></figure>
+
+<p>.entry_state（）的替换：</p>
+<p>.blank_state()#构造了一个“空白石板”空白状态，其大部分数据未初始化。</p>
+<p>full_init_state()构造一个状态，该状态可以通过需要在主二进制的入口点之前运行的任何初始化程序执行，例如共享库构造函数或预初始化程序。</p>
+<p>.call_state()构造准备执行给定函数的状态。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>s = proj.factory.blank_state()</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>s.memory.store(<span class="number">0x4000</span>, s.solver.BVV(<span class="number">0x0123456789abcdef0123456789abcdef</span>, <span class="number">128</span>))<span class="comment">#使用.memory.store(addr,val)方法将数据保存在内存中</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>s.memory.load(<span class="number">0x4004</span>, <span class="number">6</span>) <span class="comment">#</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.regs.rip<span class="comment">#获取当前指令指针</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.regs.rax</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.regs.rbp = state.regs.rsp<span class="comment">#将寄存器rsp的值给rbp</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.mem[proj.entry].<span class="built_in">int</span>.resolved<span class="comment">#将入口点的内存解释为C int</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：那些不是python int 型!那些是bitvectors式，因此需要对其进行置换。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.mem[<span class="number">0x1000</span>].uint64_t = state.regs.rdx<span class="comment">#将rdx的值存储在内存的0x1000位置</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.regs.rbp = state.mem[state.regs.rbp].uint64_t.resolved<span class="comment">#放弃rbp</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.regs.rax += state.mem[state.regs.rsp + <span class="number">8</span>].uint64_t.resolved<span class="comment">#加rax</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>bv = state.solver.BVV(<span class="number">0x1234</span>, <span class="number">32</span>)<span class="comment">#创建一个32位宽，值为0x1234的bitvectors，</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>y = state.solver.BVS(<span class="string">&quot;y&quot;</span>, <span class="number">64</span>)<span class="comment">#创建一个名为“y”的位向量符号，长度为64位</span></span><br></pre></td></tr></table></figure>
+
+<p>在位数相同的情况下，可以实现对符号的计算</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.solver.<span class="built_in">eval</span>(bv)  <span class="comment">#转换成python int</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.regs.rsi = state.solver.BVV(<span class="number">3</span>, <span class="number">64</span>)<span class="comment">#将64位宽，值为3的bitvectors存入寄存器和内存</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.mem[<span class="number">0x1000</span>].long = <span class="number">4</span><span class="comment">#您可以直接存储python int，它将被转换成适当大小的位向量</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.mem[<span class="number">0x1000</span>].long.resolved</span><br></pre></td></tr></table></figure>
+
+<p>注意，mem可以通过.resolved，来以bitvectors获取该值；也可以通过.concrete，来以python int获取该值</p>
+<p>一个通过符号值来求解的过程，注意仅适用于bit向量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>state = proj.factory.entry_state()</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">input</span> = state.solver.BVS(<span class="string">&#x27;input&#x27;</span>, <span class="number">64</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>operation = (((<span class="built_in">input</span> + <span class="number">4</span>) * <span class="number">3</span>) &gt;&gt; <span class="number">1</span>) + <span class="built_in">input</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>output = <span class="number">200</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.solver.add(operation == output)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.solver.<span class="built_in">eval</span>(<span class="built_in">input</span>)</span><br><span class="line"><span class="number">0x3333333333333381</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：eval是一种通用方法，它可以将任何位向量转换成python原语</p>
+<p>上面的BVS是bit向量，下面的通过FPV来创建浮点型向量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>a = state.solver.FPV(<span class="number">3.2</span>, state.solver.fp.FSORT_DOUBLE)</span><br></pre></td></tr></table></figure>
+
+<p>raw_to_bv和raw_to_fp方法将位向量解释为浮点数，反之亦然:</p>
+<p>solver.eval(expression)#将为给定的表达式提供一种可能的解决方案。</p>
+<p>solver.eval_one(expression)#将给出给定表达式的解决方案，如果可能有多个解决方案，则抛出一个错误。</p>
+<p>solver.eval_upto(expression, n)#将给出给定表达式的n个解，如果可能返回的结果小于n，则返回的结果小于n。</p>
+<p>solver.eval_atleast(expression, n)#将为给定的表达式提供n个解决方案，如果可能小于n，则抛出一个错误。</p>
+<p>solver.eval_exact(expression, n)#将为给定的表达式提供n个解决方案，如果少于或大于可能，则抛出错误。</p>
+<p>solver.min(expression) #将给出给定表达式的最小可能解。</p>
+<p>solver.max(expression) #将给出给定表达式的最大可能解。</p>
+<p>其他关键词：</p>
+<p>extra_constraints：可以作为约束的元组传递。</p>
+<p>cast_to可以传递一个数据类型来转换结果。</p>
+<h3 id="4-3-Simulation-Managers-模拟管理器"><a href="#4-3-Simulation-Managers-模拟管理器" class="headerlink" title="4.3  Simulation Managers 模拟管理器"></a>4.3  Simulation Managers 模拟管理器</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr = proj.factory.simulation_manager(state)<span class="comment">#首先，我们创建将要使用的模拟管理器。构造函数可以接受状态或状态列表。</span></span><br><span class="line">state被组织成stash，可以forward, <span class="built_in">filter</span>, merge, <span class="keyword">and</span> move 。</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr.active<span class="comment">#用于存储操作</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr.step()<span class="comment">#执行一个基本块的符号执行，即就是所有状态向前推进一个基本块</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr.active<span class="comment">##更新存储</span></span><br><span class="line"> </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">while</span> <span class="built_in">len</span>(simgr.active) == <span class="number">1</span>:<span class="comment">#直到第一个符号分支，并查看两个存储</span></span><br><span class="line"><span class="meta">... </span>simgr.step()</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr</span><br><span class="line">&lt;SimulationManager <span class="keyword">with</span> <span class="number">2</span> active&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr.active</span><br><span class="line">[&lt;SimState @ <span class="number">0x400692</span>&gt;, &lt;SimState @ <span class="number">0x400699</span>&gt;]</span><br><span class="line"> </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr.run()<span class="comment">#直接执行程序，直到一切结束，查看会返回死循环数目</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr</span><br><span class="line">&lt;SimulationManager <span class="keyword">with</span> <span class="number">3</span> deadended&gt;</span><br><span class="line"> </span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr.move(from_stash=<span class="string">&#x27;deadended&#x27;</span>, to_stash=<span class="string">&#x27;authenticated&#x27;</span>, filter_func=<span class="keyword">lambda</span> s: <span class="string">b&#x27;Welcome&#x27;</span> <span class="keyword">in</span> s.posix.dumps(<span class="number">1</span>))<span class="comment">#,move(start，end，optional)，可以将start状态的optional信息移动到end状态</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr</span><br><span class="line">&lt;SimulationManager <span class="keyword">with</span> <span class="number">2</span> authenticated, <span class="number">1</span> deadended&gt;</span><br></pre></td></tr></table></figure>
+
+<p>一些存储的类型:</p>
+<p>active#此存储区包含默认情况下将逐步执行的状态，除非指定了备用存储区。</p>
+<p>deadended#当一个状态由于某种原因不能继续执行时，包括没有任何有效指令、所有后续的未sat状态或无效的指令指针，它就会进入死区隐藏。</p>
+<p>pruned#当在lazy_resolve存在的情况下发现一个状态未sat时，将遍历该状态层次结构，以确定在其历史上，它最初何时成为unsat。所有这一观点的后裔州(也将被取消sat，因为一个州不能成为取消sat)都将被修剪并放入这一储备中。</p>
+<p>unconstrained#无约束的状态(即，由用户数据或其他符号数据来源控制的指令指针)放在这里。</p>
+<p>unsat#不可满足的状态(即，它们有相互矛盾的约束，比如输入必须同时为“AAAA”和“BBBB”)。</p>
+<p>.explore()#方法：</p>
+<p>查找到达某个地址的状态，同时丢弃经过另一个地址的所有状态</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>proj = angr.Project(<span class="string">&#x27;examples/CSCI-4968MBE/challenges/crackme0x00a/crackme0x00a&#x27;</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr = proj.factory.simgr()</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>simgr.explore(find=<span class="keyword">lambda</span> s: <span class="string">b&quot;Congrats&quot;</span> <span class="keyword">in</span> s.posix.dumps(<span class="number">1</span>))<span class="comment">#匹配到赢得方法</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-Analyses-用于程序分析过程"><a href="#4-4-Analyses-用于程序分析过程" class="headerlink" title="4.4 Analyses 用于程序分析过程"></a>4.4 Analyses 用于程序分析过程</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>p.analyses</span><br></pre></td></tr></table></figure>
+
+<p>p.analyses.BackwardSlice</p>
+<p>p.analyses.Reassembler</p>
+<p>p.analyses.BinDiff</p>
+<p>p.analyses.StaticHooker</p>
+<p>p.analyses.BinaryOptimizer</p>
+<p>p.analyses.VFG</p>
+<p>p.analyses.BoyScout</p>
+<p>p.analyses.VSA_DDG</p>
+<p>p.analyses.CDG</p>
+<p>p.analyses.VariableRecovery</p>
+<p>p.analyses.CFB</p>
+<p>p.analyses.VariableRecoveryFast</p>
+<p>p.analyses.CFBlanket</p>
+<p>p.analyses.Veritesting</p>
+<p>p.analyses.CFG</p>
+<p>p.analyses.discard_plugin_preset</p>
+<p>p.analyses.CFGAccurate</p>
+<p>p.analyses.get_plugin</p>
+<p>p.analyses.CFGFast</p>
+<p>p.analyses.has_plugin</p>
+<p>p.analyses.CalleeCleanupFinder</p>
+<p>p.analyses.has_plugin_preset</p>
+<p>p.analyses.CallingConvention</p>
+<p>p.analyses.plugin_preset</p>
+<p>p.analyses.CongruencyCheck</p>
+<p>p.analyses.project</p>
+<p>p.analyses.DDG</p>
+<p>p.analyses.register_default</p>
+<p>p.analyses.Disassembly</p>
+<p>p.analyses.register_plugin</p>
+<p>p.analyses.GirlScout</p>
+<p>p.analyses.register_preset</p>
+<p>p.analyses.Identifier</p>
+<p>p.analyses.release_plugin</p>
+<p>p.analyses.LoopFinder</p>
+<p>p.analyses.reload_analyses</p>
+<p>p.analyses.ReachingDefinitions</p>
+<p>p.analyses.use_plugin_preset</p>
+<h2 id="⑤-插件"><a href="#⑤-插件" class="headerlink" title="⑤ 插件"></a>⑤ 插件</h2><p>state.globals实现了标准python dict的接口，允许您在状态上存储任意数据。</p>
+<p>state.history存储关于状态在执行过程中所采取的路径的历史数据,实际上是由几个历史节点组成的链表，每个节点代表一轮执行——使用state.history.parent.parent遍历这个列表</p>
+<p>history.description#是在状态上执行的每一轮执行的字符串描述的列表。</p>
+<p>history.bbl_addrs#是由状态执行的基本块地址的列表</p>
+<p>history.jumpkinds#是状态历史中每个控制流转换的处理的列表</p>
+<p>history.guards#是保护状态遇到的每个分支的条件的列表。</p>
+<p>history.events#是执行过程中发生的“有趣事件”的语义列表，如出现符号跳转条件、程序弹出消息框或执行以退出代码结束。</p>
+<p>history.actions#通常为空，但如果添加了angr.options.refs选项，它将弹出一个日志，记录程序执行的所有内存、寄存器和临时值访问。</p>
+<p>state.callstack跟踪模拟程序的调用堆栈</p>
+<p>callstack.func_addr#当前正在执行的函数的地址</p>
+<p>callstack.call_site_addr#调用当前函数的基本块的地址</p>
+<p>callstack.call_site_addr#从当前函数开始的堆栈指针的值</p>
+<p>callstack.call_site_addr#如果当前函数返回，返回的位置</p>
+<p>此外，还有其他的插件</p>
+<h2 id="⑥-其他"><a href="#⑥-其他" class="headerlink" title="⑥ 其他"></a>⑥ 其他</h2><h3 id="1-符号引擎"><a href="#1-符号引擎" class="headerlink" title="1.符号引擎"></a>1.符号引擎</h3><p>failure engine#故障引擎</p>
+<p>syscall engine#系统调用引擎</p>
+<p>hook engine#钩子引擎</p>
+<p>unicorn engine#project.factory.successors(state, **kwargs)#依次尝试所有引擎的代码</p>
+<h3 id="2-断点"><a href="#2-断点" class="headerlink" title="2.断点"></a>2.断点</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> angr</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>b = angr.Project(<span class="string">&#x27;examples/fauxware/fauxware&#x27;</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>s = b.factory.entry_state()<span class="comment">#获取状态</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>s.inspect.b(<span class="string">&#x27;mem_write&#x27;</span>)<span class="comment">#以下3条都是插入断点</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>s.inspect.b(<span class="string">&#x27;mem_write&#x27;</span>, when=angr.BP_AFTER, action=debug_func)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>s.inspect.b(<span class="string">&#x27;mem_write&#x27;</span>, when=angr.BP_AFTER, action=angr.BP_IPYTHON)</span><br></pre></td></tr></table></figure>
+
+<p>断点总结：</p>
+<p>mem_read#正在读取内存。</p>
+<p>mem_write#正在写内存。</p>
+<p>reg_read#正在读取寄存器。</p>
+<p>reg_write#正在写取寄存器。</p>
+<p>tmp_read#正在读取临时变量。</p>
+<p>tmp_write#正在写取临时变量。</p>
+<p>expr#正在创建一个表达式</p>
+<p>statement#正在翻译IR语句。</p>
+<p>instruction#正在翻译一条新的指令</p>
+<p>irsb#一个新的基本块正在被翻译。</p>
+<p>constraints#新的约束被添加到状态中。</p>
+<p>exit#从执行中生成一个后继。</p>
+<p>symbolic_variable#正在创建一个新的符号变量。</p>
+<p>call#调用指令被命中。</p>
+<p>address_concretization#正在解析符号内存访问</p>
+<p>同时，这些类型还有不同的属性，见 <a target="_blank" rel="noopener" href="https://docs.angr.io/core-concepts/simulation">https://docs.angr.io/core-concepts/simulation</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%882%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%882%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-04/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%881%EF%BC%89--%E4%B8%80%E4%B8%AA%E8%87%AA%E5%86%99%E7%9A%84demo--elf%E6%96%87%E4%BB%B6%E7%9A%84%E4%BF%9D%E6%8A%A4/" title="angr学习（3）：开始实战（1）--一个自写的demo--elf文件的保护"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">angr学习（3）：开始实战（1）--一个自写的demo--elf文件的保护</div></div><div class="info-2"><div class="info-item-1">angr学习（3）：开始实战（1）–一个自写的demo–elf文件的保护 参考文章：https://blog.csdn.net/qq_33438733&#x2F;article&#x2F;details&#x2F;80276628https://www.jianshu.com/p/755e52d48a77demo下载链接：链接：https://pan.baidu.com/s/1wHDZTgKMIujsaLnSztH7VA提取码：9epn  自己先写一个demo，代码如下： 12345678910111213141516171819202122232425#include &lt;stdio.h&gt;#include &lt;string.h&gt;void success()&#123;    printf(&quot;success\n&quot;);&#125;void failed()&#123;    printf(&quot;fail\n&quot;);&#125;int main(void)&#123;    char name[10] = &quot;&quot;...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%881%EF%BC%89%EF%BC%9Aangr%E7%9A%84%E5%AE%89%E8%A3%85%EF%BC%88Linux-_Ubuntu%EF%BC%89/" title="angr学习（1）：angr的安装（Linux-_Ubuntu）"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">angr学习（1）：angr的安装（Linux-_Ubuntu）</div></div><div class="info-2"><div class="info-item-1">angr学习（1）：angr的安装（Linux-&gt;Ubuntu）总结：这玩意儿真难安装。。。(有可能需要挂飞机，反正我挂了） 针对python版本：python3（python 3.8.2） 材料：全新的ubuntu 20.04（全程联网安装） 文件名称：ubuntu-20.04-desktop-amd64.iso 镜像下载地址：http://releases.ubuntu.com/20.04/ubuntu-20.04-desktop-amd64.iso 链接：https://pan.baidu.com/s/1S178E9AUo_HlKdaa-k04nw 提取码：diyc 复制这段内容后打开百度网盘手机App，操作更方便哦 说明： python virtual enviroment是一个python环境管理工具，该工具能够在真实的系统中创建一个虚拟的python环境，以防止软件安装过程中对真实环境的影响，同时也能方便解决python中不同版本不兼容的问题。具体请到百度搜索virtualenvwrapper和virtualenv，其中virtualenvwrapper是对vi...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#angr%E5%AD%A6%E4%B9%A0%EF%BC%882%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="toc-number">1.</span> <span class="toc-text">angr学习（2）：基本命令</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Angr-Documentation"><span class="toc-number">1.1.</span> <span class="toc-text">Angr Documentation</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%91%A0%E5%AF%BC%E5%85%A5angr%E6%A8%A1%E5%9D%97%E4%BB%A5%E5%8F%8A%E5%8A%A0%E8%BD%BD%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.2.</span> <span class="toc-text">①导入angr模块以及加载二进制程序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%91%A1%E4%BA%86%E8%A7%A3%E5%AF%BC%E5%85%A5%E7%9A%84%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%A8%8B%E5%BA%8F%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-number">1.3.</span> <span class="toc-text">②了解导入的二进制程序的基本信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%91%A2%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%A8%8B%E5%BA%8F%E5%9C%A8%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%9A%84%E8%A1%A8%E7%A4%BA"><span class="toc-number">1.4.</span> <span class="toc-text">③二进制程序在虚拟地址空间的表示</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%91%A3%EF%BC%9Afactory"><span class="toc-number">1.5.</span> <span class="toc-text">④：factory</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Block%EF%BC%9A%E7%94%A8%E4%BA%8E%E4%BB%8E%E7%BB%99%E5%AE%9A%E5%9C%B0%E5%9D%80%E6%8F%90%E5%8F%96%E5%9F%BA%E6%9C%AC%E4%BB%A3%E7%A0%81%E5%9D%97%EF%BC%8Cangr%E4%BB%A5%E5%9F%BA%E6%9C%AC%E5%9D%97%E4%B8%BA%E5%8D%95%E4%BD%8D%E5%88%86%E6%9E%90%E4%BB%A3%E7%A0%81%E3%80%82%E3%80%82"><span class="toc-number">1.5.1.</span> <span class="toc-text">4.1 Block：用于从给定地址提取基本代码块，angr以基本块为单位分析代码。。</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-States%EF%BC%9Aproj-angr-Project-%E2%80%98-bin-true%E2%80%99"><span class="toc-number">1.5.2.</span> <span class="toc-text">4.2 States：proj &#x3D; angr.Project(‘&#x2F;bin&#x2F;true’)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Simulation-Managers-%E6%A8%A1%E6%8B%9F%E7%AE%A1%E7%90%86%E5%99%A8"><span class="toc-number">1.5.3.</span> <span class="toc-text">4.3  Simulation Managers 模拟管理器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-Analyses-%E7%94%A8%E4%BA%8E%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90%E8%BF%87%E7%A8%8B"><span class="toc-number">1.5.4.</span> <span class="toc-text">4.4 Analyses 用于程序分析过程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%91%A4-%E6%8F%92%E4%BB%B6"><span class="toc-number">1.6.</span> <span class="toc-text">⑤ 插件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%91%A5-%E5%85%B6%E4%BB%96"><span class="toc-number">1.7.</span> <span class="toc-text">⑥ 其他</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%AC%A6%E5%8F%B7%E5%BC%95%E6%93%8E"><span class="toc-number">1.7.1.</span> <span class="toc-text">1.符号引擎</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%96%AD%E7%82%B9"><span class="toc-number">1.7.2.</span> <span class="toc-text">2.断点</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

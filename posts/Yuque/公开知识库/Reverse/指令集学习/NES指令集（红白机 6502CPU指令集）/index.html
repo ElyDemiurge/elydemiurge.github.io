@@ -1,0 +1,477 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>NES指令集（红白机 6502CPU指令集） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="NES指令集（红白机 6502CPU指令集） addr  :代表8位地址    addr16:代表16位地址     data  :立即数  数据传送指令&#x2F;&#x2F;LDA–由存储器取数送入累加器 M→A 符号码格式 指令操作码 寻址方式  LDA ($addr,X) A1 先变址X后间址  LDA $addr A5 零页寻址  LDA #$data A9 立即寻址  LDA $add">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NES指令集（红白机 6502CPU指令集）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/NES%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%88%E7%BA%A2%E7%99%BD%E6%9C%BA%206502CPU%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="NES指令集（红白机 6502CPU指令集） addr  :代表8位地址    addr16:代表16位地址     data  :立即数  数据传送指令&#x2F;&#x2F;LDA–由存储器取数送入累加器 M→A 符号码格式 指令操作码 寻址方式  LDA ($addr,X) A1 先变址X后间址  LDA $addr A5 零页寻址  LDA #$data A9 立即寻址  LDA $add">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-06/800/450">
+<meta property="article:published_time" content="2020-07-21T06:29:44.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.617Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-06/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "NES指令集（红白机 6502CPU指令集）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/NES%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%88%E7%BA%A2%E7%99%BD%E6%9C%BA%206502CPU%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-06/800/450",
+  "datePublished": "2020-07-21T06:29:44.000Z",
+  "dateModified": "2026-07-03T14:46:17.617Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/NES%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%88%E7%BA%A2%E7%99%BD%E6%9C%BA%206502CPU%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'NES指令集（红白机 6502CPU指令集）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-06/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">NES指令集（红白机 6502CPU指令集）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">NES指令集（红白机 6502CPU指令集）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-07-21T06:29:44.000Z" title="发表于 2020-07-21 14:29:44">2020-07-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.617Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="NES指令集（红白机-6502CPU指令集）"><a href="#NES指令集（红白机-6502CPU指令集）" class="headerlink" title="NES指令集（红白机 6502CPU指令集）"></a>NES指令集（红白机 6502CPU指令集）</h1><blockquote>
+<p><span style="color: #333333">addr  :代表8位地址    addr16:代表16位地址     data  :立即数</span></p>
+</blockquote>
+<h2 id="数据传送指令"><a href="#数据传送指令" class="headerlink" title="数据传送指令"></a><span style="color: #333333">数据传送指令</span></h2><p><span style="color: #333333">&#x2F;&#x2F;LDA–由存储器取数送入累加器 M→A</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">LDA ($addr,X) A1 先变址X后间址 </span></p>
+<p><span style="color: #333333">LDA $addr A5 零页寻址 </span></p>
+<p><span style="color: #333333">LDA #$data A9 立即寻址 </span></p>
+<p><span style="color: #333333">LDA $addr16 AD 绝对寻址 </span></p>
+<p><span style="color: #333333">LDA ($addr),Y B1 后变址Y间址 </span></p>
+<p><span style="color: #333333">LDA $addr,X B5 零页X变址 </span></p>
+<p><span style="color: #333333">LDA $addr16,Y B9 绝对Y变址 </span></p>
+<p><span style="color: #333333">LDA $addr16,X BD 绝对X变址 </span></p>
+<p><span style="color: #333333">&#x2F;&#x2F;LDX–由存储器取数送入累加器 M→X</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">LDX #$data A2 立即寻址 </span></p>
+<p><span style="color: #333333">LDX $addr A6 零页寻址 </span></p>
+<p><span style="color: #333333">LDX $addr16 AE 绝对寻址 </span></p>
+<p><span style="color: #333333">LDX $addr,Y B6 零页Y变址 </span></p>
+<p><span style="color: #333333">LDX $addr16,Y BE 绝对Y变址 </span></p>
+<p><span style="color: #333333">&#x2F;&#x2F;LDY–由存储器取数送入累加器 M→Y</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">LDY #$data A0 立即寻址 </span></p>
+<p><span style="color: #333333">LDY $addr A4 零页寻址 </span></p>
+<p><span style="color: #333333">LDY $addr16 AC 绝对寻址 </span></p>
+<p><span style="color: #333333">LDY $addr,X B4 零页X变址 </span></p>
+<p><span style="color: #333333">LDY $addr16,X BC 绝对X变址 </span></p>
+<p><span style="color: #333333">&#x2F;&#x2F;STA–将累加器的内容送入存储器 A–M</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">STA ($addr,X) 81 先变址X后间址 </span></p>
+<p><span style="color: #333333">STA $addr 85 零页寻址 </span></p>
+<p><span style="color: #333333">STA $addr16 8D 绝对寻址 </span></p>
+<p><span style="color: #333333">STA ($addr),Y 91 后变址Y间址 </span></p>
+<p><span style="color: #333333">STA $addr,X 95 零页X变址 </span></p>
+<p><span style="color: #333333">STA $addr16,Y 99 绝对Y变址 </span></p>
+<p><span style="color: #333333">STA $addr16,X 9D 绝对X变址 </span></p>
+<p><span style="color: #333333">&#x2F;&#x2F;STX–将寄存器X的内容送入存储器 X–M</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">STX $addr 86 零页寻址 </span></p>
+<p><span style="color: #333333">STX $addr16 8E 绝对寻址 </span></p>
+<p><span style="color: #333333">STX $addr,Y 96 零页Y变址 </span></p>
+<p><span style="color: #333333">&#x2F;&#x2F;STY–将寄存器Y的内容送入存储器 Y–M</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">STY $addr 84 零页寻址 </span></p>
+<p><span style="color: #333333">STY $addr16 8C 绝对寻址 </span></p>
+<p><span style="color: #333333">STY $addr,X 94 零页X变址 </span></p>
+<p><span style="color: #333333">&#x2F;&#x2F;寄存器和寄存器之间的传送</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 指令作用 </span></p>
+<p><span style="color: #333333">TAX AA 寄存器寻址 将累加器A的内容送入变址寄存器X </span></p>
+<p><span style="color: #333333">TXA 8A 寄存器寻址 将变址寄存器X的内容送入累加器A </span></p>
+<p><span style="color: #333333">TAY A8 寄存器寻址 将累加器A的内容送入变址寄存器Y </span></p>
+<p><span style="color: #333333">TYA 98 寄存器寻址 将变址寄存器Y的内容送入累加器A </span></p>
+<p><span style="color: #333333">TSX BA 寄存器寻址 将堆栈指针S的内容送入变址寄存器X </span></p>
+<p><span style="color: #333333">TXS 9A 寄存器寻址 将变址寄存器X的内容送入堆栈指针S </span></p>
+<h2 id="算术运算指令"><a href="#算术运算指令" class="headerlink" title="算术运算指令"></a><span style="color: #333333">算术运算指令</span></h2><p><span style="color: #333333">1. ADC–累加器,存储器,进位标志C相加,结果送累加器A  A+M+C→A </span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式            周期 </span></p>
+<p><span style="color: #333333">ADC ($addr,X) 61 先变址X后间址          </span></p>
+<p><span style="color: #333333">ADC $addr 65 零页寻址 </span></p>
+<p><span style="color: #333333">ADC #$data 69 立即寻址 </span></p>
+<p><span style="color: #333333">ADC $addr16 6D 绝对寻址 </span></p>
+<p><span style="color: #333333">ADC ($addr),Y 71 后变址Y间址 </span></p>
+<p><span style="color: #333333">ADC $addr,X 75 零页X变址 </span></p>
+<p><span style="color: #333333">ADC $addr16,Y 79 绝对Y变址 </span></p>
+<p><span style="color: #333333">ADC $addr16,X 7D 绝对X变址 </span></p>
+<p><span style="color: #333333">2. SBC–从累加器减去存储器和进位标志C,结果送累加器  A-M-C→A</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">SBC ($addr,X) E1 先变址X后间址 </span></p>
+<p><span style="color: #333333">SBC $addr E5 零页寻址 </span></p>
+<p><span style="color: #333333">SBC #$data E9 立即寻址 </span></p>
+<p><span style="color: #333333">SBC $addr16 ED 绝对寻址 </span></p>
+<p><span style="color: #333333">SBC ($addr),Y F1 后变址Y间址 </span></p>
+<p><span style="color: #333333">SBC $addr,X F5 零页X变址 </span></p>
+<p><span style="color: #333333">SBC $addr16,Y F9 绝对Y变址 </span></p>
+<p><span style="color: #333333">SBC $addr16,X FD 绝对X变址 </span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">3. INC–存储器单元内容增1  M+1→M</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">INC $addr E6 零页寻址 </span></p>
+<p><span style="color: #333333">INC $addr16 EE 绝对寻址 </span></p>
+<p><span style="color: #333333">INC $addr,X F6 零页X变址 </span></p>
+<p><span style="color: #333333">INC $addr16,X FE 绝对X变址 </span></p>
+<p><span style="color: #333333">4. DEC–存储器单元内容减1  M-1→M</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">DEC $addr C6 零页寻址 </span></p>
+<p><span style="color: #333333">DEC $addr16 CE 绝对寻址 </span></p>
+<p><span style="color: #333333">DEC $addr,X D6 零页X变址 </span></p>
+<p><span style="color: #333333">DEC $addr16,X DE 绝对X变址 </span></p>
+<p><span style="color: #333333">5. 寄存器X,Y加1减1</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">INX E8 隐含寻址 </span></p>
+<p><span style="color: #333333">DEX CA 隐含寻址 </span></p>
+<p><span style="color: #333333">INY C8 隐含寻址 </span></p>
+<p><span style="color: #333333">DEY 88 隐含寻址 </span></p>
+<h2 id="逻辑运算指令"><a href="#逻辑运算指令" class="headerlink" title="逻辑运算指令"></a><span style="color: #333333">逻辑运算指令</span></h2><p><span style="color: #333333">1.AND–寄存器与累加器相与,结果送累加器  A∧M→A</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">AND ($addr,X) 21 先变址X后间址 </span></p>
+<p><span style="color: #333333">AND $addr 25 零页寻址 </span></p>
+<p><span style="color: #333333">AND #$data 29 立即寻址 </span></p>
+<p><span style="color: #333333">AND $addr16 2D 绝对寻址 </span></p>
+<p><span style="color: #333333">AND ($addr),Y 31 后变址Y间址 </span></p>
+<p><span style="color: #333333">AND $addr,X 35 零页X变址 </span></p>
+<p><span style="color: #333333">AND $addr16,Y 39 绝对Y变址 </span></p>
+<p><span style="color: #333333">AND $addr16,X 3D 绝对X变址 </span></p>
+<p><span style="color: #333333">     </span></p>
+<p><span style="color: #333333">2.ORA–寄存器与累加器相或,结果送累加器  A∨M→A</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">ORA ($addr,X) 01 先变址X后间址 </span></p>
+<p><span style="color: #333333">ORA $addr 05 零页寻址 </span></p>
+<p><span style="color: #333333">ORA #$data 09 立即寻址 </span></p>
+<p><span style="color: #333333">ORA $addr16 0D 绝对寻址 </span></p>
+<p><span style="color: #333333">ORA ($addr),Y 11 后变址Y间址 </span></p>
+<p><span style="color: #333333">ORA $addr,X 15 零页X变址 </span></p>
+<p><span style="color: #333333">ORA $addr16,Y 19 绝对Y变址 </span></p>
+<p><span style="color: #333333">ORA $addr16,X 1D 绝对X变址 </span></p>
+<p><span style="color: #333333">3.EOR–寄存器与累加器相异或,结果送累加器  A≮M→A</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">EOR ($addr,X) 41 先变址X后间址 </span></p>
+<p><span style="color: #333333">EOR $addr 45 零页寻址 </span></p>
+<p><span style="color: #333333">EOR #$data 49 立即寻址 </span></p>
+<p><span style="color: #333333">EOR $addr16 4D 绝对寻址 </span></p>
+<p><span style="color: #333333">EOR ($addr),Y 51 后变址Y间址 </span></p>
+<p><span style="color: #333333">EOR $addr,X 55 零页X变址 </span></p>
+<p><span style="color: #333333">EOR $addr16,Y 59 绝对Y变址 </span></p>
+<p><span style="color: #333333">EOR $addr16,X 5D 绝对X变址 </span></p>
+<h2 id="置标志位指令"><a href="#置标志位指令" class="headerlink" title="置标志位指令"></a><span style="color: #333333">置标志位指令</span></h2><p><span style="color: #333333">1. CLC–清除进位标志         0→C   机器码 18     √</span></p>
+<p><span style="color: #333333">2. SEC–置进位标志C          1→C   机器码 38     √</span></p>
+<p><span style="color: #333333">3. CLD–清除十进制运算标志D  0→D   机器码 D8     ×</span></p>
+<p><span style="color: #333333">4. SED–置十进制运算标志D    1→D   机器码 F8     ×</span></p>
+<p><span style="color: #333333">5. CLV–清除溢出标志V        0→V   机器码 B8</span></p>
+<p><span style="color: #333333">6. CLI–清除中断禁止指令I    0→I   机器码 58     √</span></p>
+<p><span style="color: #333333">7. SEI–置位中断禁止标志I    1→I   机器码 78     √</span></p>
+<p><span style="color: #333333">　</span></p>
+<h2 id="比较指令"><a href="#比较指令" class="headerlink" title="比较指令"></a><span style="color: #333333">比较指令</span></h2><p><span style="color: #333333">1. CMP–累加器和存储器比较</span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">CMP ($addr,X) C1 先变址X后间址 </span></p>
+<p><span style="color: #333333">CMP $addr C5 零页寻址 </span></p>
+<p><span style="color: #333333">CMP #$data C9 立即寻址 </span></p>
+<p><span style="color: #333333">CMP $addr16 CD 绝对寻址 </span></p>
+<p><span style="color: #333333">CMP ($addr),Y D1 后变址Y间址 </span></p>
+<p><span style="color: #333333">CMP $addr,X D5 零页X变址 </span></p>
+<p><span style="color: #333333">CMP $addr16,Y D9 绝对Y变址 </span></p>
+<p><span style="color: #333333">CMP $addr16,X DD 绝对X变址 </span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">2. CPX–寄存器X的内容和存储器比较</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">CPX #$data E0 立即寻址 </span></p>
+<p><span style="color: #333333">CPX $addr E4 零页寻址 </span></p>
+<p><span style="color: #333333">CPX $addr16 EC 绝对寻址 </span></p>
+<p><span style="color: #333333">这些指令和CMP指令相似,不过前者是寄存器A,后者是寄存器X,另外寻址方式也比较少.</span></p>
+<p><span style="color: #333333">3. CPY–寄存器Y的内容和存储器比较</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">CPY #$data C0 立即寻址 </span></p>
+<p><span style="color: #333333">CPY $addr C4 零页寻址 </span></p>
+<p><span style="color: #333333">CPY $addr16 CC 绝对寻址 </span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">这些指令和CPX指令相似,不过前者是寄存器X,后者是寄存器Y.</span></p>
+<p><span style="color: #333333">4. BIT–位测试指令</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">BIT $addr 24 零页寻址 </span></p>
+<p><span style="color: #333333">BIT $addr16 2C 绝对寻址 </span></p>
+<h2 id="移位指令"><a href="#移位指令" class="headerlink" title="移位指令"></a><span style="color: #333333">移位指令</span></h2><p><span style="color: #333333">1. 算术左移指令ASL</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">ASL 0A 累加器寻址 </span></p>
+<p><span style="color: #333333">ASL $data 06 零页寻址 </span></p>
+<p><span style="color: #333333">ASL $addr16 0E 绝对寻址 </span></p>
+<p><span style="color: #333333">ASL $addr,X 16 零页X变址 </span></p>
+<p><span style="color: #333333">ASL $addr16,X 1E 绝对X变址 </span></p>
+<p><span style="color: #333333">ASL移位功能是将字节内各位依次向左移1位，最高位移进标志位C中，最底位补0</span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">2. 逻辑右移指令LSR</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">LSR 4A 累加器寻址 </span></p>
+<p><span style="color: #333333">LSR $data 46 零页寻址 </span></p>
+<p><span style="color: #333333">LSR $addr16 4E 绝对寻址 </span></p>
+<p><span style="color: #333333">LSR $addr,X 56 零页X变址 </span></p>
+<p><span style="color: #333333">LSR $addr16,X 5E 绝对X变址 </span></p>
+<p><span style="color: #333333">该指令功能是将字节内各位依次向右移1位，最低位移进标志位C，最高位补0.</span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">3. 循环左移指令ROL</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">ROL 2A 累加器寻址 </span></p>
+<p><span style="color: #333333">ROL $data 26 零页寻址 </span></p>
+<p><span style="color: #333333">ROL $addr16 2E 绝对寻址 </span></p>
+<p><span style="color: #333333">ROL $addr,X 36 零页X变址 </span></p>
+<p><span style="color: #333333">ROL $addr16,X 3E 绝对X变址 </span></p>
+<p><span style="color: #333333">ROL的移位功能是将字节内容连同进位C一起依次向左移1位</span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">4. 循环右移指令ROR</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">ROR 6A 累加器寻址 </span></p>
+<p><span style="color: #333333">ROR $data 66 零页寻址 </span></p>
+<p><span style="color: #333333">ROR $addr16 6E 绝对寻址 </span></p>
+<p><span style="color: #333333">ROR $addr,X 76 零页X变址 </span></p>
+<p><span style="color: #333333">ROR $addr16,X 7E 绝对X变址 </span></p>
+<p><span style="color: #333333">ROR的移位功能是将字节内容连同进位C一起依次向右移1位</span></p>
+<p><span style="color: #333333">addr  :代表8位地址    addr16:代表16位地址     data  :立即数</span></p>
+<h2 id=""><a href="#" class="headerlink" title=""></a><span style="color: #333333"></span></h2><h2 id="堆栈操作指令"><a href="#堆栈操作指令" class="headerlink" title="堆栈操作指令"></a><span style="color: #333333">堆栈操作指令</span></h2><p><span style="color: #333333">1. 累加器进栈指令 PHA</span></p>
+<p><span style="color: #333333">   PHA是隐含寻址方式的单字节指令，操作码是 48</span></p>
+<p><span style="color: #333333">   功能是把累加器A的内容按堆栈指针S所指示的位置送入堆栈，然后堆栈指针减1</span></p>
+<p><span style="color: #333333">   该指令不影响标志寄存器P的状态</span></p>
+<p><span style="color: #333333"></span></p>
+<p><span style="color: #333333">2. 累加器出栈指令 PLA</span></p>
+<p><span style="color: #333333">   PLA是隐含寻址方式的单字节指令，操作码是 68</span></p>
+<p><span style="color: #333333">   功能是先让堆栈指针S+1，然后取加过1的S所指向的单元的内容，把它送累加器A</span></p>
+<p><span style="color: #333333">   该指令影响标志寄存器P中的N，Z两标志位</span></p>
+<p><span style="color: #333333">3. 标志寄存器P进栈指令 PHP</span></p>
+<p><span style="color: #333333">   PHP是隐含寻址方式的单字节指令，操作码是 08</span></p>
+<p><span style="color: #333333">   功能是把标志寄存器P的内容按堆栈指针S所指示的位置送入堆栈，然后堆栈指针减1</span></p>
+<p><span style="color: #333333">   该指令不影响标志寄存器P的状态</span></p>
+<p><span style="color: #333333">4. 标志寄存器P出栈指令 PLP</span></p>
+<p><span style="color: #333333">   PLP是隐含寻址方式的单字节指令，操作码是 28</span></p>
+<p><span style="color: #333333">   功能是先让堆栈指针S+1，然后取加过1的S所指向的单元的内容，把它送标志寄存器P</span></p>
+<p><span style="color: #333333">　</span></p>
+<h2 id="跳转指令"><a href="#跳转指令" class="headerlink" title="跳转指令"></a>跳转指令</h2><p><span style="color: #333333">1. JMP–无条件转移指令</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 </span></p>
+<p><span style="color: #333333">JMP  $data16 4C 绝对寻址 </span></p>
+<p><span style="color: #333333">JMP ($data16) 5C 间接寻址 </span></p>
+<p><span style="color: #333333">2. 条件转移指令</span></p>
+<p><span style="color: #333333">符号码格式 指令操作码 寻址方式 指令功能 </span></p>
+<p><span style="color: #333333">BEQ $data16 F0 相对寻址 如果标志位Z&#x3D;1则转移，否则继续 </span></p>
+<p><span style="color: #333333">BNE $data16 D0 相对寻址 如果标志位Z&#x3D;0则转移，否则继续 </span></p>
+<p><span style="color: #333333">BCS $data16 B0 相对寻址 如果标志位C&#x3D;1则转移，否则继续 </span></p>
+<p><span style="color: #333333">BCC $data16 90 相对寻址 如果标志位C&#x3D;0则转移，否则继续 </span></p>
+<p><span style="color: #333333">BMI $data16 30 相对寻址 如果标志位N&#x3D;1则转移，否则继续 </span></p>
+<p><span style="color: #333333">BPL $data16 10 相对寻址 如果标志位N&#x3D;0则转移，否则继续 </span></p>
+<p><span style="color: #333333">BVS $data16 70 相对寻址 如果标志位V&#x3D;1则转移，否则继续 </span></p>
+<p><span style="color: #333333">3. 转移到子程序指令JSR和从主程序返回指令RTS</span></p>
+<p><span style="color: #333333">JSR指令仅仅是 绝对寻址，它的操作码是 20</span></p>
+<p><span style="color: #333333">RTS指令是     隐含寻址，它的操作码是 60 </span></p>
+<h2 id="中断指令"><a href="#中断指令" class="headerlink" title="中断指令"></a><span style="color: #333333">中断指令</span></h2><p><span style="color: #333333">  在文曲星（红白机的一种）内部大量使用了这种指令,该指令占三个字节.</span></p>
+<p><span style="color: #333333">  操作符为 INT,机器码为 00</span></p>
+<p><span style="color: #333333">  例如 INT $8A01</span></p>
+<p><span style="color: #333333">       INT $C001</span></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/NES%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%88%E7%BA%A2%E7%99%BD%E6%9C%BA%206502CPU%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E6%8C%87%E4%BB%A4%E9%9B%86%E5%AD%A6%E4%B9%A0/NES%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%88%E7%BA%A2%E7%99%BD%E6%9C%BA%206502CPU%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-06/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-2019%E7%BA%A2%E5%B8%BD%E6%9D%AF-Snake%EF%BC%88.NET%E9%80%86%E5%90%91%EF%BC%8Cload%20dll%E3%80%81%E7%88%86%E7%A0%B4dll%E3%80%81argv%5B%5D%EF%BC%89/" title="BUUCTF-2019红帽杯-Snake（.NET逆向，load dll、爆破dll、argv[]）"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">BUUCTF-2019红帽杯-Snake（.NET逆向，load dll、爆破dll、argv[]）</div></div><div class="info-2"><div class="info-item-1">BUUCTF-2019红帽杯-Snake（.NET逆向，load dll、爆破dll、argv[]） 本人亲测，无法通过使用CE修改分数来得到flag  下载下来之后首先对主程序查壳，发现没有壳之后，打开运行游戏：  使用xdbg64附加程序，查看使用的dll文件：   发现调用了Interface.dll，这里先按下不表 老套路，先用dnspy查看\Snake\Snake_Data\Managed目录下的Assembly-CSharp.dll  在这里可以发现调用了Interface.dll，查看Interface.dll的属性：  C++写的，使用IDA打开： 搜索字符串：  对红箭头所指向的字符串进行交叉引用，来到：  代码又长又看不懂，不好弄啊。 但是直接调用这个函数，不考虑外部变量的影响，能够人为控制的只有该函数的参数 a1，而且控制 a1 可以走不同的流程。 总结了一下代码的规律： 12340&lt;=a1&lt;=99: 运行将近1分钟，然后输出You win! flag is或者Try again，返回7100&lt;=a1&lt;=199: 尝试了a1的全部可能...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-FlareOn6-Snake(%E7%BA%A2%E7%99%BD%E6%9C%BA%20NES%20%E6%B8%B8%E6%88%8F%E4%BD%9C%E5%BC%8A%206502CPU%E6%8C%87%E4%BB%A4%E9%9B%86)/" title="BUUCTF-FlareOn6-Snake(红白机 NES 游戏作弊 6502CPU指令集)"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">BUUCTF-FlareOn6-Snake(红白机 NES 游戏作弊 6502CPU指令集)</div></div><div class="info-2"><div class="info-item-1">BUUCTF-FlareOn6-Snake(红白机 NES 游戏作弊 6502CPU指令集) NES（Nintendo Entertainment System的缩写），是Nintendo在20世纪80年代和20世纪90年代发售的一种家庭主机，俗称红白机，也是此类游戏机在日本以外的地区发行版本的缩写    需要的工具:Mesen-NES下载地址http://www.mesen.ca/参考资料(可能需要梯子,英文网站):https://blog.attify.com/flare-on-6-ctf-writeup-part8/  NES指令集（红白机 6502CPU指令集） 使用Mesen挂载NES游戏文件:  按下w可以开始游戏,上下左右来操控蛇的方向  It’s a typical snake game. The game is comprised of multiple levels. We progress to the next level when the snake has grown sufficiently long. With each level it beco...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#NES%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%88%E7%BA%A2%E7%99%BD%E6%9C%BA-6502CPU%E6%8C%87%E4%BB%A4%E9%9B%86%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">NES指令集（红白机 6502CPU指令集）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E4%BC%A0%E9%80%81%E6%8C%87%E4%BB%A4"><span class="toc-number">1.1.</span> <span class="toc-text">数据传送指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%97%E6%9C%AF%E8%BF%90%E7%AE%97%E6%8C%87%E4%BB%A4"><span class="toc-number">1.2.</span> <span class="toc-text">算术运算指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.</span> <span class="toc-text">逻辑运算指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BD%AE%E6%A0%87%E5%BF%97%E4%BD%8D%E6%8C%87%E4%BB%A4"><span class="toc-number">1.4.</span> <span class="toc-text">置标志位指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%AF%94%E8%BE%83%E6%8C%87%E4%BB%A4"><span class="toc-number">1.5.</span> <span class="toc-text">比较指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A7%BB%E4%BD%8D%E6%8C%87%E4%BB%A4"><span class="toc-number">1.6.</span> <span class="toc-text">移位指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link"><span class="toc-number">1.7.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A0%86%E6%A0%88%E6%93%8D%E4%BD%9C%E6%8C%87%E4%BB%A4"><span class="toc-number">1.8.</span> <span class="toc-text">堆栈操作指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="toc-number">1.9.</span> <span class="toc-text">跳转指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%8C%87%E4%BB%A4"><span class="toc-number">1.10.</span> <span class="toc-text">中断指令</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

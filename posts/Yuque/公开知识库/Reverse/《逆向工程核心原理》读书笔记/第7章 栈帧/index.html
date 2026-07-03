@@ -1,0 +1,460 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第7章 栈帧 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第7章 栈帧本章我们将学习栈帧（Stack Frame）相关知识，栈帧在程序中用于声明局部变量、调用函数。理解了栈帧，就能轻松掌握保存在其中的函数参数和局部变量，这对我们调试代码也是很有帮助的。 目标  理解栈帧的运行原理。 编写简单的程序，通过调试观察栈帧情况。 详细讲解几个简单的汇编指令。  7.1栈帧简言之，栈帧就是利用EBP（栈帧指针，请注意不是ESP）寄存器访问栈内局部变量、参数、函数返">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第7章 栈帧">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC7%E7%AB%A0%20%E6%A0%88%E5%B8%A7/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第7章 栈帧本章我们将学习栈帧（Stack Frame）相关知识，栈帧在程序中用于声明局部变量、调用函数。理解了栈帧，就能轻松掌握保存在其中的函数参数和局部变量，这对我们调试代码也是很有帮助的。 目标  理解栈帧的运行原理。 编写简单的程序，通过调试观察栈帧情况。 详细讲解几个简单的汇编指令。  7.1栈帧简言之，栈帧就是利用EBP（栈帧指针，请注意不是ESP）寄存器访问栈内局部变量、参数、函数返">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-07/800/450">
+<meta property="article:published_time" content="2020-02-07T07:56:05.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.531Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-07/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第7章 栈帧",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC7%E7%AB%A0%20%E6%A0%88%E5%B8%A7/",
+  "image": "https://picsum.photos/seed/blog-cover-07/800/450",
+  "datePublished": "2020-02-07T07:56:05.000Z",
+  "dateModified": "2026-07-03T14:46:17.531Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC7%E7%AB%A0%20%E6%A0%88%E5%B8%A7/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第7章 栈帧',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-07/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第7章 栈帧</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第7章 栈帧</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-07T07:56:05.000Z" title="发表于 2020-02-07 15:56:05">2020-02-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.531Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>17分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第7章-栈帧"><a href="#第7章-栈帧" class="headerlink" title="第7章 栈帧"></a>第7章 栈帧</h1><p>本章我们将学习栈帧（Stack Frame）相关知识，栈帧在程序中用于声明局部变量、调用函数。理解了栈帧，就能轻松掌握保存在其中的函数参数和局部变量，这对我们调试代码也是很有帮助的。</p>
+<p>目标</p>
+<ul>
+<li>理解栈帧的运行原理。</li>
+<li>编写简单的程序，通过调试观察栈帧情况。</li>
+<li>详细讲解几个简单的汇编指令。</li>
+</ul>
+<h2 id="7-1栈帧"><a href="#7-1栈帧" class="headerlink" title="7.1栈帧"></a>7.1栈帧</h2><p>简言之，栈帧就是利用EBP（栈帧指针，请注意不是ESP）寄存器访问栈内局部变量、参数、函数返回地址等的手段。通过前面关于IA-32寄存器的学习我们知道，ESP寄存器承担着栈顶指针的作用，而EBP寄存器则负责行使栈帧指针的职能。程序运行中，ESP寄存器的值随时变化，访问栈中函数的局部变量、参数时，若以ESP值为基准编写程序会十分困难，并且也很难使CPU引用到准确的地址。所以，调用某函数时，先要把用作基准点（函数起始地址）的ESP值保存到EBP，并维持在函数内部。这样，无论ESP的值如何变化，以EBP的值为基准（base)能够安全访问到相关函数的局部变量、参数、返回地址，这就是EBP寄存器作为栈帧指针的作用。</p>
+<p>接下来看看栈帧对应的汇编代码。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581062400975-b08cf92d-c58e-4d39-b66b-a24274efafd8.png" alt="QQ截图20200207155950.png"></p>
+<p>借助栈帧技术管理函数调用时，无论函数调用的深度有多深、多复杂，调用栈都能得到很好的管理与维护。</p>
+<p>提示——————————————————————————————————————</p>
+<ul>
+<li>最新的编译器中都带有一个“优化”（Optimization)选项，使用该选项编译简单的函数将不会生成栈帧。</li>
+<li><strong>在栈中保存函数返回地址是系统安全隐患之一，攻击者使用缓冲区溢出技术能够把保存在栈内存的返回地址更改为其他地址。</strong></li>
+</ul>
+<hr>
+<h2 id="7-2调试"><a href="#7-2调试" class="headerlink" title="7.2调试"></a>7.2调试</h2><h3 id="7-2-1-StackFrame-cpp"><a href="#7-2-1-StackFrame-cpp" class="headerlink" title="7.2.1 StackFrame.cpp"></a>7.2.1 StackFrame.cpp</h3><p>代码7-2 StackFrame.cpp</p>
+<p>示例：stackframe.exe下面调试一个非常简单的程序来进一步了解栈帧相关知识。</p>
+<p><strong><span style="color: #c586c0">#include</span><span style="color: #569cd6"> </span><span style="color: #ce9178">“stdio.h”</span></strong></p>
+<p><strong><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> </span><span style="color: #dcdcaa">add</span><span style="color: #d4d4d4">(</span><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">a</span><span style="color: #d4d4d4">, </span><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">b</span><span style="color: #d4d4d4">)</span></strong></p>
+<p><strong><span style="color: #d4d4d4">{</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> x &#x3D; a, y &#x3D; b;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> (x + y);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span></strong></p>
+<p><em><em><span style="color: #569cd6">int</span><span style="color: #d4d4d4"> </span><span style="color: #dcdcaa">main</span><span style="color: #d4d4d4">(</span><span style="color: #569cd6">int</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">argc</span><span style="color: #d4d4d4">, </span><span style="color: #569cd6">char</em></span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">argv</span><span style="color: #d4d4d4">[])</span></em>*</p>
+<p><strong><span style="color: #d4d4d4">{</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> a &#x3D; </span><span style="color: #b5cea8">1</span><span style="color: #d4d4d4">, b &#x3D; </span><span style="color: #b5cea8">2</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #dcdcaa">printf</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">“%d</span><span style="color: #d7ba7d">\n</span><span style="color: #ce9178">“</span><span style="color: #d4d4d4">, </span><span style="color: #dcdcaa">add</span><span style="color: #d4d4d4">(a, b));</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span></strong></p>
+<p>提示——————————————————————————————————————</p>
+<p>为了更好地适用栈帧，必须先关闭Visual C++的优化选项（&#x2F;Od）后再编译程序。</p>
+<hr>
+<p>使用OlyDbg调试工具打开StackFrame.exe文件，按Ctrl+G快捷键（Go to命令）转到401000地址处，如图7-1所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581062930910-5dcef43d-677d-4c62-bb7f-64789ed1a1bc.png" alt="QQ截图20200207160844.png"></p>
+<p>图 7-1 调试器画面</p>
+<p>提示——————————————————————————————————————</p>
+<p>图7-1右侧的注释是我添加的，各位的调试环境中可能有不同标注。</p>
+<hr>
+<p>对于尚不熟悉汇编语言的朋友来说，图7-1中的代码可能有些复杂，下面我们会详细讲解。通过与C语言源代码的对照讲解，分析代码执行各阶段中栈内数据的变化，帮助大家更好地理解。</p>
+<h3 id="7-2-2开始执行main-函数-生成栈帧"><a href="#7-2-2开始执行main-函数-生成栈帧" class="headerlink" title="7.2.2开始执行main()函数&amp;生成栈帧"></a>7.2.2开始执行main()函数&amp;生成栈帧</h3><p>首先从StackFrame.cpp源程序的主函数开始分析，代码如下。</p>
+<p><em><em><span style="color: #569cd6">int</span><span style="color: #d4d4d4"> </span><span style="color: #dcdcaa">main</span><span style="color: #d4d4d4">(</span><span style="color: #569cd6">int</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">argc</span><span style="color: #d4d4d4">, </span><span style="color: #569cd6">char</em></span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">argv</span><span style="color: #d4d4d4">[])</span></em>*</p>
+<p><strong><span style="color: #d4d4d4">{</span></strong></p>
+<p>函数main()是程序开始执行的地方，在main()函数的起始地址（401020）处，按F2键设置一个断点，然后按F9运行程序，程序运行到main()函数的断点处暂停。</p>
+<p>开始执行main()函数时栈的状态如图7-2所示。从现在开始要密切关注栈的变化，这是我们要重点学习的内容。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581063247266-3394788a-5eb5-461d-91d9-e9c78426b95f.png" alt="QQ截图20200207161354.png"></p>
+<p><img src="/assets/posts/7-5i682a/assets/1581063353686-2999a4d9-d1a9-497a-a04d-41e23ee48c6f.png" alt="QQ截图20200207161544.png"></p>
+<p>图 7-2 栈初值</p>
+<p>当前ESP的值为19FF2C，EBP的值为19FF70。切记地址401250保存在ESP（19FF2C)中，它是main()函数执行完毕后要返回的地址。</p>
+<p>提示——————————————————————————————————————</p>
+<p>大家的运行环境不同，这意味着看到的地址可能会与图7-2中的不一样。</p>
+<p><strong><span style="color: #F5222D">（区分清楚地址和值）</span></strong></p>
+<hr>
+<p>main()函数一开始运行就生成与其对应的函数栈帧。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581063456193-0f12b3a8-43aa-4059-adcb-63a3300c622d.png" alt="QQ截图20200207161726.png"></p>
+<p>PUSH是一条压栈指令，上面这条PUSH语句的含义是“把EBP值压入栈”。main()函数中，<strong>EBP为栈帧指针</strong>，用来把EBP之前的值备份到栈中（main()函数执行完毕，返回之前，该值会再次恢复）。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581063538369-1f4d02a1-e11a-42c2-bf52-d18ca5f69d97.png" alt="QQ截图20200207161846.png"></p>
+<p>MOV是一条数据传送命令，上面这条MOV语句的命令是“把ESP值传送到EBP”。**换言之，从这条命令开始，EBP就持有与当前ESP相同的值，并且直到main()函数执行完毕，EBP的值始终保持不变。**也就是说，我们通过EBP可以安全访问到存储在栈中的函数参数与局部变量。<strong>执行完401020与401021地址处的两条命令后，函数main()的栈帧就生成了（设置好EBP了）。</strong></p>
+<p>进入OllyDbg的栈窗口，单击鼠标右键，在弹出菜单中依次选择Address-Relative toEBP，如图7-3所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581063765740-ab1c024d-0cc3-4867-96b0-14370b11ce7f.png" alt="QQ截图20200207162222.png"></p>
+<p>图7-3选择Relative to EBP菜单</p>
+<p>接下来，在OllyDbg的栈窗口中确认EBP的位置。程序调试到现在的栈内情况如图7-4所示，把地址转换为相对于EBP的偏移后，能更直观地观察到栈内情况。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581064189383-8e6622bd-9e26-4b4e-b85c-61ef817a6850.png" alt="QQ截图20200207162942.png"><img src="/assets/posts/7-5i682a/assets/1581064147426-37dc98fc-8e2c-4b29-98d0-d36a155f122d.png" alt="QQ截图20200207162858.png"></p>
+<p>图7-4备份到栈中的EBP初始值</p>
+<p>如图7-4所示，当前EBP值为19FF28，与ESP值一致，19FF28地址处保存着19FF70，它是main()函数开始执行时EBP持有的初始值。</p>
+<h3 id="7-2-3设置局部变量"><a href="#7-2-3设置局部变量" class="headerlink" title="7.2.3设置局部变量"></a>7.2.3设置局部变量</h3><p>下面开始分析源文件StackFrame.cpp中的变量声明及赋值语句。</p>
+<p><strong><span style="color: #d4d4d4"> </span><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> a &#x3D; </span><span style="color: #b5cea8">1</span><span style="color: #d4d4d4">, b &#x3D; </span><span style="color: #b5cea8">2</span><span style="color: #d4d4d4">;</span></strong></p>
+<p>main()函数中，上述语句用于在栈中为局部变量（a,b）分配空间，并赋初始值。代码7-2main()函数中声明的变量a、b是如何在函数栈中生成的，又是如何管理的呢?下面一起来揭晓其中的秘密。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581064648447-dc8a6acd-d9a1-44fa-81a3-e03495d98bd1.png" alt="QQ截图20200207163706.png"></p>
+<p>SUB是汇编语言中的一条减法指令，上面这条语句用来将ESP的值减去8个字节。如图7-4所示，执行该条命令之前，ESP的值为19FF28，减去8个字节后，变为19FF20。那么为什么要将ESP减去8个字节呢？从ESP减去8个字节，其实质是为函数的局部变量（a与b，请参考代码7-2）开辟空间，以便将它们保存在栈中。由于局部变量a与b都是long型（长整型），它们分别占据4个字节大小，所以需要在栈中开辟8个字节的空间来保存这2个变量。</p>
+<p>使用SUB指令从ESP中减去8个字节，为2个函数变量开辟好栈空间后，在main()内部，无论ESP的值如何变化，变量a与b的栈空间都不会受到损坏。由于EBP的值在main()函数内部是固定不变的，我们就能以它为基准来访问函数的局部变量了。继续看如下代码。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581065181534-60365ef9-c37e-4150-8249-d056e2597cf1.png" alt="QQ截图20200207164613.png"></p>
+<p>对于刚刚接触汇编语言的朋友来说，上面两条命令中的“DWORDPTR SS：[EBP-4]”部分可能略显陌生。其实没什么难的，只要把它们看作类似于C语言中的指针就可以了。</p>
+<p>表7-1汇编语言与C语言的指针语句格式</p>
+<table>
+<thead>
+<tr>
+<th>汇编语言</th>
+<th>C语言</th>
+<th>类型转换</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DWORD PTR SS:[EBP-4]</td>
+<td><em>（DWORD</em>）(EBP-4)</td>
+<td>DWORD（4个字节）</td>
+</tr>
+<tr>
+<td>WORD PTR SS:[EBP-4]</td>
+<td><em>（WORD</em>）(EBP-4)</td>
+<td>WORD（2个字节）</td>
+</tr>
+<tr>
+<td>BYTE PTR SS:[EBP-4]</td>
+<td><em>（BYTE</em>）(EBP-4)</td>
+<td>BYTE</td>
+</tr>
+</tbody></table>
+<p>上面这些指针命令很难用简洁明了的语言描述出来，简单翻译一下就是，<strong>地址EBP-4处有一个4字节大小的内存空间。</strong></p>
+<p>提示——————————————————————————————————————</p>
+<p><strong>DWORDPTR SS：[EBP-4]语句中，SS是Stack Segment的缩写，表示栈段。由于Windows中使用的是段内存模型（Segment Memory Model)，使用时需要指出相关内存属于哪一个区段。其实，32位的WindowsOS中，SS、DS、ES的值皆为0，所以采用这种方式附上区段并没有什么意义。因EBP与ESP是指向栈的寄存器，所以添加上了SS寄存器。请注意，“DWORD PTR”与“SS：”等字符串可以通过设置OllyDbg的相应选项来隐藏。</strong></p>
+<hr>
+<p>再次分析上面的2条MOV命令，它们的含义是“把数据1与2分别保存到[EBP-4]与[EBP-8]中”，即[EBP-4]代表局部变量a，[EBP-8]代表局部变量b。执行完上面两条语句后，函数栈内的情况如图7-5所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581066458250-2e972fa7-07ff-4865-8447-19f1baec1d5c.png" alt="QQ截图20200207170728.png"></p>
+<p><img src="/assets/posts/7-5i682a/assets/1581066293562-be49a22a-a305-4644-b07c-c4cc002b28a6.png" alt="QQ截图20200207170434.png"></p>
+<p>图7-5 变量a与b</p>
+<h3 id="7-2-4-add-函数参数传递与调用"><a href="#7-2-4-add-函数参数传递与调用" class="headerlink" title="7.2.4 add()函数参数传递与调用"></a>7.2.4 add()函数参数传递与调用</h3><p>StackFrame.cpp源代码中使用如下语句调用add（）函数，执行加法运算并输出函数返回值。</p>
+<p><strong><span style="color: #dcdcaa">printf</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">“%d</span><span style="color: #d7ba7d">\n</span><span style="color: #ce9178">“</span><span style="color: #d4d4d4">, </span><span style="color: #dcdcaa">add</span><span style="color: #d4d4d4">(a, b));</span></strong></p>
+<p><img src="/assets/posts/7-5i682a/assets/1581067138103-b5138f95-4246-41ce-9847-94d9294eef15.png" alt="QQ截图20200207171848.png"></p>
+<p><img src="/assets/posts/7-5i682a/assets/1581067319153-10063cfe-ef89-4adf-9d03-2377820a86f3.png" alt="QQ截图20200207172150.png"></p>
+<p>请看上面5行汇编代码，它描述了调用add()函数的整个过程。地址40103C处为“Call 401000”命令，该命令用于调用401000处的函数，而401000处的函数即为add()函数。代码7-2中，函数add()接收a、b这2个长整型参数，所以调用add()之前需要先把2个参数压入栈，地址401034-40103B之间的代码即用于此。这一过程中需要注意的是，参数入栈的顺序与C语言源码中的参数顺序恰好相反（我们把这称为函数参数的逆向存储）。换言之，变量b（[EBP-8]）首先入栈，接着变量a（[EBP-4]）再入栈。执行完地址401034~40103B之间的代码后，栈内情况如图7-6所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581067438566-234e07cc-fb8e-4128-a93a-0ed41ef66999.png" alt="QQ截图20200207172336.png"><img src="/assets/posts/7-5i682a/assets/1581067440183-f3ca787f-f15c-44e8-ba4d-a33ba65e3808.png" alt="QQ截图20200207172346.png"></p>
+<p>图7-6传递add()函数的参数</p>
+<p>接下来进入add()函数（401000）内部，分析整个函数调用过程。</p>
+<p>返回地址</p>
+<p>执行CALL命令进入被调用的函数之前，CPU会先把函数的返回地址压入栈，用作函数执行完毕后的返回地址。从图7-1中可知，在地址40103C处调用了add()函数，它的下一条命令的地址为401041。函数add()执行完毕后，程序执行流应该返回到401041地址处，该地址即被称为add()函数的返回地址。执行完40103C地址处的CALL命令后进入函数，栈内情况如图7-7所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581067752523-8afbf26a-61db-4ad7-9179-dc78b331fca3.png" alt="QQ截图20200207172845.png"><img src="/assets/posts/7-5i682a/assets/1581067753295-42c547ed-0c54-4f92-8000-78b3fc091517.png" alt="QQ截图20200207172900.png"></p>
+<p>图7-7函数add()的返回地址</p>
+<h3 id="7-2-5开始执行add-函数-生成栈帧"><a href="#7-2-5开始执行add-函数-生成栈帧" class="headerlink" title="7.2.5开始执行add()函数&amp;生成栈帧"></a>7.2.5开始执行add()函数&amp;生成栈帧</h3><p>StackFrame.cpp源代码中，函数add（）的前2行代码如下：</p>
+<p><strong><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> </span><span style="color: #dcdcaa">add</span><span style="color: #d4d4d4">(</span><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">a</span><span style="color: #d4d4d4">, </span><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">b</span><span style="color: #d4d4d4">)</span></strong></p>
+<p>**<span style="color: #d4d4d4">{</span>**<strong>函数开始执行时，栈中会</strong><span style="color: #F5222D">单独</span><strong>生成与</strong><span style="color: #F5222D">其对应的</span><strong>栈帧。</strong></p>
+<p><img src="/assets/posts/7-5i682a/assets/1581067896827-1bf199d0-d276-4ba8-abfc-af49fad21250.png" alt="QQ截图20200207173127.png"></p>
+<p>上面2行代码与开始执行main()函数时的代码完全相同，先把EBP值(main)函数的基址指针保存到栈中，再把当前ESP存储到EBP中，这样函数add()的栈帧就生成了。如此一来，add()函数内部的EBP值始终不变。执行完以上2行代码后，栈内情况如图7-8所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581068159778-ce092191-9ebc-45ed-8064-58f51e30cc8b.png" alt="QQ截图20200207173325.png"><img src="/assets/posts/7-5i682a/assets/1581068161466-20dfa62a-a78c-421e-b73a-7c754dabd89f.png" alt="QQ截图20200207173337.png"></p>
+<p>图7-8 函数add()的栈帧</p>
+<h3 id="7-2-6设置add（）函数的局部变量（x-y）"><a href="#7-2-6设置add（）函数的局部变量（x-y）" class="headerlink" title="7.2.6设置add（）函数的局部变量（x,y）"></a>7.2.6设置add（）函数的局部变量（x,y）</h3><p>StackFrame.cpp源代码中有如下代码。</p>
+<p><strong><span style="color: #d4d4d4"> </span><span style="color: #569cd6">long</span><span style="color: #d4d4d4"> x &#x3D; a, y &#x3D; b;</span></strong></p>
+<p>上面一行语句声明了2个长整型的局部变量（x，y），并使用2个形式参数（a,b）分别为它们赋初始值。希望大家密切关注形式参数与局部变量在函数内部以何种方式表示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581068401469-6d8a2c99-3bfc-43ad-97fd-a1d69707f7c4.png" alt="QQ截图20200207173951.png"></p>
+<p>上面这条语句的含义为，在栈内存中为局部变量x、y开辟8个字节的空间。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581068450922-184a8841-fd1a-4ca3-9c14-d1aac8dbe0ef.png" alt="QQ截图20200207174041.png"></p>
+<p>add函数的栈帧生成之后，EBP的值发生了变化，[EBP+8]与[EBP+C]分别指向参数a与b，如图7-8所示，而[EBP-8]与[EBP-4]则分别指向addO函数的2个局部变量x、y。执行完上述语句后，栈内情况如图7-9所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581068570371-9136f094-c0e2-4fc7-8572-72b24aeb7302.png" alt="QQ截图20200207174224.png"><img src="/assets/posts/7-5i682a/assets/1581068570698-2bf88e90-2943-465a-8d1e-de48603563ca.png" alt="QQ截图20200207174238.png"></p>
+<p>图7-9函数add()的局部变量x、y</p>
+<h3 id="7-2-7ADD运算"><a href="#7-2-7ADD运算" class="headerlink" title="7.2.7ADD运算"></a>7.2.7ADD运算</h3><p>StackFrame.cpp源代码中，下面这条语句用于返回2个局部变量之和。</p>
+<p><strong><span style="color: #d4d4d4"> </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> (x + y);</span></strong></p>
+<p><strong><span style="color: #d4d4d4"></span><span style="color: #d4d4d4"></span>上述MOV语句中，变量x的值被传送到EAX。</strong></p>
+<p><img src="/assets/posts/7-5i682a/assets/1581071027389-898a1154-938a-444b-a11d-08c143db8b4a.png" alt="QQ截图20200207182303.png"></p>
+<p>ADD指令为加法指令，上面这条语句中，变量y（[EBP-4]&#x3D;2）与EAX原值（x)相加，且运算结果被存储在EAX中，运算完成后EAX中的值为3。</p>
+<p><strong>第14章中我们将详细学习EAX寄存器，它是一种通用寄存器，在算术运算中存储输入输出数据，为函数提供返回值。如上所示，函数即将返回时，若向EAX输入某个值，该值就会原封不动地返回。执行运算的过程中栈内情况保持不变，如图7-9所示。</strong></p>
+<h3 id="7-2-8删除函数add（）的栈帧-函数执行完毕（返回）"><a href="#7-2-8删除函数add（）的栈帧-函数执行完毕（返回）" class="headerlink" title="7.2.8删除函数add（）的栈帧&amp;函数执行完毕（返回）"></a>7.2.8删除函数add（）的栈帧&amp;函数执行完毕（返回）</h3><p>“删除函数栈帧与函数执行完毕返回”对应于StackFrame.cpp文件中的如下代码。</p>
+<p><strong><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> (x + y);</span></strong></p>
+<p><strong><span style="color: #d4d4d4"></span></strong></p>
+<p>上面这条命令把当前EBP的值赋给ESP，与地址401001处的<strong>MOV EBP,ESP</strong>命令相对应。在地址401001处，MOV EBP,ESP命令把函数add(）开始执行时的ESP值（12FF28）放入EBP，函数执行完毕时，使用401018处的MOV ESP,EBP命令再把存储到EBP中的值恢复到ESP中。</p>
+<p>提示——————————————————————————————————————</p>
+<p>执行完上面的命令后，地址401003处的SUB ESP 8命令就会失效，即<strong>函数add()的2个局部变量x、y不再有效</strong>。</p>
+<hr>
+<p><img src="/assets/posts/7-5i682a/assets/1581071395985-af337e5d-059f-425f-9ac7-6d1d23f7da58.png" alt="QQ截图20200207182946.png"></p>
+<p>上面这条命令用于恢复函数add(）开始执行时备份到栈中的EBP值，它与401000地址处的PUSH EBP命令对应。EBP值恢复为12FF40，它是main()函数的EBP值。到此，add()函数的栈帧就被删除了。</p>
+<p>执行完上述命令后，栈内情形如图7-10所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581071500411-76da45dc-ccee-4e3a-836f-3d3a02b5ce3d.png" alt="QQ截图20200207183108.png"><img src="/assets/posts/7-5i682a/assets/1581071501927-6ee43836-da49-4dc4-830a-d6661cac1740.png" alt="QQ截图20200207183116.png"></p>
+<p>图7-10 删除函数add的栈帧</p>
+<p>可以看到，ESP的值为19FF14，该地址的值为401041，它是执行CALL 401000命令时CPU存储到栈中的返回地址。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581071646611-d6072dd7-d80a-4cd2-b394-caeb8147c004.png" alt="QQ截图20200207183358.png"></p>
+<p>执行上述RETN命令，存储在栈中的返回地址即被返回，此时栈内情形如图7-11所示。</p>
+<p>从图7-11中可以看到，调用栈已经完全返回到调用add(）函数之前的状态，大家可以比较一下图7-11与图7-6。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581071732004-f24400fb-806f-4bcd-9bc8-4225a1122d53.png" alt="QQ截图20200207183510.png"><img src="/assets/posts/7-5i682a/assets/1581071732915-99b00572-5fba-43b2-9d10-2261e3548de1.png" alt="QQ截图20200207183523.png"></p>
+<p>图7-11 函数add返回</p>
+<p>应用程序采用上述方式（栈帧）管理栈，不论有多少函数嵌套调用，栈都能得到比较好的维护，不会崩溃。但是由于函数的局部变量、参数、返回地址等是一次性保存到栈中的，<span style="color: #F5222D">利用字符串函数的漏洞等很容易引起栈缓冲区溢出，最终导致程序或系统崩溃。</span></p>
+<h3 id="7-2-9从栈中删除函数add-）的参数（整理栈）"><a href="#7-2-9从栈中删除函数add-）的参数（整理栈）" class="headerlink" title="7.2.9从栈中删除函数add(）的参数（整理栈）"></a>7.2.9从栈中删除函数add(）的参数（整理栈）</h3><p>现在，程序执行流已经重新返回main()函数中。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581071898637-e60d76ff-a79b-463d-bf6c-1f6e6b352758.png" alt="QQ截图20200207183809.png"></p>
+<p>上面语句使用ADD命令将ESP加上8，为什么突然要把ESP加上8呢？请看图7-11中的栈窗口，地址19FF18与19FF1C处存储的是传递给函数add()的参数a与b。函数add()执行完毕后，就不再需要参数a与b了，所以要把ESP加上8，<strong>将它们从栈中清理掉</strong>（参数a与b都是长整型，各占4个字节，合起来共8个字节）。</p>
+<p>提示——————————————————————————————————————</p>
+<p><span style="color: #F5222D">请记住，调用add()函数之前先使用PUSH命令把参数a、b压入栈。</span></p>
+<hr>
+<p>执行完上述命令后，栈内情况如图7-12所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581072167429-e77ce38d-a4d5-4aff-9f7c-61c5743495d2.png" alt="QQ截图20200207184228.png"><img src="/assets/posts/7-5i682a/assets/1581072169089-867d59db-9a76-4e7c-8fe7-769346a25e32.png" alt="QQ截图20200207184236.png"></p>
+<p>图7-12 删除add()的2个参数</p>
+<p>提示——————————————————————————————————————</p>
+<p>被调函数执行完毕后，<span style="color: #F5222D">函数的调用者（Caller)负责清理存储在栈中的参数，这种方式称为cdecl</span>（C Decl<span style="color: #333333">aration</span>）方式；反之，<strong><span style="color: #F5222D">被调用者（Callee)负责清理保存在栈中的参数，这种方式称为stdcall</span>****<span style="color: #F5222D">方式</span></strong>。这些函数调用规则统称为<span style="color: #F5222D">调用约定（Calling Convention)</span>，这在程序开发与分析中是一个非常重要的概念，第10章将进一步讲解相关内容。</p>
+<hr>
+<h3 id="7-2-10调用printf-）"><a href="#7-2-10调用printf-）" class="headerlink" title="7.2.10调用printf(）"></a>7.2.10调用printf(）</h3><p>函数StackFrame.cpp源文件中用于打印输出运算结果的语句如下所示。</p>
+<p><strong><span style="color: #dcdcaa">printf</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">“%d</span><span style="color: #d7ba7d">\n</span><span style="color: #ce9178">“</span><span style="color: #d4d4d4">, </span><span style="color: #dcdcaa">add</span><span style="color: #d4d4d4">(a, b));</span></strong></p>
+<p>调用printf()函数的汇编代码如下所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581072593262-0c612c6d-11d3-4687-89be-673379eb8af1.png" alt="QQ截图20200207184935.png"></p>
+<p>地址401044处的EAX寄存器中存储着函数add()的返回值，它是执行加法运算后的结果值3。</p>
+<p>地址40104A处的CALL401067命令中调用的是401067地址处的函数，它是一个C标准库函数printf)，所有C标准库函数都由VisualC++编写而成（其中包含着数量庞大的函数，在此不详细介绍）。由于上面的printf(）函数有2个参数，大小为8个字节（32位寄存器+32位常量&#x3D;64位&#x3D;8字节），所以在40104F地址处使用ADD命令，将ESP加上8个字节，把函数的参数从栈中删除。函数printf()执行完毕并通过ADD命令删除参数后，栈内情形如图7-12所示。</p>
+<h3 id="7-2-11设置返回值"><a href="#7-2-11设置返回值" class="headerlink" title="7.2.11设置返回值"></a>7.2.11设置返回值</h3><p>StackFrame.cpp中设置返回值的语句如下。</p>
+<p><strong><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></strong></p>
+<p>main函数使用该语句设置返回值0。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581072864561-baccff67-fd6c-43f8-8498-f7524412f21c.png" alt="QQ截图20200207185416.png"></p>
+<p>XOR命令用来进行Exclusive OR bit(异或）运算，其特点为“<span style="color: #F5222D">2个相同的值进行XOR运算，结果为0</span>”。<strong><span style="color: #F5222D">XOR命令比MOV EAX,0命令执行速度快，常用于寄存器的初始化操作</span></strong>。</p>
+<p>提示——————————————————————————————————————</p>
+<p>利用相同的值连续执行2次XOR运算即变为原值，这个特征被大量应用于编码与解码。后面的代码分析中我们会经常看到XOR命令。</p>
+<hr>
+<h3 id="7-2-12删除栈帧-main（-函数终止"><a href="#7-2-12删除栈帧-main（-函数终止" class="headerlink" title="7.2.12删除栈帧&amp;main（)函数终止"></a>7.2.12删除栈帧&amp;main（)函数终止</h3><p>本节内容对应StackFrame.cpp中的如下代码。</p>
+<p><strong><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span><span style="color: #d4d4d4">    </span></strong></p>
+<p>最终主函数终止执行，同add()函数一样，其返回前要先从栈中删除与其对应的栈帧。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581073819604-dfe8773b-1bb3-41f0-8ce0-c09f3e798746.png" alt="QQ截图20200207191012.png"></p>
+<p>执行完上面2条命令后，main()函数的栈帧即被删除，且其局部变量a、b也不再有效。执行至此，栈内情形如图7-13所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581073914747-20e07110-40ce-4fb2-9547-1c80a761bfcb.png" alt="QQ截图20200207191138.png"><img src="/assets/posts/7-5i682a/assets/1581073915294-aaf255a8-c8fa-4e67-a41c-e2dbc91f2970.png" alt="QQ截图20200207191146.png"></p>
+<p>图7-13删除main()函数的栈帧</p>
+<p>图7-13与main()函数开始执行时栈内情形（请参考图7-2)是完全一样的。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581073987986-1b1744ec-a92d-4fad-9142-30ab30f7bea5.png" alt="QQ截图20200207191256.png"></p>
+<p>执行完上面命令后，主函数执行完毕并返回，程序执行流跳转到返回地址处（401250），该地址指向Visual C+的启动函数区域。随后执行进程终止代码。请各位自行查看该过程。</p>
+<p>请大家阅读上面内容的同时动手调试，认真观察栈的行为动作，相信各位的调试水平会得到很大提高。</p>
+<h2 id="7-3设置OllyDbg选项"><a href="#7-3设置OllyDbg选项" class="headerlink" title="7.3设置OllyDbg选项"></a>7.3设置OllyDbg选项</h2><p>OllyDbg提供了丰富多样的选项，是个名副其实的动态调试工具。下面看一下其中显示代码窗口反汇编代码的选项。</p>
+<h3 id="7-3-1Disasm选项"><a href="#7-3-1Disasm选项" class="headerlink" title="7.3.1Disasm选项"></a>7.3.1Disasm选项</h3><p>打开OllyDbg的Debugging options对话框（快捷键Alt+O)（选项-&gt;调试设置），如图7-14所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581074223469-31dda502-f020-4736-8632-cabfa32609f4.png" alt="QQ截图20200207191656.png"></p>
+<p>图7-14OllyDbg的Debugging options对话框-Disasm选项卡</p>
+<p>在Debugging options对话框中选择Disasm选项卡后，分别点击“Show default segments”（显示默认段）与“Always show size of memory operands”（始终显示内存操作数的大小）左侧的复选框，取消选择。观察代码窗口可以发现，原来代码中显示的默认段与内存大小都不再显示了，如图7-15所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581074297627-d1456ecc-c221-4e9e-b591-c1bb973c6f9c.png" alt="QQ截图20200207191809.png"></p>
+<p>提示——————————————————————————————————————</p>
+<p>如图7-15所示，401026与40102D地址处的命令中仍然保留着“DWORDPTR”。若将其删除，解析后面常量1、2的尺寸时就会产生歧义，无法确认它们是BYTE，还是WORD、DWORD。而地址401034处的命令中，原来显示的“DWORDPTR”字符串被省略了，这是因为参与运算的寄存器EAX大小明确，为4个字节。</p>
+<hr>
+<h3 id="7-3-2-Analysis1选项"><a href="#7-3-2-Analysis1选项" class="headerlink" title="7.3.2 Analysis1选项"></a>7.3.2 Analysis1选项</h3><p>再介绍另一个比较有用的选项。</p>
+<p>（选项-&gt;调试设置）选择Analysis 1选项卡，点击“SHOW ARGs and LOCALs in procedures”（显示函数中的参数和局部变量）左侧的复选框，启用该选项，如图7-16所示。</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581074621168-2afa16a2-9670-48a3-aedb-969d3a945e0a.png" alt="QQ截图20200207192330.png"></p>
+<p>图7-16OllyDbg的Debugging options对话框Analysis1选项卡</p>
+<p><img src="/assets/posts/7-5i682a/assets/1581074656680-6f555745-0cfc-43f0-951c-53f0eeb4de35.png" alt="QQ截图20200207192408.png"></p>
+<p>如图7-17所示，原来以EBP表示的函数局部变量、参数分别表示成了LOCAL.1、ARG1的形式。该选项为代码提供了非常好的可读性，有助于调试代码。</p>
+<p>启用该选项后，OllyDbg会直接分析函数的栈帧，然后把局部变量的个数、参数的个数等显示在代码窗口。启用该选项后，虽然偶尔会出现显示错误，但它的显示非常直观，故常常能为代码调试提供帮助。现在我们连它的运行原理也学习了，真可谓锦上添花。</p>
+<h2 id="7-4小结"><a href="#7-4小结" class="headerlink" title="7.4小结"></a>7.4小结</h2><p>我们在本章学习了有关栈帧的内容，一边阅读讲解内容，一边又要动手调试，各位真是辛苦了。</p>
+<p>简言之，栈帧技术使用EBP寄存器（而非ESP寄存器）管理局部变量、参数、返回地址等。我也是在学习栈帧的过程中开始对代码调试有了自信。因为，理解函数参数、局部变量、返回值等处理原理的过程中，调试水平也得到了明显提高。也许大家也会有同样感受。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC7%E7%AB%A0%20%E6%A0%88%E5%B8%A7/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC7%E7%AB%A0%20%E6%A0%88%E5%B8%A7/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-07/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC8%E7%AB%A0%20abex'crackme#2/" title="第8章 abex'crackme#2"><img class="cover" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第8章 abex'crackme#2</div></div><div class="info-2"><div class="info-item-1">第8章 abex’crackme#2本章分析一个非常简单的crackme文件，帮助大家继续熟悉调试器与反汇编代码。先简单介绍Visual Basic的文件结构及分析方法。 本章分析第二个crackme文件abex’crackme#2，它使用Visual Basic语言编写，你会感受到与使用Visual C++或Assembly编写的文件相比具有不同的形态。 提示—————————————————————————————————————— 讲解中出现的内存（栈）地址随用户PC环境的不同而变化。希望各位调试时注意这一点。你现在感到调试很难是正常的，投入大量时间和精力后，就会逐渐熟悉起来。  8.1运行abex’crackme#2运行之后才能了解它是什么样的程序，如图8-1所示。  图8-1 运行画面 这个程序具有典型的crackme形态，要求我们找出程序的序列号。从单独输入Name来看，生成Serial时才会用到Name字符串（依据经验推测）。输入合适的Name与Serial，按Check按钮，如图8-2所示。  图8-2“Wrong serial!”消息框 弹出“Wrong ser...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC6%E7%AB%A0%20%E5%88%86%E6%9E%90abex'crackme#1/" title="第6章 分析abex'crackme#1"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第6章 分析abex'crackme#1</div></div><div class="info-2"><div class="info-item-1">第6章 分析abex’crackme#1本章我们将分析一个非常简单的crackme小程序，以进一步熟悉调试器与汇编代码。当然，我们的目标并不是为了破解（Crack)它，而是通过它来加深对汇编代码与调试技术的认识。 顾名思义，crackme就是“破解我”的意思，它们都是一些公开用作破解练习的小程序。作为代码逆向分析技术的初学者，尝试分析一些简单的crackme小程序可以验证自己掌握的技术，加深对调试器及汇编代码的认识。 Abex’crackme就是这样一个简单的著名小程序，国内外有许多网站都对它进行了详细讲解与说明。将自己的破解方法与其他人的相比较，这样能进一步提高自己的水平。 6.1 abex’crackme#1调试前先运行abex’crackme#1这个程序，大致了解一下它。 如图6-1所示，双击运行程序后弹出一个消息窗口，显示“Make me think your HD is a CD-Rom”消息。我刚开始并不理解这句英文。  图6-1 运行程序 消息的最后部分出现了“CD-Rom”这个词，我们只能根据它大致推测出前面的HD为HDD（Hard Disk Drive)的意思。...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC7%E7%AB%A0-%E6%A0%88%E5%B8%A7"><span class="toc-number">1.</span> <span class="toc-text">第7章 栈帧</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#7-1%E6%A0%88%E5%B8%A7"><span class="toc-number">1.1.</span> <span class="toc-text">7.1栈帧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-2%E8%B0%83%E8%AF%95"><span class="toc-number">1.2.</span> <span class="toc-text">7.2调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-1-StackFrame-cpp"><span class="toc-number">1.2.1.</span> <span class="toc-text">7.2.1 StackFrame.cpp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-2%E5%BC%80%E5%A7%8B%E6%89%A7%E8%A1%8Cmain-%E5%87%BD%E6%95%B0-%E7%94%9F%E6%88%90%E6%A0%88%E5%B8%A7"><span class="toc-number">1.2.2.</span> <span class="toc-text">7.2.2开始执行main()函数&amp;生成栈帧</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-3%E8%AE%BE%E7%BD%AE%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F"><span class="toc-number">1.2.3.</span> <span class="toc-text">7.2.3设置局部变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-4-add-%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0%E4%BC%A0%E9%80%92%E4%B8%8E%E8%B0%83%E7%94%A8"><span class="toc-number">1.2.4.</span> <span class="toc-text">7.2.4 add()函数参数传递与调用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-5%E5%BC%80%E5%A7%8B%E6%89%A7%E8%A1%8Cadd-%E5%87%BD%E6%95%B0-%E7%94%9F%E6%88%90%E6%A0%88%E5%B8%A7"><span class="toc-number">1.2.5.</span> <span class="toc-text">7.2.5开始执行add()函数&amp;生成栈帧</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-6%E8%AE%BE%E7%BD%AEadd%EF%BC%88%EF%BC%89%E5%87%BD%E6%95%B0%E7%9A%84%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%EF%BC%88x-y%EF%BC%89"><span class="toc-number">1.2.6.</span> <span class="toc-text">7.2.6设置add（）函数的局部变量（x,y）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-7ADD%E8%BF%90%E7%AE%97"><span class="toc-number">1.2.7.</span> <span class="toc-text">7.2.7ADD运算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-8%E5%88%A0%E9%99%A4%E5%87%BD%E6%95%B0add%EF%BC%88%EF%BC%89%E7%9A%84%E6%A0%88%E5%B8%A7-%E5%87%BD%E6%95%B0%E6%89%A7%E8%A1%8C%E5%AE%8C%E6%AF%95%EF%BC%88%E8%BF%94%E5%9B%9E%EF%BC%89"><span class="toc-number">1.2.8.</span> <span class="toc-text">7.2.8删除函数add（）的栈帧&amp;函数执行完毕（返回）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-9%E4%BB%8E%E6%A0%88%E4%B8%AD%E5%88%A0%E9%99%A4%E5%87%BD%E6%95%B0add-%EF%BC%89%E7%9A%84%E5%8F%82%E6%95%B0%EF%BC%88%E6%95%B4%E7%90%86%E6%A0%88%EF%BC%89"><span class="toc-number">1.2.9.</span> <span class="toc-text">7.2.9从栈中删除函数add(）的参数（整理栈）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-10%E8%B0%83%E7%94%A8printf-%EF%BC%89"><span class="toc-number">1.2.10.</span> <span class="toc-text">7.2.10调用printf(）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-11%E8%AE%BE%E7%BD%AE%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="toc-number">1.2.11.</span> <span class="toc-text">7.2.11设置返回值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-12%E5%88%A0%E9%99%A4%E6%A0%88%E5%B8%A7-main%EF%BC%88-%E5%87%BD%E6%95%B0%E7%BB%88%E6%AD%A2"><span class="toc-number">1.2.12.</span> <span class="toc-text">7.2.12删除栈帧&amp;main（)函数终止</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-3%E8%AE%BE%E7%BD%AEOllyDbg%E9%80%89%E9%A1%B9"><span class="toc-number">1.3.</span> <span class="toc-text">7.3设置OllyDbg选项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-1Disasm%E9%80%89%E9%A1%B9"><span class="toc-number">1.3.1.</span> <span class="toc-text">7.3.1Disasm选项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-2-Analysis1%E9%80%89%E9%A1%B9"><span class="toc-number">1.3.2.</span> <span class="toc-text">7.3.2 Analysis1选项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-4%E5%B0%8F%E7%BB%93"><span class="toc-number">1.4.</span> <span class="toc-text">7.4小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

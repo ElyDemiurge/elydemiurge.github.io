@@ -1,0 +1,1300 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Linux 32位系统调用号 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Linux 32位系统调用号 来自:https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;107249667     系统调用 调用号 系统调用 调用号    exit 1 fork 2   read 3 write 4   open 5 close 6   waitpid 7 creat 8   link 9 unlin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 32位系统调用号">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/Linux%2032%E4%BD%8D%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="Linux 32位系统调用号 来自:https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;107249667     系统调用 调用号 系统调用 调用号    exit 1 fork 2   read 3 write 4   open 5 close 6   waitpid 7 creat 8   link 9 unlin">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-01/800/450">
+<meta property="article:published_time" content="2020-08-24T06:01:39.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.521Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-01/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Linux 32位系统调用号",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/Linux%2032%E4%BD%8D%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7/",
+  "image": "https://picsum.photos/seed/blog-cover-01/800/450",
+  "datePublished": "2020-08-24T06:01:39.000Z",
+  "dateModified": "2026-07-03T14:46:15.521Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/Linux%2032%E4%BD%8D%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Linux 32位系统调用号',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-01/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Linux 32位系统调用号</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Linux 32位系统调用号</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-24T06:01:39.000Z" title="发表于 2020-08-24 14:01:39">2020-08-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.521Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/">Linux</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">734</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Linux-32位系统调用号"><a href="#Linux-32位系统调用号" class="headerlink" title="Linux 32位系统调用号"></a>Linux 32位系统调用号</h1><blockquote>
+<p>来自:<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41202237/article/details/107249667">https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107249667</a></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>系统调用</th>
+<th>调用号</th>
+<th>系统调用</th>
+<th>调用号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>exit</td>
+<td>1</td>
+<td>fork</td>
+<td>2</td>
+</tr>
+<tr>
+<td>read</td>
+<td>3</td>
+<td>write</td>
+<td>4</td>
+</tr>
+<tr>
+<td>open</td>
+<td>5</td>
+<td>close</td>
+<td>6</td>
+</tr>
+<tr>
+<td>waitpid</td>
+<td>7</td>
+<td>creat</td>
+<td>8</td>
+</tr>
+<tr>
+<td>link</td>
+<td>9</td>
+<td>unlink</td>
+<td>10</td>
+</tr>
+<tr>
+<td>execve</td>
+<td>11</td>
+<td>chdir</td>
+<td>12</td>
+</tr>
+<tr>
+<td>time</td>
+<td>13</td>
+<td>mknod</td>
+<td>14</td>
+</tr>
+<tr>
+<td>chmod</td>
+<td>15</td>
+<td>lchown</td>
+<td>16</td>
+</tr>
+<tr>
+<td>break</td>
+<td>17</td>
+<td>oldstat</td>
+<td>18</td>
+</tr>
+<tr>
+<td>lseek</td>
+<td>19</td>
+<td>getpid</td>
+<td>20</td>
+</tr>
+<tr>
+<td>mount</td>
+<td>21</td>
+<td>umount</td>
+<td>22</td>
+</tr>
+<tr>
+<td>setuid</td>
+<td>23</td>
+<td>getuid</td>
+<td>24</td>
+</tr>
+<tr>
+<td>stime</td>
+<td>25</td>
+<td>ptrace</td>
+<td>26</td>
+</tr>
+<tr>
+<td>alarm</td>
+<td>27</td>
+<td>oldfstat</td>
+<td>28</td>
+</tr>
+<tr>
+<td>pause</td>
+<td>29</td>
+<td>utime</td>
+<td>30</td>
+</tr>
+<tr>
+<td>stty</td>
+<td>31</td>
+<td>gtty</td>
+<td>32</td>
+</tr>
+<tr>
+<td>access</td>
+<td>33</td>
+<td>nice</td>
+<td>34</td>
+</tr>
+<tr>
+<td>ftime</td>
+<td>35</td>
+<td>sync</td>
+<td>36</td>
+</tr>
+<tr>
+<td>kill</td>
+<td>37</td>
+<td>rename</td>
+<td>38</td>
+</tr>
+<tr>
+<td>mkdir</td>
+<td>39</td>
+<td>rmdir</td>
+<td>40</td>
+</tr>
+<tr>
+<td>dup</td>
+<td>41</td>
+<td>pipe</td>
+<td>42</td>
+</tr>
+<tr>
+<td>times</td>
+<td>43</td>
+<td>prof</td>
+<td>44</td>
+</tr>
+<tr>
+<td>brk</td>
+<td>45</td>
+<td>setgid</td>
+<td>46</td>
+</tr>
+<tr>
+<td>getgid</td>
+<td>47</td>
+<td>signal</td>
+<td>48</td>
+</tr>
+<tr>
+<td>geteuid</td>
+<td>49</td>
+<td>getegid</td>
+<td>50</td>
+</tr>
+<tr>
+<td>acct</td>
+<td>51</td>
+<td>umount2</td>
+<td>52</td>
+</tr>
+<tr>
+<td>lock</td>
+<td>53</td>
+<td>ioctl</td>
+<td>54</td>
+</tr>
+<tr>
+<td>fcntl</td>
+<td>55</td>
+<td>mpx</td>
+<td>56</td>
+</tr>
+<tr>
+<td>setpgid</td>
+<td>57</td>
+<td>ulimit</td>
+<td>58</td>
+</tr>
+<tr>
+<td>oldolduname</td>
+<td>59</td>
+<td>umask</td>
+<td>60</td>
+</tr>
+<tr>
+<td>chroot</td>
+<td>61</td>
+<td>ustat</td>
+<td>62</td>
+</tr>
+<tr>
+<td>dup2</td>
+<td>63</td>
+<td>getppid</td>
+<td>64</td>
+</tr>
+<tr>
+<td>getpgrp</td>
+<td>65</td>
+<td>setsid</td>
+<td>66</td>
+</tr>
+<tr>
+<td>sigaction</td>
+<td>67</td>
+<td>sgetmask</td>
+<td>68</td>
+</tr>
+<tr>
+<td>ssetmask</td>
+<td>69</td>
+<td>setreuid</td>
+<td>70</td>
+</tr>
+<tr>
+<td>setregid</td>
+<td>71</td>
+<td>sigsuspend</td>
+<td>72</td>
+</tr>
+<tr>
+<td>sigpending</td>
+<td>73</td>
+<td>sethostname</td>
+<td>74</td>
+</tr>
+<tr>
+<td>setrlimit</td>
+<td>75</td>
+<td>getrlimit</td>
+<td>76</td>
+</tr>
+<tr>
+<td>getrusage</td>
+<td>77</td>
+<td>gettimeofday</td>
+<td>78</td>
+</tr>
+<tr>
+<td>settimeofday</td>
+<td>79</td>
+<td>getgroups</td>
+<td>80</td>
+</tr>
+<tr>
+<td>setgroups</td>
+<td>81</td>
+<td>select</td>
+<td>82</td>
+</tr>
+<tr>
+<td>symlink</td>
+<td>83</td>
+<td>oldlstat</td>
+<td>84</td>
+</tr>
+<tr>
+<td>readlink</td>
+<td>85</td>
+<td>uselib</td>
+<td>86</td>
+</tr>
+<tr>
+<td>swapon</td>
+<td>87</td>
+<td>reboot</td>
+<td>88</td>
+</tr>
+<tr>
+<td>readdir</td>
+<td>89</td>
+<td>mmap</td>
+<td>90</td>
+</tr>
+<tr>
+<td>munmap</td>
+<td>91</td>
+<td>truncate</td>
+<td>92</td>
+</tr>
+<tr>
+<td>ftruncate</td>
+<td>93</td>
+<td>fchmod</td>
+<td>94</td>
+</tr>
+<tr>
+<td>fchown</td>
+<td>95</td>
+<td>getpriority</td>
+<td>96</td>
+</tr>
+<tr>
+<td>setpriority</td>
+<td>97</td>
+<td>profil</td>
+<td>98</td>
+</tr>
+<tr>
+<td>statfs</td>
+<td>99</td>
+<td>fstatfs</td>
+<td>100</td>
+</tr>
+<tr>
+<td>ioperm</td>
+<td>101</td>
+<td>socketcall</td>
+<td>102</td>
+</tr>
+<tr>
+<td>syslog</td>
+<td>103</td>
+<td>setitimer</td>
+<td>104</td>
+</tr>
+<tr>
+<td>getitimer</td>
+<td>105</td>
+<td>stat</td>
+<td>106</td>
+</tr>
+<tr>
+<td>lstat</td>
+<td>107</td>
+<td>fstat</td>
+<td>108</td>
+</tr>
+<tr>
+<td>olduname</td>
+<td>109</td>
+<td>iopl</td>
+<td>110</td>
+</tr>
+<tr>
+<td>vhangup</td>
+<td>111</td>
+<td>idle</td>
+<td>112</td>
+</tr>
+<tr>
+<td>vm86old</td>
+<td>113</td>
+<td>wait4</td>
+<td>114</td>
+</tr>
+<tr>
+<td>swapoff</td>
+<td>115</td>
+<td>sysinfo</td>
+<td>116</td>
+</tr>
+<tr>
+<td>ipc</td>
+<td>117</td>
+<td>fsync</td>
+<td>118</td>
+</tr>
+<tr>
+<td>sigreturn</td>
+<td>119</td>
+<td>clone</td>
+<td>120</td>
+</tr>
+<tr>
+<td>setdomainname</td>
+<td>121</td>
+<td>uname</td>
+<td>122</td>
+</tr>
+<tr>
+<td>modify_ldt</td>
+<td>123</td>
+<td>adjtimex</td>
+<td>124</td>
+</tr>
+<tr>
+<td>mprotect</td>
+<td>125</td>
+<td>sigprocmask</td>
+<td>126</td>
+</tr>
+<tr>
+<td>create_module</td>
+<td>127</td>
+<td>init_module</td>
+<td>128</td>
+</tr>
+<tr>
+<td>delete_module</td>
+<td>129</td>
+<td>get_kernel_syms</td>
+<td>130</td>
+</tr>
+<tr>
+<td>quotactl</td>
+<td>131</td>
+<td>getpgid</td>
+<td>132</td>
+</tr>
+<tr>
+<td>fchdir</td>
+<td>133</td>
+<td>bdflush</td>
+<td>134</td>
+</tr>
+<tr>
+<td>sysfs</td>
+<td>135</td>
+<td>personality</td>
+<td>136</td>
+</tr>
+<tr>
+<td>afs_syscall</td>
+<td>137</td>
+<td>setfsuid</td>
+<td>138</td>
+</tr>
+<tr>
+<td>setfsgid</td>
+<td>139</td>
+<td>_llseek</td>
+<td>140</td>
+</tr>
+<tr>
+<td>getdents</td>
+<td>141</td>
+<td>_newselect</td>
+<td>142</td>
+</tr>
+<tr>
+<td>flock</td>
+<td>143</td>
+<td>msync</td>
+<td>144</td>
+</tr>
+<tr>
+<td>readv</td>
+<td>145</td>
+<td>writev</td>
+<td>146</td>
+</tr>
+<tr>
+<td>getsid</td>
+<td>147</td>
+<td>fdatasync</td>
+<td>148</td>
+</tr>
+<tr>
+<td>_sysctl</td>
+<td>149</td>
+<td>mlock</td>
+<td>150</td>
+</tr>
+<tr>
+<td>munlock</td>
+<td>151</td>
+<td>mlockall</td>
+<td>152</td>
+</tr>
+<tr>
+<td>munlockall</td>
+<td>153</td>
+<td>sched_setparam</td>
+<td>154</td>
+</tr>
+<tr>
+<td>sched_getparam</td>
+<td>155</td>
+<td>sched_setscheduler</td>
+<td>156</td>
+</tr>
+<tr>
+<td>sched_getscheduler</td>
+<td>157</td>
+<td>sched_yield</td>
+<td>158</td>
+</tr>
+<tr>
+<td>sched_get_priority_max</td>
+<td>159</td>
+<td>sched_get_priority_min</td>
+<td>160</td>
+</tr>
+<tr>
+<td>sched_rr_get_interval</td>
+<td>161</td>
+<td>nanosleep</td>
+<td>162</td>
+</tr>
+<tr>
+<td>mremap</td>
+<td>163</td>
+<td>setresuid</td>
+<td>164</td>
+</tr>
+<tr>
+<td>getresuid</td>
+<td>165</td>
+<td>vm86</td>
+<td>166</td>
+</tr>
+<tr>
+<td>query_module</td>
+<td>167</td>
+<td>poll</td>
+<td>168</td>
+</tr>
+<tr>
+<td>nfsservctl</td>
+<td>169</td>
+<td>setresgid</td>
+<td>170</td>
+</tr>
+<tr>
+<td>getresgid</td>
+<td>171</td>
+<td>prctl</td>
+<td>172</td>
+</tr>
+<tr>
+<td>rt_sigreturn</td>
+<td>173</td>
+<td>rt_sigaction</td>
+<td>174</td>
+</tr>
+<tr>
+<td>rt_sigprocmask</td>
+<td>175</td>
+<td>rt_sigpending</td>
+<td>176</td>
+</tr>
+<tr>
+<td>rt_sigtimedwait</td>
+<td>177</td>
+<td>rt_sigqueueinfo</td>
+<td>178</td>
+</tr>
+<tr>
+<td>rt_sigsuspend</td>
+<td>179</td>
+<td>pread64</td>
+<td>180</td>
+</tr>
+<tr>
+<td>pwrite64</td>
+<td>181</td>
+<td>chown</td>
+<td>182</td>
+</tr>
+<tr>
+<td>getcwd</td>
+<td>183</td>
+<td>capget</td>
+<td>184</td>
+</tr>
+<tr>
+<td>capset</td>
+<td>185</td>
+<td>sigaltstack</td>
+<td>186</td>
+</tr>
+<tr>
+<td>sendfile</td>
+<td>187</td>
+<td>getpmsg</td>
+<td>188</td>
+</tr>
+<tr>
+<td>putpmsg</td>
+<td>189</td>
+<td>vfork</td>
+<td>190</td>
+</tr>
+<tr>
+<td>ugetrlimit</td>
+<td>191</td>
+<td>mmap2</td>
+<td>192</td>
+</tr>
+<tr>
+<td>truncate64</td>
+<td>193</td>
+<td>ftruncate64</td>
+<td>194</td>
+</tr>
+<tr>
+<td>stat64</td>
+<td>195</td>
+<td>lstat64</td>
+<td>196</td>
+</tr>
+<tr>
+<td>fstat64</td>
+<td>197</td>
+<td>lchown32</td>
+<td>198</td>
+</tr>
+<tr>
+<td>getuid32</td>
+<td>199</td>
+<td>getgid32</td>
+<td>200</td>
+</tr>
+<tr>
+<td>geteuid32</td>
+<td>201</td>
+<td>getegid32</td>
+<td>202</td>
+</tr>
+<tr>
+<td>setreuid32</td>
+<td>203</td>
+<td>setregid32</td>
+<td>204</td>
+</tr>
+<tr>
+<td>getgroups32</td>
+<td>205</td>
+<td>setgroups32</td>
+<td>206</td>
+</tr>
+<tr>
+<td>fchown32</td>
+<td>207</td>
+<td>setresuid32</td>
+<td>208</td>
+</tr>
+<tr>
+<td>getresuid32</td>
+<td>209</td>
+<td>setresgid32</td>
+<td>210</td>
+</tr>
+<tr>
+<td>getresgid32</td>
+<td>211</td>
+<td>chown32</td>
+<td>212</td>
+</tr>
+<tr>
+<td>setuid32</td>
+<td>213</td>
+<td>setgid32</td>
+<td>214</td>
+</tr>
+<tr>
+<td>setfsuid32</td>
+<td>215</td>
+<td>setfsgid32</td>
+<td>216</td>
+</tr>
+<tr>
+<td>pivot_root</td>
+<td>217</td>
+<td>mincore</td>
+<td>218</td>
+</tr>
+<tr>
+<td>madvise</td>
+<td>219</td>
+<td>madvise1</td>
+<td>219</td>
+</tr>
+<tr>
+<td>getdents64</td>
+<td>220</td>
+<td>⏫delete when C</td>
+<td>lib stub is removed</td>
+</tr>
+<tr>
+<td>fcntl64</td>
+<td>221</td>
+<td>gettid</td>
+<td>224</td>
+</tr>
+<tr>
+<td>readahead</td>
+<td>225</td>
+<td>setxattr</td>
+<td>226</td>
+</tr>
+<tr>
+<td>lsetxattr</td>
+<td>227</td>
+<td>fsetxattr</td>
+<td>228</td>
+</tr>
+<tr>
+<td>getxattr</td>
+<td>229</td>
+<td>lgetxattr</td>
+<td>230</td>
+</tr>
+<tr>
+<td>fgetxattr</td>
+<td>231</td>
+<td>listxattr</td>
+<td>232</td>
+</tr>
+<tr>
+<td>llistxattr</td>
+<td>233</td>
+<td>flistxattr</td>
+<td>234</td>
+</tr>
+<tr>
+<td>removexattr</td>
+<td>235</td>
+<td>lremovexattr</td>
+<td>236</td>
+</tr>
+<tr>
+<td>fremovexattr</td>
+<td>237</td>
+<td>tkill</td>
+<td>238</td>
+</tr>
+<tr>
+<td>sendfile64</td>
+<td>239</td>
+<td>futex</td>
+<td>240</td>
+</tr>
+<tr>
+<td>sched_setaffinity</td>
+<td>241</td>
+<td>sched_getaffinity</td>
+<td>242</td>
+</tr>
+<tr>
+<td>set_thread_area</td>
+<td>243</td>
+<td>get_thread_area</td>
+<td>244</td>
+</tr>
+<tr>
+<td>io_setup</td>
+<td>245</td>
+<td>io_destroy</td>
+<td>246</td>
+</tr>
+<tr>
+<td>io_getevents</td>
+<td>247</td>
+<td>io_submit</td>
+<td>248</td>
+</tr>
+<tr>
+<td>io_cancel</td>
+<td>249</td>
+<td>fadvise64</td>
+<td>250</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>exit_group</td>
+<td>252</td>
+</tr>
+<tr>
+<td>lookup_dcookie</td>
+<td>253</td>
+<td>epoll_create</td>
+<td>254</td>
+</tr>
+<tr>
+<td>epoll_ctl</td>
+<td>255</td>
+<td>epoll_wait</td>
+<td>256</td>
+</tr>
+<tr>
+<td>remap_file_pages</td>
+<td>257</td>
+<td>set_tid_address</td>
+<td>258</td>
+</tr>
+<tr>
+<td>timer_create</td>
+<td>259</td>
+<td>timer_settime</td>
+<td>260</td>
+</tr>
+<tr>
+<td>timer_gettime</td>
+<td>261</td>
+<td>timer_getoverrun</td>
+<td>262</td>
+</tr>
+<tr>
+<td>timer_delete</td>
+<td>263</td>
+<td>clock_settime</td>
+<td>264</td>
+</tr>
+<tr>
+<td>clock_gettime</td>
+<td>265</td>
+<td>clock_getres</td>
+<td>266</td>
+</tr>
+<tr>
+<td>clock_nanosleep</td>
+<td>267</td>
+<td>statfs64</td>
+<td>268</td>
+</tr>
+<tr>
+<td>fstatfs64</td>
+<td>269</td>
+<td>tgkill</td>
+<td>270</td>
+</tr>
+<tr>
+<td>utimes</td>
+<td>271</td>
+<td>fadvise64_64</td>
+<td>272</td>
+</tr>
+<tr>
+<td>vserver</td>
+<td>273</td>
+<td>mbind</td>
+<td>274</td>
+</tr>
+<tr>
+<td>get_mempolicy</td>
+<td>275</td>
+<td>set_mempolicy</td>
+<td>276</td>
+</tr>
+<tr>
+<td>mq_open</td>
+<td>277</td>
+<td>mq_unlink</td>
+<td>278</td>
+</tr>
+<tr>
+<td>mq_timedsend</td>
+<td>279</td>
+<td>mq_timedreceive</td>
+<td>280</td>
+</tr>
+<tr>
+<td>mq_notify</td>
+<td>281</td>
+<td>mq_getsetattr</td>
+<td>282</td>
+</tr>
+<tr>
+<td>kexec_load</td>
+<td>283</td>
+<td>waitid</td>
+<td>284</td>
+</tr>
+<tr>
+<td>sys_setaltroot</td>
+<td>285</td>
+<td>add_key</td>
+<td>286</td>
+</tr>
+<tr>
+<td>request_key</td>
+<td>287</td>
+<td>keyctl</td>
+<td>288</td>
+</tr>
+<tr>
+<td>ioprio_set</td>
+<td>289</td>
+<td>ioprio_get</td>
+<td>290</td>
+</tr>
+<tr>
+<td>inotify_init</td>
+<td>291</td>
+<td>inotify_add_watch</td>
+<td>292</td>
+</tr>
+<tr>
+<td>inotify_rm_watch</td>
+<td>293</td>
+<td>migrate_pages</td>
+<td>294</td>
+</tr>
+<tr>
+<td>openat</td>
+<td>295</td>
+<td>mkdirat</td>
+<td>296</td>
+</tr>
+<tr>
+<td>mknodat</td>
+<td>297</td>
+<td>fchownat</td>
+<td>298</td>
+</tr>
+<tr>
+<td>futimesat</td>
+<td>299</td>
+<td>fstatat64</td>
+<td>300</td>
+</tr>
+<tr>
+<td>unlinkat</td>
+<td>301</td>
+<td>renameat</td>
+<td>302</td>
+</tr>
+<tr>
+<td>linkat</td>
+<td>303</td>
+<td>symlinkat</td>
+<td>304</td>
+</tr>
+<tr>
+<td>readlinkat</td>
+<td>305</td>
+<td>fchmodat</td>
+<td>306</td>
+</tr>
+<tr>
+<td>faccessat</td>
+<td>307</td>
+<td>pselect6</td>
+<td>308</td>
+</tr>
+<tr>
+<td>ppoll</td>
+<td>309</td>
+<td>unshare</td>
+<td>310</td>
+</tr>
+<tr>
+<td>set_robust_list</td>
+<td>311</td>
+<td>get_robust_list</td>
+<td>312</td>
+</tr>
+<tr>
+<td>splice</td>
+<td>313</td>
+<td>sync_file_range</td>
+<td>314</td>
+</tr>
+<tr>
+<td>tee</td>
+<td>315</td>
+<td>vmsplice</td>
+<td>316</td>
+</tr>
+<tr>
+<td>move_pages</td>
+<td>317</td>
+<td>getcpu</td>
+<td>318</td>
+</tr>
+<tr>
+<td>epoll_pwait</td>
+<td>319</td>
+<td>utimensat</td>
+<td>320</td>
+</tr>
+<tr>
+<td>signalfd</td>
+<td>321</td>
+<td>timerfd_create</td>
+<td>322</td>
+</tr>
+<tr>
+<td>eventfd</td>
+<td>323</td>
+<td>fallocate</td>
+<td>324</td>
+</tr>
+<tr>
+<td>timerfd_settime</td>
+<td>325</td>
+<td>timerfd_gettime</td>
+<td>326</td>
+</tr>
+<tr>
+<td>signalfd4</td>
+<td>327</td>
+<td>eventfd2</td>
+<td>328</td>
+</tr>
+<tr>
+<td>epoll_create1</td>
+<td>329</td>
+<td>dup3</td>
+<td>330</td>
+</tr>
+<tr>
+<td>pipe2</td>
+<td>331</td>
+<td>inotify_init1</td>
+<td>332</td>
+</tr>
+<tr>
+<td>preadv</td>
+<td>333</td>
+<td>pwritev</td>
+<td>334</td>
+</tr>
+<tr>
+<td>rt_tgsigqueueinfo</td>
+<td>335</td>
+<td>perf_event_open</td>
+<td>336</td>
+</tr>
+<tr>
+<td>recvmmsg</td>
+<td>337</td>
+<td>fanotify_init</td>
+<td>338</td>
+</tr>
+<tr>
+<td>fanotify_mark</td>
+<td>339</td>
+<td>prlimit64</td>
+<td>340</td>
+</tr>
+<tr>
+<td>name_to_handle_at</td>
+<td>341</td>
+<td>open_by_handle_at</td>
+<td>342</td>
+</tr>
+<tr>
+<td>clock_adjtime</td>
+<td>343</td>
+<td>syncfs</td>
+<td>344</td>
+</tr>
+<tr>
+<td>sendmmsg</td>
+<td>345</td>
+<td>set_ns</td>
+<td>346</td>
+</tr>
+<tr>
+<td>process_vm_readv</td>
+<td>347</td>
+<td>process_vm_writev</td>
+<td>348</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/Linux%2032%E4%BD%8D%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/Linux%2032%E4%BD%8D%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-01/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/Linux%2064%E4%BD%8D%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7/" title="Linux 64位系统调用号"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Linux 64位系统调用号</div></div><div class="info-2"><div class="info-item-1">Linux 64位系统调用号 来自:https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107250349     系统调用 调用号 系统调用 调用号    read 0 write 1   open 2 close 3   stat 4 fstat 5   lstat 6 poll 7   lseek 8 mmap 9   mprotect 10 munmap 11   brk 12 rt_sigaction 13   rt_sigprocmask 14 rt_sigreturn 15   ioctl 16 pread64 17   pwrite64 18 readv 19   writev 20 access 21   pipe 22 select 23   sched_yield 24 mremap 25   msync 26 mincore 27   madvise 28 shmget 29   shmat 30 shmctl 31   dup 32 dup2 33   pause 34 nan...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-10%EF%BC%89-%E9%AB%98%E7%BA%A7ROP-SROP/" title="PWN入门（1-3-10）-高级ROP-SROP"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（1-3-10）-高级ROP-SROP</div></div><div class="info-2"><div class="info-item-1">PWN入门（1-3-10）-高级ROP-SROP 参考资料：https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107512670  signal机制signal 机制是类 unix 系统中进程之间相互传递信息的一种方法。一般，我们也称其为软中断信号，或者软中断。比如说，进程之间可以通过系统调用 kill 来发送软中断信号。一般分为三大步：、  kill可不是字面意思–杀死进程KILL功能描述：用于向任何进程组或进程发送信号。  ① 内核向某个进程发送signal机制，该进程会被暂时挂起，进入内核态 ② 内核会为该进程保存相应的上下文，跳转到之前注册好的signal handler中处理signal ③ signal返回 ④ 内核为进程恢复之前保留的上下文，恢复进程的执行   内核向某个进程发送signal机制，该进程会被暂时挂起，进入内核态。 内核会为该进程保存相应的上下文， 主要是将所有寄存器压入栈中，以及压入signal信息，以及指向sigreturn的系统调用地址 。此时栈的结构如下图所示，我们...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Linux-32%E4%BD%8D%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7"><span class="toc-number">1.</span> <span class="toc-text">Linux 32位系统调用号</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

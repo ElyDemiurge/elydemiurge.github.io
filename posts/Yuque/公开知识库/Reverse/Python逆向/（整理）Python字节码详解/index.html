@@ -1,0 +1,436 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>（整理）Python字节码详解 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="（整理）Python字节码详解参考资料：https:&#x2F;&#x2F;www.imooc.com&#x2F;article&#x2F;details&#x2F;id&#x2F;29111 https:&#x2F;&#x2F;www.cnblogs.com&#x2F;yinguohai&#x2F;p&#x2F;11152366.html https:&#x2F;&#x2F;www.cnblogs.com&#x2F;yinguohai&#x2F;p&#x2F;11158492.html https:&#x2F;&#x2F;docs.python.org&#x2F;3.7&#x2F;libra">
+<meta property="og:type" content="article">
+<meta property="og:title" content="（整理）Python字节码详解">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/%EF%BC%88%E6%95%B4%E7%90%86%EF%BC%89Python%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="（整理）Python字节码详解参考资料：https:&#x2F;&#x2F;www.imooc.com&#x2F;article&#x2F;details&#x2F;id&#x2F;29111 https:&#x2F;&#x2F;www.cnblogs.com&#x2F;yinguohai&#x2F;p&#x2F;11152366.html https:&#x2F;&#x2F;www.cnblogs.com&#x2F;yinguohai&#x2F;p&#x2F;11158492.html https:&#x2F;&#x2F;docs.python.org&#x2F;3.7&#x2F;libra">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-08/800/450">
+<meta property="article:published_time" content="2020-04-20T02:10:39.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.096Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-08/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "（整理）Python字节码详解",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/%EF%BC%88%E6%95%B4%E7%90%86%EF%BC%89Python%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%A6%E8%A7%A3/",
+  "image": "https://picsum.photos/seed/blog-cover-08/800/450",
+  "datePublished": "2020-04-20T02:10:39.000Z",
+  "dateModified": "2026-07-03T14:46:17.096Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/%EF%BC%88%E6%95%B4%E7%90%86%EF%BC%89Python%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '（整理）Python字节码详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-08/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">（整理）Python字节码详解</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">（整理）Python字节码详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-04-20T02:10:39.000Z" title="发表于 2020-04-20 10:10:39">2020-04-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.096Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="（整理）Python字节码详解"><a href="#（整理）Python字节码详解" class="headerlink" title="（整理）Python字节码详解"></a>（整理）Python字节码详解</h1><p>参考资料：<a target="_blank" rel="noopener" href="https://www.imooc.com/article/details/id/29111">https://www.imooc.com/article/details/id/29111</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/yinguohai/p/11152366.html">https://www.cnblogs.com/yinguohai/p/11152366.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/yinguohai/p/11158492.html">https://www.cnblogs.com/yinguohai/p/11158492.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.python.org/3.7/library/dis.html">https://docs.python.org/3.7/library/dis.html</a>（官方文档）</p>
+<h2 id="例题："><a href="#例题：" class="headerlink" title="例题："></a>例题：</h2><p><a target="_blank" rel="noopener" href="https://www.yuque.com/go/doc/6284850?view=doc_embed">2020HGame-Week2-babypy（Python字节码）</a></p>
+<h2 id="零、速查："><a href="#零、速查：" class="headerlink" title="零、速查："></a>零、速查：</h2><p>转化后的字节码格式如下：</p>
+<blockquote>
+<p>源码行号  |  指令<strong>偏移量</strong>  | 指令符号 | 指令参数  |  实际参数值</p>
+</blockquote>
+<p><strong>变量 — _const</strong></p>
+<p><span style="color: #FB1803">LOAD_CONST</span><span style="color: #333333"> ：加载</span><span style="color: #FC0903">const</span><span style="color: #333333"> 变量，比如数值，字符串等等， 一般用于传递给函数作为参数</span></p>
+<p><strong>局部变量 — _FAST</strong></p>
+<p><span style="color: #D83910">LOAD_FAST</span> ：一般用于加载局部变量的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p><span style="color: #B92916">STORE_FAST</span> ：一般用于保存值到局部变量</p>
+<p><strong>全局变量 — _GLOBAL</strong></p>
+<p><span style="color: #B32916">LOAD_GLOBAL</span> ： 用来加载全局变量， 包括制定函数名，类名，模块名等全局符号</p>
+<p><span style="color: #AD2317">STORE_GLOBAL</span> ：用来给全局变量赋值</p>
+<p><strong>常用数据类型</strong></p>
+<p><strong>1.list</strong></p>
+<p><span style="color: #AB2B16">BUILD_LIST</span> :  用于创建一个 list 结构</p>
+<p><strong>2.dict</strong></p>
+<p><span style="color: #C52315">BUILD_MAP</span> : 用于创建一个空的dict</p>
+<p><span style="color: #C83014">STORE_MAP</span> : 用于初始化 dict 中的内容，赋值给变量</p>
+<p><strong>3.slice</strong></p>
+<p><span style="color: #CC5115">BUILD_SLICE</span> :        用于创建切片， 对于 list ， tuple ， 字符串都可以使用slice 的方式进行访问</p>
+<p><span style="color: #D75713">BINARY_SUBSCR</span> : 读取slice 的值</p>
+<p><span style="color: #D57D11">STORE_SUBSCR</span> :   slice 的值赋值给变量。</p>
+<p><strong>4.循环</strong></p>
+<p><span style="color: #CB4914">SETUP_LOOP</span> ：用于开始一个循环。</p>
+<p><span style="color: #D14D11">JUMP_ABSOLUTE</span>: 结束循环</p>
+<p><strong>5.if</strong></p>
+<p><span style="color: #D74C11">POP_JUMP_IF_FALSE</span> : 条件结果为 FALSE  则跳出 目标的偏移指令</p>
+<p><span style="color: #D74C11">JUMP_FORWARD</span> :       直接跳转到目标便宜指令</p>
+<p><span style="color: #D85E11">COMPARE_OP</span>:             比较指令</p>
+<h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>如果你跟我一样，对Python的字节码感兴趣（要解CTF的Reverse），想了解Python的代码在内存中到底是怎么去运行的，那么你可以继续往下看。</p>
+<h3 id="Python如何工作"><a href="#Python如何工作" class="headerlink" title="Python如何工作"></a>Python如何工作</h3><p>Python经常被称为是一种解释型语言—— 一种源代码在程序运行时被即时翻译成原生CPU指令的语言 - 但这只说对了一部分。与其他许多解释型语言一样，Python实际上将源代码编译为一组虚拟机指令，Python的解释器就是该虚拟机的一个具体实现。这种跑在虚拟机内部的中间格式被称为“字节码”。</p>
+<p>因此，Python留下的.pyc文件不仅仅是源代码的一个“更快”或“优化”版本; 实际上，它们是在程序运行时由Python的虚拟机来执行的字节码指令。</p>
+<p>我们来看一个例子。这是一个用Python编写的经典的“Hello, World!” ：</p>
+<p><img src="/assets/posts/python-1w2prqg/assets/1587351490997-9773063f-de2c-43e1-a260-a1950fa36e19.jpeg"></p>
+<p>下面是转换后的字节码（转换成可读形式）：</p>
+<p><img src="/assets/posts/python-1w2prqg/assets/1587351491059-e6ea1a0d-5727-4ca6-b9f2-7077ea7f7a5d.jpeg"></p>
+<p>如果您键入该hello()函数并使用CPython解释器运行它，则上面就是Python所执行的内容。不过，这些似乎看起来有点奇怪，所以让我们深入了解一下Python内部发生了什么。</p>
+<h3 id="Python虚拟机内部"><a href="#Python虚拟机内部" class="headerlink" title="Python虚拟机内部"></a>Python虚拟机内部</h3><p>CPython使用的是基于栈的虚拟机。也就是说，它完全围绕着栈数据结构来运行（您可以将一项内容“压入”栈，放到栈结构的“顶部”，或者从栈“顶部”“弹出”一项内容）。</p>
+<p>CPython使用三种类型的堆栈：</p>
+<ol>
+<li>调用栈。这是Python程序运行的主要结构。它具有一项内容-&gt;“栈帧” ，栈的底部就是程序的入口，对于每个当前激活的函数调用，该调用都会压入一个新栈帧到调用栈中，并且每次函数调用结束返回时，对应的栈帧都会被弹出。<ol start="2">
+<li>在每一栈帧中，都有一个执行栈（也称为数据栈）。这个栈是执行Python函数的地方，执行Python代码主要包括把相关数据压入栈，执行逻辑操作，结束后从栈中弹出。</li>
+<li>同样在每一栈帧中，都有一个块堆栈。Python使用它来跟踪某些类型的控制结构：循环块，try&#x2F;except块和with块将所有相关内容都压入块堆栈，当退出一个结构时，块堆栈则弹出相应内容。该操作有助于Python在任何特定时刻知道哪些块处于活动状态，例如，像continue或break语句就需要知道操作哪个具体的逻辑块，否则可能影响逻辑块的正确性。</li>
+</ol>
+</li>
+</ol>
+<hr>
+<p>尽管有一些指令用于执行其他操作（如跳转到特定指令或操作块堆栈），但Python的大部分字节码指令都是用来操作当前调用栈帧中的执行栈</p>
+<p>为了感受这一点，假设我们有一些调用函数的代码，如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">my_function(my_variable, <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<p>Python会将其转换为四个字节码指令序列：</p>
+<ol>
+<li>一条 LOAD_NAME 指令，查找函数对象my_function并将其压入到执行栈顶。<ol start="2">
+<li>另一条 LOAD_NAME 指令，查找变量my_variable并将其压入到执行栈顶</li>
+<li>一条 LOAD_CONST 指令，将常量数值2压入到执行栈顶</li>
+<li>一条 CALL_FUNCTION 指令</li>
+</ol>
+</li>
+</ol>
+<p><strong>该“CALL_FUNCTION”指令的参数为2，表示Python需要从栈顶部弹出两个位置参数；那么被调用的函数将位于最前面，并且它也可以被弹出（对于涉及关键字参数的函数，会使用不同的指令 – CALL_FUNCTION_KW - - 但操作原理类似，并且第三条指令会使用 CALL_FUNCTION_EX 来处理*或</strong>相关的参数的拆包操作）。一旦Python准备就绪，将在调用栈上分配一个新栈帧，为函数调用准备局部变量，并在该栈帧中执行my_function内的字节码。一旦完成，该栈帧将从调用栈中弹出，并在原来的栈帧中将my_function 返回值压入到执行栈顶部。**</p>
+<h3 id="访问和理解Python字节码"><a href="#访问和理解Python字节码" class="headerlink" title="访问和理解Python字节码"></a>访问和理解Python字节码</h3><p>如果想了解Python字节码，Python标准库中的dis模块就非常有用了; dis模块为Python字节码提供了一个“反汇编程序”，从而可以轻松获取人为可读的版本并查找各种字节码指令。dis模块的文档涵盖了相关内容，并提供了字节码指令以及它们的作用和参数的完整清单。</p>
+<p>例如，要获取之前hello()函数的字节码列表，将它键入Python解释器中，然后运行：</p>
+<p><img src="/assets/posts/python-1w2prqg/assets/1587351748552-2fa18a9c-6984-4465-a05e-64b6d7f12901.jpeg"></p>
+<p>函数dis.dis()会对函数，方法，类，模块，编译过的Python代码对象或包含有源代码的字符串文字进行反汇编，并打印出可读的版本。dis模块中另一个方便的功能是distb()。您可以将它传递给Python traceback对象，或者在引发异常之后调用它，它会在异常时反编译调用栈中的最顶层函数，打印其字节码，并在指令中插入一个指向引发异常指令的指针。</p>
+<p>此外，它对于查看Python为每个函数所构建的编译过的代码对象也很有用，因为执行函数有时会用到这些代码对象的属性。以下是查看该hello()功能的示例：</p>
+<p><img src="/assets/posts/python-1w2prqg/assets/1587351748412-0927221e-439b-45d4-8618-07c0375ea729.jpeg"></p>
+<p>代码对象可以通过函数的__code__属性来进行访问，并包含一些其他的重要的属性：</p>
+<ul>
+<li>co_consts 是一个包含有函数体中出现的任何字面常量的元组，<ul>
+<li>co_varnames 是一个包含函数体中使用的任何局部变量名称的元组</li>
+<li>co_names 是一个包含函数体中引用的任何非本地变量名称的元组</li>
+</ul>
+</li>
+</ul>
+<p>许多字节码指令 - 尤其是那些涉及到需要压入堆栈加载内容或将内容存储到变量和属性中的指令 - 将会使用这些元组中的索引作为它们的参数。</p>
+<p>所以现在我们可以了解该hello()函数的字节码列表：</p>
+<ol>
+<li>LOAD_GLOBAL 0：告诉Python在co_names（print函数）的索引0处通过引用的名称寻找全局对象并将其压入到执行栈<ol start="2">
+<li>LOAD_CONST 1：将co_consts索引1处的字面常量取出并将其压入栈（co_consts中索引0处的值是None，因为Python函数中如果没有显式的return表达式，将会使用隐式调用，返回None值）</li>
+<li>CALL_FUNCTION 1：告诉Python调用一个函数; 它需要从堆栈中弹出一个位置参数，然后新的堆栈顶部将是要调用的函数。</li>
+</ol>
+</li>
+</ol>
+<p>“原始”字节码 - 不具有可读性字节码 - 可以通过代码对象的co_code的属性来访问。如果您想尝试手动反汇编函数，则可以使用列表dis.opname从十进制字节值中查找相应字节码指令的名称。</p>
+<h3 id="字节码的用处"><a href="#字节码的用处" class="headerlink" title="字节码的用处"></a>字节码的用处</h3><p>现在，你已经了解的足够多了，你可能会想 “OK，我认为它很酷，但是知道这些有什么实际价值呢？”由于对    它很好奇，我们去了解它，但是除了好奇之外，Python 字节码在几个方面还是非常有用的。</p>
+<p>首先，理解 Python 的运行模型可以帮你更好地理解你的代码。人们都开玩笑说，C 是一种 “可移植汇编器”，你可以很好地猜测出一段 C 代码转换成什么样的机器指令。理解 Python 字节码之后，你在使用 Python 时也具备同样的能力 —— 如果你能预料到你的 Python 源代码将被转换成什么样的字节码，那么你可以知道如何更好地写和优化 Python 源代码。</p>
+<p>第二，理解字节码可以帮你更好地回答有关 Python 的问题。为什么某些结构比其它结构运行的更快？（比如，为什么 {} 比 dict() 快）。知道如何去访问和阅读 Python 字节码将让你很容易回答这样的问题（尝试对比一下： dis.dis(“{}”) 与 dis.dis(“dict()”) 就会明白）。</p>
+<p>最后，理解字节码和 Python 如何运行它，为 Python 程序员不经常使用的一种特定的编程方式提供了有用的视角：面向栈的编程。如果你以前从来没有使用过像 FORTH 或 Fator 这样的面向栈的编程语言，它们可能有些古老，但是，如果你不熟悉这种方法，学习有关 Python 字节码的知识，以及理解面向栈的编程模型是如何工作的，将有助你开拓你的编程视野。</p>
+<h3 id="Python代码的执行过程"><a href="#Python代码的执行过程" class="headerlink" title="Python代码的执行过程"></a>Python代码的执行过程</h3><ol>
+<li>Python源码编译成字节码【类似于汇编指令的中间语言】</li>
+<li>Python虚拟机来执行编译后的字节码</li>
+</ol>
+<p><strong>说明:</strong></p>
+<p><span style="color: #F5222D">一条</span>Python语句会对<span style="color: #F5222D">应若个</span>字节码指令，每个字节指令又对应着**<span style="color: #F5222D">一个</span>**函数偏移量，可以理解为指令的ID。</p>
+<p>虚拟机一条一条执行字节码指令，从而完成程序的执行，而dis模块可以对CPython代码进行反汇编，生成字节码指令。</p>
+<h3 id="dis-dis-转化后的字节码格式"><a href="#dis-dis-转化后的字节码格式" class="headerlink" title="dis.dis() 转化后的字节码格式"></a>dis.dis() 转化后的字节码格式</h3><blockquote>
+<p>源码行号  |  指令<strong>偏移量</strong>  | 指令符号 | 指令参数  |  实际参数值</p>
+</blockquote>
+<p>说明： 不同版本的CPython 指令长度可能不同，但是 3.7的每条指令是2个字节，所以我们去看dis 生成的字节码指令集的时候，指令偏移量总是从0开始，每增加一条在原来的偏移量上增加2。故，指令偏移量的值，一般都是： 0 ， 2 ， 4， 6 ， 8 ， … , 2n ( n&gt;&#x3D;0 )</p>
+<blockquote>
+<p>CPython的概念：<br>CPython是用C语言实现的Python解释器，也是官方的并且是最广泛使用的Python解释器。CPython是使用字节码的解释器，任何程序源代码在执行之前先要编译成字节码。它还有和几种其它语言（包括C语言）交互的外部函数接口。</p>
+</blockquote>
+<h2 id="二、变量指令解析"><a href="#二、变量指令解析" class="headerlink" title="二、变量指令解析"></a>二、变量指令解析</h2><h3 id="变量-—-const"><a href="#变量-—-const" class="headerlink" title="变量 — _const"></a>变量 — _const</h3><p><span style="color: #FB1803">LOAD_CONST</span> ：加载<span style="color: #FC0903">const</span> 变量，比如数值，字符串等等， 一般用于传递给函数作为参数</p>
+<p>案例一：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">test(<span class="number">2</span>,<span class="string">&#x27;hello&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>对应的字节码指令：</p>
+<blockquote>
+<p>源码行号  |  指令<strong>偏移量</strong>  | 指令符号 | 指令参数  |  实际参数值</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>             <span class="number">0</span> LOAD_NAME                <span class="number">0</span> (test)    </span><br><span class="line">              <span class="number">2</span> LOAD_CONST               <span class="number">0</span> (<span class="number">2</span>)</span><br><span class="line">              <span class="number">4</span> LOAD_CONST               <span class="number">1</span> (<span class="string">&#x27;hello&#x27;</span>)</span><br><span class="line">              <span class="number">6</span> CALL_FUNCTION            <span class="number">2</span>            </span><br><span class="line">              <span class="number">8</span> POP_TOP</span><br><span class="line">              <span class="number">10</span> LOAD_CONST              <span class="number">2</span> (<span class="literal">None</span>)</span><br><span class="line">              <span class="number">12</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<h3 id="局部变量-—-FAST"><a href="#局部变量-—-FAST" class="headerlink" title="局部变量 — _FAST"></a>局部变量 — _FAST</h3><p><span style="color: #D83910">LOAD_FAST</span> ：一般用于加载局部变量的值，也就是读取值，用于计算或者函数调用传传等</p>
+<p><span style="color: #B92916">STORE_FAST</span> ：一般用于保存值到局部变量</p>
+<p>案例二：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n = n / p</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">对应的字节码指令：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>             <span class="number">0</span> LOAD_NAME                <span class="number">0</span> (n)</span><br><span class="line">              <span class="number">2</span> LOAD_NAME                <span class="number">1</span> (p)</span><br><span class="line">              <span class="number">4</span> BINARY_TRUE_DIVIDE</span><br><span class="line">              <span class="number">6</span> STORE_NAME               <span class="number">0</span> (n)</span><br><span class="line">              <span class="number">8</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">             <span class="number">10</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #F5222D">说明： 函数的形参也是局部变量，那么如何区分局部变量中的形参呢？</span></p>
+<p>形参是没有初始化的，所以如果发现发现操作的一个局部变量只有 LOAD_FAST 而没有 STORE_FAST,那么这个变量就是形参了。而其它的局部变量在使用之前肯定会使用STORE_FAST进行初始化。</p>
+<p><span style="color: #333333">案例三：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>(<span class="params">arg1</span>):</span><br><span class="line">     num = <span class="number">0</span></span><br><span class="line">     <span class="built_in">print</span>(num, arg1)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"> <span class="number">1</span>            <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (&lt;code <span class="built_in">object</span> test at <span class="number">0x10546c150</span>, file <span class="string">&quot;code.py&quot;</span>, line <span class="number">1</span>&gt;)</span><br><span class="line">              <span class="number">2</span> LOAD_CONST               <span class="number">1</span> (<span class="string">&#x27;test&#x27;</span>)</span><br><span class="line">              <span class="number">4</span> MAKE_FUNCTION            <span class="number">0</span></span><br><span class="line">              <span class="number">6</span> STORE_NAME               <span class="number">0</span> (test)</span><br><span class="line">              <span class="number">8</span> LOAD_CONST               <span class="number">2</span> (<span class="literal">None</span>)</span><br><span class="line">             <span class="number">10</span> RETURN_VALUE</span><br><span class="line"> </span><br><span class="line">Disassembly of &lt;code <span class="built_in">object</span> test at <span class="number">0x10546c150</span>, file <span class="string">&quot;code.py&quot;</span>, line <span class="number">1</span>&gt;:</span><br><span class="line"> <span class="number">2</span>            <span class="number">0</span> LOAD_CONST               <span class="number">1</span> (<span class="number">0</span>)</span><br><span class="line">              <span class="number">2</span> STORE_FAST               <span class="number">1</span> (num)</span><br><span class="line"> </span><br><span class="line"> <span class="number">3</span>            <span class="number">4</span> LOAD_GLOBAL              <span class="number">0</span> (<span class="built_in">print</span>)</span><br><span class="line">              <span class="number">6</span> LOAD_FAST                <span class="number">1</span> (num)</span><br><span class="line">              <span class="number">8</span> LOAD_FAST                <span class="number">0</span> (arg1).  <span class="comment">#只有LOAD_FAST ,没有 STORE_FAST，是形参</span></span><br><span class="line">             <span class="number">10</span> CALL_FUNCTION            <span class="number">2</span></span><br><span class="line">             <span class="number">12</span> POP_TOP</span><br><span class="line">             <span class="number">14</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">             <span class="number">16</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<h3 id="全局变量-—-GLOBAL"><a href="#全局变量-—-GLOBAL" class="headerlink" title="全局变量 — _GLOBAL"></a>全局变量 — _GLOBAL</h3><p><span style="color: #B32916">LOAD_GLOBAL</span> ： 用来加载全局变量， 包括制定函数名，类名，模块名等全局符号</p>
+<p><span style="color: #AD2317">STORE_GLOBAL</span> ：用来给全局变量赋值</p>
+<p>案例四：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>(<span class="params">arg1</span>):</span><br><span class="line">     <span class="keyword">global</span> age</span><br><span class="line">     age = <span class="number">20</span></span><br><span class="line">     <span class="built_in">print</span>(age)</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">对应的字节码指令：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> <span class="number">1</span>            <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (&lt;code <span class="built_in">object</span> test at <span class="number">0x1056e3150</span>, file <span class="string">&quot;code.py&quot;</span>, line <span class="number">1</span>&gt;)</span><br><span class="line">              <span class="number">2</span> LOAD_CONST               <span class="number">1</span> (<span class="string">&#x27;test&#x27;</span>)</span><br><span class="line">              <span class="number">4</span> MAKE_FUNCTION            <span class="number">0</span></span><br><span class="line">              <span class="number">6</span> STORE_NAME               <span class="number">0</span> (test)</span><br><span class="line">              <span class="number">8</span> LOAD_CONST               <span class="number">2</span> (<span class="literal">None</span>)</span><br><span class="line">             <span class="number">10</span> RETURN_VALUE</span><br><span class="line"> </span><br><span class="line">Disassembly of &lt;code <span class="built_in">object</span> test at <span class="number">0x1056e3150</span>, file <span class="string">&quot;code.py&quot;</span>, line <span class="number">1</span>&gt;:</span><br><span class="line"> <span class="number">3</span>            <span class="number">0</span> LOAD_CONST               <span class="number">1</span> (<span class="number">20</span>)</span><br><span class="line">              <span class="number">2</span> STORE_GLOBAL             <span class="number">0</span> (age)</span><br><span class="line"> </span><br><span class="line"> <span class="number">4</span>            <span class="number">4</span> LOAD_GLOBAL              <span class="number">1</span> (<span class="built_in">print</span>)</span><br><span class="line">              <span class="number">6</span> LOAD_GLOBAL              <span class="number">0</span> (age)</span><br><span class="line">              <span class="number">8</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">             <span class="number">10</span> POP_TOP</span><br><span class="line">             <span class="number">12</span> LOAD_CONST               <span class="number">0</span> (<span class="literal">None</span>)</span><br><span class="line">             <span class="number">14</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、常用数据类型"><a href="#三、常用数据类型" class="headerlink" title="三、常用数据类型"></a>三、常用数据类型</h2><h3 id="1-list（列表）"><a href="#1-list（列表）" class="headerlink" title="1.list（列表）"></a>1.list（列表）</h3><p><span style="color: #AB2B16">BUILD_LIST</span> :  用于创建一个 list 结构</p>
+<p><span style="color: #333333">案例五</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a = [<span class="number">1</span>, <span class="number">2</span>]</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">对应的字节码指令：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>            <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (<span class="number">1</span>)</span><br><span class="line">             <span class="number">2</span> LOAD_CONST               <span class="number">1</span> (<span class="number">2</span>)</span><br><span class="line">             <span class="number">4</span> BUILD_LIST               <span class="number">2</span></span><br><span class="line">             <span class="number">6</span> STORE_NAME               <span class="number">0</span> (a)</span><br><span class="line">             <span class="number">8</span> LOAD_CONST               <span class="number">2</span> (<span class="literal">None</span>)</span><br><span class="line">            <span class="number">10</span> RETURN_VALUE                      //程序结束</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">案例六</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ x <span class="keyword">for</span> x <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">4</span>) <span class="keyword">if</span> x &gt; <span class="number">2</span> ]</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">对应的字节码：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">  <span class="number">1</span>           <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (&lt;code <span class="built_in">object</span> &lt;listcomp&gt; at <span class="number">0x10bffa150</span>, file <span class="string">&quot;code.py&quot;</span>, line <span class="number">1</span>&gt;)</span><br><span class="line">              <span class="number">2</span> LOAD_CONST               <span class="number">1</span> (<span class="string">&#x27;&lt;listcomp&gt;&#x27;</span>)</span><br><span class="line">              <span class="number">4</span> MAKE_FUNCTION            <span class="number">0</span></span><br><span class="line">              <span class="number">6</span> LOAD_NAME                <span class="number">0</span> (<span class="built_in">range</span>)</span><br><span class="line">              <span class="number">8</span> LOAD_CONST               <span class="number">2</span> (<span class="number">4</span>)</span><br><span class="line">             <span class="number">10</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">             <span class="number">12</span> GET_ITER</span><br><span class="line">             <span class="number">14</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">             <span class="number">16</span> POP_TOP</span><br><span class="line">             <span class="number">18</span> LOAD_CONST               <span class="number">3</span> (<span class="literal">None</span>)</span><br><span class="line">             <span class="number">20</span> RETURN_VALUE</span><br><span class="line"> </span><br><span class="line">Disassembly of &lt;code <span class="built_in">object</span> &lt;listcomp&gt; at <span class="number">0x10bffa150</span>, file <span class="string">&quot;code.py&quot;</span>, line <span class="number">1</span>&gt;:</span><br><span class="line">  <span class="number">1</span>           <span class="number">0</span> BUILD_LIST               <span class="number">0</span>              //创建 <span class="built_in">list</span> , 为赋值给某变量，这种时候一般都是语法糖结构了</span><br><span class="line">              <span class="number">2</span> LOAD_FAST                <span class="number">0</span> (<span class="number">.0</span>)        </span><br><span class="line">        &gt;&gt;    <span class="number">4</span> FOR_ITER                <span class="number">16</span> (to <span class="number">22</span>)      //开启迭代循环</span><br><span class="line">              <span class="number">6</span> STORE_FAST               <span class="number">1</span> (x)          //局部变量x</span><br><span class="line">              <span class="number">8</span> LOAD_FAST                <span class="number">1</span> (x)          // 导入 x</span><br><span class="line">             <span class="number">10</span> LOAD_CONST               <span class="number">0</span> (<span class="number">2</span>)          // 导入 <span class="number">2</span></span><br><span class="line">             <span class="number">12</span> COMPARE_OP               <span class="number">4</span> (&gt;)          // x 与 <span class="number">2</span> 进行比较，比较符号为 &gt;</span><br><span class="line">             <span class="number">14</span> POP_JUMP_IF_FALSE        <span class="number">4</span>              // 不满足条件就跳过 “出栈“ 动作，既，<span class="keyword">continue</span> 到 <span class="string">&quot; &gt;&gt;  4 FOR_ITER. “ 处</span></span><br><span class="line"><span class="string">             16 LOAD_FAST                1 (x)          // 读取满足条件的局部变量x</span></span><br><span class="line"><span class="string">             18 LIST_APPEND              2              // 把满足条件的x 添加到list中</span></span><br><span class="line"><span class="string">             20 JUMP_ABSOLUTE            4              </span></span><br><span class="line"><span class="string">        &gt;&gt;   22 RETURN_VALUE                            //程序结束</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-dict（字典）"><a href="#2-dict（字典）" class="headerlink" title="2.dict（字典）"></a>2.dict（字典）</h3><p><span style="color: #C52315">BUILD_MAP</span> : 用于创建一个空的dict</p>
+<p><span style="color: #C83014">STORE_MAP</span> : 用于初始化 dict 中的内容，赋值给变量</p>
+<p>案例七</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">k = &#123;<span class="string">&#x27;a&#x27;</span>: <span class="number">1</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">对应的字节码：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>            <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">             <span class="number">2</span> LOAD_CONST               <span class="number">1</span> (<span class="number">1</span>)</span><br><span class="line">             <span class="number">4</span> BUILD_MAP                <span class="number">1</span></span><br><span class="line">             <span class="number">6</span> STORE_NAME               <span class="number">0</span> (k)</span><br><span class="line">             <span class="number">8</span> LOAD_CONST               <span class="number">2</span> (<span class="literal">None</span>)</span><br><span class="line">            <span class="number">10</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-slice（切片）"><a href="#3-slice（切片）" class="headerlink" title="3.slice（切片）"></a>3.slice（切片）</h3><p><span style="color: #CC5115">BUILD_SLICE</span> :        用于创建切片， 对于 list ， tuple ， 字符串都可以使用slice 的方式进行访问</p>
+<p><span style="color: #D75713">BINARY_SUBSCR</span> : 读取slice 的值</p>
+<p><span style="color: #D57D11">STORE_SUBSCR</span> :   slice 的值赋值给变量。</p>
+<p><span style="color: #333333">案例八</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">num = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">a = num[<span class="number">1</span>:<span class="number">2</span>]</span><br><span class="line">b = num[<span class="number">0</span>:<span class="number">1</span>:<span class="number">1</span>]</span><br><span class="line">num[<span class="number">1</span>:<span class="number">2</span>] = [<span class="number">10</span>, <span class="number">11</span>]</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">对应的字节码：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>            <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (<span class="number">1</span>)</span><br><span class="line">             <span class="number">2</span> LOAD_CONST               <span class="number">1</span> (<span class="number">2</span>)</span><br><span class="line">             <span class="number">4</span> LOAD_CONST               <span class="number">2</span> (<span class="number">3</span>)</span><br><span class="line">             <span class="number">6</span> BUILD_LIST               <span class="number">3</span></span><br><span class="line">             <span class="number">8</span> STORE_NAME               <span class="number">0</span> (num)</span><br><span class="line"></span><br><span class="line"> <span class="number">2</span>          <span class="number">10</span> LOAD_NAME                <span class="number">0</span> (num)</span><br><span class="line">            <span class="number">12</span> LOAD_CONST               <span class="number">0</span> (<span class="number">1</span>)</span><br><span class="line">            <span class="number">14</span> LOAD_CONST               <span class="number">1</span> (<span class="number">2</span>)</span><br><span class="line">            <span class="number">16</span> BUILD_SLICE              <span class="number">2</span>       <span class="comment">#创建了一个切片</span></span><br><span class="line">            <span class="number">18</span> BINARY_SUBSCR                    <span class="comment">#读取切片中的值</span></span><br><span class="line">            <span class="number">20</span> STORE_NAME               <span class="number">1</span> (a)   <span class="comment">#将读取切片中的值赋值给变量 a</span></span><br><span class="line"></span><br><span class="line"> <span class="number">3</span>          <span class="number">22</span> LOAD_NAME                <span class="number">0</span> (num)</span><br><span class="line">            <span class="number">24</span> LOAD_CONST               <span class="number">3</span> (<span class="number">0</span>)</span><br><span class="line">            <span class="number">26</span> LOAD_CONST               <span class="number">0</span> (<span class="number">1</span>)</span><br><span class="line">            <span class="number">28</span> LOAD_CONST               <span class="number">0</span> (<span class="number">1</span>)</span><br><span class="line">            <span class="number">30</span> BUILD_SLICE              <span class="number">3</span></span><br><span class="line">            <span class="number">32</span> BINARY_SUBSCR</span><br><span class="line">            <span class="number">34</span> STORE_NAME               <span class="number">2</span> (b)</span><br><span class="line"></span><br><span class="line"> <span class="number">4</span>          <span class="number">36</span> LOAD_CONST               <span class="number">4</span> (<span class="number">10</span>)</span><br><span class="line">            <span class="number">38</span> LOAD_CONST               <span class="number">5</span> (<span class="number">11</span>)</span><br><span class="line">            <span class="number">40</span> BUILD_LIST               <span class="number">2</span></span><br><span class="line">            <span class="number">42</span> LOAD_NAME                <span class="number">0</span> (num)</span><br><span class="line">            <span class="number">44</span> LOAD_CONST               <span class="number">0</span> (<span class="number">1</span>)</span><br><span class="line">            <span class="number">46</span> LOAD_CONST               <span class="number">1</span> (<span class="number">2</span>)</span><br><span class="line">            <span class="number">48</span> BUILD_SLICE              <span class="number">2</span></span><br><span class="line">            <span class="number">50</span> STORE_SUBSCR</span><br><span class="line">            <span class="number">52</span> LOAD_CONST               <span class="number">6</span> (<span class="literal">None</span>)</span><br><span class="line">            <span class="number">54</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-循环"><a href="#4-循环" class="headerlink" title="4.循环"></a>4.循环</h3><p><span style="color: #CB4914">SETUP_LOOP</span> ：用于开始一个循环。</p>
+<p><span style="color: #D14D11">JUMP_ABSOLUTE</span>: 结束循环</p>
+<p><span style="color: #333333">案例九</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">i = <span class="number">0</span></span><br><span class="line"><span class="keyword">while</span> i &lt; <span class="number">10</span>:</span><br><span class="line">    i += <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">对应的字节码：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>           <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (<span class="number">0</span>)</span><br><span class="line">            <span class="number">2</span> STORE_NAME               <span class="number">0</span> (i)</span><br><span class="line"> </span><br><span class="line"><span class="number">2</span>           <span class="number">4</span> SETUP_LOOP              <span class="number">20</span> (to <span class="number">26</span>)   // 循环开始处，<span class="number">26</span>表示循环结束点</span><br><span class="line">      &gt;&gt;    <span class="number">6</span> LOAD_NAME                <span class="number">0</span> (i)       // “&gt;&gt;<span class="string">&quot; 表示循环切入点</span></span><br><span class="line"><span class="string">            8 LOAD_CONST               1 (10)</span></span><br><span class="line"><span class="string">           10 COMPARE_OP               0 (&lt;)</span></span><br><span class="line"><span class="string">           12 POP_JUMP_IF_FALSE       24</span></span><br><span class="line"><span class="string"> </span></span><br><span class="line"><span class="string">3          14 LOAD_NAME                0 (i)</span></span><br><span class="line"><span class="string">           16 LOAD_CONST               2 (1)</span></span><br><span class="line"><span class="string">           18 INPLACE_ADD</span></span><br><span class="line"><span class="string">           20 STORE_NAME               0 (i)</span></span><br><span class="line"><span class="string">           22 JUMP_ABSOLUTE            6          // 逻辑上，循环在此处结束</span></span><br><span class="line"><span class="string">      &gt;&gt;   24 POP_BLOCK                          </span></span><br><span class="line"><span class="string">      &gt;&gt;   26 LOAD_CONST               3 (None)</span></span><br><span class="line"><span class="string">           28 RETURN_VALUE</span></span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">案例十</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">num = <span class="number">0</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">    num += i</span><br></pre></td></tr></table></figure>
+
+<p>对应的字节码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>           <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (<span class="number">0</span>)</span><br><span class="line">            <span class="number">2</span> STORE_NAME               <span class="number">0</span> (num)</span><br><span class="line"> </span><br><span class="line"><span class="number">2</span>           <span class="number">4</span> SETUP_LOOP              <span class="number">24</span> (to <span class="number">30</span>)  //开始循环</span><br><span class="line">            <span class="number">6</span> LOAD_NAME                <span class="number">1</span> (<span class="built_in">range</span>)</span><br><span class="line">            <span class="number">8</span> LOAD_CONST               <span class="number">1</span> (<span class="number">5</span>)</span><br><span class="line">           <span class="number">10</span> CALL_FUNCTION            <span class="number">1</span>          //调用<span class="built_in">range</span> 函数</span><br><span class="line">           <span class="number">12</span> GET_ITER                            //获取迭代 <span class="built_in">range</span> 的 <span class="built_in">iter</span> </span><br><span class="line">      &gt;&gt;   <span class="number">14</span> FOR_ITER                <span class="number">12</span> (to <span class="number">28</span>)  //开始进行 <span class="built_in">range</span> 的迭代</span><br><span class="line">           <span class="number">16</span> STORE_NAME               <span class="number">2</span> (i)</span><br><span class="line"> </span><br><span class="line"><span class="number">3</span>          <span class="number">18</span> LOAD_NAME                <span class="number">0</span> (num)</span><br><span class="line">           <span class="number">20</span> LOAD_NAME                <span class="number">2</span> (i)</span><br><span class="line">           <span class="number">22</span> INPLACE_ADD</span><br><span class="line">           <span class="number">24</span> STORE_NAME               <span class="number">0</span> (num)</span><br><span class="line">           <span class="number">26</span> JUMP_ABSOLUTE           <span class="number">14</span></span><br><span class="line">      &gt;&gt;   <span class="number">28</span> POP_BLOCK</span><br><span class="line">      &gt;&gt;   <span class="number">30</span> LOAD_CONST               <span class="number">2</span> (<span class="literal">None</span>)</span><br><span class="line">           <span class="number">32</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-if语句"><a href="#5-if语句" class="headerlink" title="5.if语句"></a>5.if语句</h3><p><span style="color: #D74C11">POP_JUMP_IF_FALSE</span> : 条件结果为 FALSE  则跳出 目标的偏移指令</p>
+<p><span style="color: #D74C11">JUMP_FORWARD</span> :       直接跳转到目标便宜指令</p>
+<p><span style="color: #D85E11">COMPARE_OP</span>:             比较指令</p>
+<p><span style="color: #333333">案例十一：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">num = <span class="number">20</span></span><br><span class="line"><span class="keyword">if</span> num &lt; <span class="number">10</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;lt 10&#x27;</span>)</span><br><span class="line"><span class="keyword">elif</span> num &gt; <span class="number">10</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;gt 10&#x27;</span>)</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;eq 10&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">对应的字节码：</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>           <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (<span class="number">20</span>)</span><br><span class="line">            <span class="number">2</span> STORE_NAME               <span class="number">0</span> (num)</span><br><span class="line"> </span><br><span class="line"><span class="number">2</span>           <span class="number">4</span> LOAD_NAME                <span class="number">0</span> (num)</span><br><span class="line">            <span class="number">6</span> LOAD_CONST               <span class="number">1</span> (<span class="number">10</span>)</span><br><span class="line">            <span class="number">8</span> COMPARE_OP               <span class="number">0</span> (&lt;)</span><br><span class="line">           <span class="number">10</span> POP_JUMP_IF_FALSE       <span class="number">22</span></span><br><span class="line"> </span><br><span class="line"><span class="number">3</span>          <span class="number">12</span> LOAD_NAME                <span class="number">1</span> (<span class="built_in">print</span>)</span><br><span class="line">           <span class="number">14</span> LOAD_CONST               <span class="number">2</span> (<span class="string">&#x27;lt 10&#x27;</span>)</span><br><span class="line">           <span class="number">16</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">           <span class="number">18</span> POP_TOP</span><br><span class="line">           <span class="number">20</span> JUMP_FORWARD            <span class="number">26</span> (to <span class="number">48</span>)</span><br><span class="line"> </span><br><span class="line"><span class="number">4</span>     &gt;&gt;   <span class="number">22</span> LOAD_NAME                <span class="number">0</span> (num)</span><br><span class="line">           <span class="number">24</span> LOAD_CONST               <span class="number">1</span> (<span class="number">10</span>)</span><br><span class="line">           <span class="number">26</span> COMPARE_OP               <span class="number">4</span> (&gt;)</span><br><span class="line">           <span class="number">28</span> POP_JUMP_IF_FALSE       <span class="number">40</span></span><br><span class="line"> </span><br><span class="line"><span class="number">5</span>          <span class="number">30</span> LOAD_NAME                <span class="number">1</span> (<span class="built_in">print</span>)</span><br><span class="line">           <span class="number">32</span> LOAD_CONST               <span class="number">3</span> (<span class="string">&#x27;gt 10&#x27;</span>)</span><br><span class="line">           <span class="number">34</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">           <span class="number">36</span> POP_TOP</span><br><span class="line">           <span class="number">38</span> JUMP_FORWARD             <span class="number">8</span> (to <span class="number">48</span>)</span><br><span class="line"> </span><br><span class="line"><span class="number">7</span>     &gt;&gt;   <span class="number">40</span> LOAD_NAME                <span class="number">1</span> (<span class="built_in">print</span>)</span><br><span class="line">           <span class="number">42</span> LOAD_CONST               <span class="number">4</span> (<span class="string">&#x27;eq 10&#x27;</span>)</span><br><span class="line">           <span class="number">44</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">           <span class="number">46</span> POP_TOP</span><br><span class="line">      &gt;&gt;   <span class="number">48</span> LOAD_CONST               <span class="number">5</span> (<span class="literal">None</span>)</span><br><span class="line">           <span class="number">50</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/%EF%BC%88%E6%95%B4%E7%90%86%EF%BC%89Python%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%A6%E8%A7%A3/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/%EF%BC%88%E6%95%B4%E7%90%86%EF%BC%89Python%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%A6%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-08/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-babypy%EF%BC%88Python%E5%AD%97%E8%8A%82%E7%A0%81%EF%BC%89/" title="2020HGame-Week2-babypy（Python字节码）"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2020HGame-Week2-babypy（Python字节码）</div></div><div class="info-2"><div class="info-item-1">2020HGame-Week2-babypy（Python字节码）（整理）Python字节码详解 打开所下载的Python字节码文件，字节码如下： 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061In [1]: from secret import flag, encryptIn [2]: encrypt(flag)Out[2]: &#x27;7d037d045717722d62114e6a5b044f2c184c3f44214c2d4a22&#x27;In [3]: import disIn [4]: dis.dis(encrypt)  4           0 LOAD_FAST                0 (OOo)              2 LOAD_CONST               0 (None)              4 LOAD_CONST              ...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2019NCTF/2019NCTF-%E7%AD%BE%E5%88%B0%E9%A2%98%EF%BC%88z3%E7%BA%A6%E6%9D%9F%E5%99%A8%EF%BC%89/" title="2019NCTF-签到题（z3约束器）"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">2019NCTF-签到题（z3约束器）</div></div><div class="info-2"><div class="info-item-1">2019NCTF-签到题（z3约束器）首先查壳：  没有壳，将文件载入到IDA中，来到main函数：  进入sub_401340中：  假的签到题，不会解非齐次线性方程组的我根本不会做好不。 使用python的z3求解就行了，2333：  pip install z3-solver  1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556from z3 import *s = Solver()a1 = [0]*49for i in range(49):   a1[i] = Int(&#x27;a1[&#x27;+str(i)+&#x27;]&#x27;)s.add(18564 == 34 * a1[3] + 12 * a1[0] + 53 * a1[1] + 6 * a1[2] + 58 * a1[4] + 36 * a1[5] + a1[6])s.add(37316 == 27 * a1[4] + 73 * a1[3] + 12...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%EF%BC%88%E6%95%B4%E7%90%86%EF%BC%89Python%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">（整理）Python字节码详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E9%A2%98%EF%BC%9A"><span class="toc-number">1.1.</span> <span class="toc-text">例题：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9B%B6%E3%80%81%E9%80%9F%E6%9F%A5%EF%BC%9A"><span class="toc-number">1.2.</span> <span class="toc-text">零、速查：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%89%8D%E8%A8%80"><span class="toc-number">1.3.</span> <span class="toc-text">一、前言</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Python%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C"><span class="toc-number">1.3.1.</span> <span class="toc-text">Python如何工作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Python%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%86%85%E9%83%A8"><span class="toc-number">1.3.2.</span> <span class="toc-text">Python虚拟机内部</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E5%92%8C%E7%90%86%E8%A7%A3Python%E5%AD%97%E8%8A%82%E7%A0%81"><span class="toc-number">1.3.3.</span> <span class="toc-text">访问和理解Python字节码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E7%9A%84%E7%94%A8%E5%A4%84"><span class="toc-number">1.3.4.</span> <span class="toc-text">字节码的用处</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Python%E4%BB%A3%E7%A0%81%E7%9A%84%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.5.</span> <span class="toc-text">Python代码的执行过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#dis-dis-%E8%BD%AC%E5%8C%96%E5%90%8E%E7%9A%84%E5%AD%97%E8%8A%82%E7%A0%81%E6%A0%BC%E5%BC%8F"><span class="toc-number">1.3.6.</span> <span class="toc-text">dis.dis() 转化后的字节码格式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%8F%98%E9%87%8F%E6%8C%87%E4%BB%A4%E8%A7%A3%E6%9E%90"><span class="toc-number">1.4.</span> <span class="toc-text">二、变量指令解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E9%87%8F-%E2%80%94-const"><span class="toc-number">1.4.1.</span> <span class="toc-text">变量 — _const</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F-%E2%80%94-FAST"><span class="toc-number">1.4.2.</span> <span class="toc-text">局部变量 — _FAST</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F-%E2%80%94-GLOBAL"><span class="toc-number">1.4.3.</span> <span class="toc-text">全局变量 — _GLOBAL</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%B8%B8%E7%94%A8%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.5.</span> <span class="toc-text">三、常用数据类型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-list%EF%BC%88%E5%88%97%E8%A1%A8%EF%BC%89"><span class="toc-number">1.5.1.</span> <span class="toc-text">1.list（列表）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-dict%EF%BC%88%E5%AD%97%E5%85%B8%EF%BC%89"><span class="toc-number">1.5.2.</span> <span class="toc-text">2.dict（字典）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-slice%EF%BC%88%E5%88%87%E7%89%87%EF%BC%89"><span class="toc-number">1.5.3.</span> <span class="toc-text">3.slice（切片）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%BE%AA%E7%8E%AF"><span class="toc-number">1.5.4.</span> <span class="toc-text">4.循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-if%E8%AF%AD%E5%8F%A5"><span class="toc-number">1.5.5.</span> <span class="toc-text">5.if语句</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

@@ -1,0 +1,804 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第2章 逆向分析Hello World!程序 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第2章 逆向分析Hello World!程序“Hello World!”程序大概是世界上最有名的程序了，下面调试“Hello World!”程序来开始学习逆向分析技术的旅程，希望大家能从中切身体验到逆向分析的乐趣。 2.1 Hello World!程序学过编程的人编写的第一个程序大概都是“Hello World!”，如图2-1所示。这个程序非常简洁，每当看到“Hello World!”的源码，都会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第2章 逆向分析Hello World!程序">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC2%E7%AB%A0%20%E9%80%86%E5%90%91%E5%88%86%E6%9E%90Hello%20World!%E7%A8%8B%E5%BA%8F/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第2章 逆向分析Hello World!程序“Hello World!”程序大概是世界上最有名的程序了，下面调试“Hello World!”程序来开始学习逆向分析技术的旅程，希望大家能从中切身体验到逆向分析的乐趣。 2.1 Hello World!程序学过编程的人编写的第一个程序大概都是“Hello World!”，如图2-1所示。这个程序非常简洁，每当看到“Hello World!”的源码，都会">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-06/800/450">
+<meta property="article:published_time" content="2020-02-06T02:18:40.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.486Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-06/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第2章 逆向分析Hello World!程序",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC2%E7%AB%A0%20%E9%80%86%E5%90%91%E5%88%86%E6%9E%90Hello%20World!%E7%A8%8B%E5%BA%8F/",
+  "image": "https://picsum.photos/seed/blog-cover-06/800/450",
+  "datePublished": "2020-02-06T02:18:40.000Z",
+  "dateModified": "2026-07-03T14:46:17.486Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC2%E7%AB%A0%20%E9%80%86%E5%90%91%E5%88%86%E6%9E%90Hello%20World!%E7%A8%8B%E5%BA%8F/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第2章 逆向分析Hello World!程序',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-06/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第2章 逆向分析Hello World!程序</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第2章 逆向分析Hello World!程序</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-06T02:18:40.000Z" title="发表于 2020-02-06 10:18:40">2020-02-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.486Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">11.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>37分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第2章-逆向分析Hello-World-程序"><a href="#第2章-逆向分析Hello-World-程序" class="headerlink" title="第2章 逆向分析Hello World!程序"></a>第2章 逆向分析Hello World!程序</h1><p>“Hello World!”程序大概是世界上最有名的程序了，下面调试“Hello World!”程序来开始学习逆向分析技术的旅程，希望大家能从中切身体验到逆向分析的乐趣。</p>
+<h2 id="2-1-Hello-World"><a href="#2-1-Hello-World" class="headerlink" title="2.1 Hello World!"></a>2.1 Hello World!</h2><p>程序学过编程的人编写的第一个程序大概都是“Hello World!”，如图2-1所示。这个程序非常简洁，每当看到“Hello World!”的源码，都会让人回想起初次学习编程语言的情景，以及当时成功运行时的感动与兴奋。下面，我们也将通过逆向分析“HelloWorld!”程序来开始学习，它非常简单，很适合做入门例题。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580955828470-418104da-22de-43a3-896c-7d0c6c2324cc.png" alt="QQ截图20200206102324.png"></p>
+<p>首先在Visual C++中打开HelloWorld项目，如图2-2所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580955880844-28293080-d05c-4c46-9cbb-c7f2070d3a5d.png" alt="QQ截图20200206102338.png"></p>
+<p>在工具栏的“解决方案配置”中选择“Release”，在“生成”菜单中单击“生成HelloWorld”，即可创建出HelloWorld.exe可执行文件<u>（选择“Release”模式生成可执行文件，将使程序代码更加简洁，方便调试）</u>。</p>
+<p>提示——————————————————————————————————————</p>
+<p>不熟悉VisualC++开发工具的读者可省略上述创建过程，直接使用提供的HelloWorld.exe文件。</p>
+<hr>
+<p>调试器与汇编语言</p>
+<p>如上所示，借助Visual C++开发工具，我们可以轻松地将HelloWorld.cpp源码编译成HelloWorld.exe可执行文件。HelloWorld.cpp源码文件是用C语言编写的，我们很容易理解它；而HelloWorld.exe可执行文件是二进制文件，计算机很容易读懂并执行。分析二进制文件时，为了更好地读懂它，常常要使用调试器（Debugger）实用工具。调试器中内嵌了反汇编（Disassembler)模块，借助它我们可以把二进制代码转换为汇编语言（Assembly）指令代码。</p>
+<p>提示——————————————————————————————————————</p>
+<p>不论是用哪种语言编写的程序，编译后都会生成二进制的可执行文件。借助调试器我们可以把任意一种可执行文件转换为汇编语言代码，因此，代码逆向分析人员必须掌握汇编语言。只要掌握了汇编语言，就能通过调试的方式分析可执行程序，而不用考虑程序是用哪种语言编写的。</p>
+<p>汇编语言依赖于CPU。广泛用于PC的Intelx86系列CPU和移动产品中常用的ARM系列CPU就具有不同形态的汇编指令。</p>
+<hr>
+<h2 id="2-2调试HelloWorld-exe程序"><a href="#2-2调试HelloWorld-exe程序" class="headerlink" title="2.2调试HelloWorld.exe程序"></a>2.2调试HelloWorld.exe程序</h2><h3 id="2-2-1调试目标"><a href="#2-2-1调试目标" class="headerlink" title="2.2.1调试目标"></a>2.2.1调试目标</h3><p>调试（Debugging）HelloWorld.exe可执行文件，在转换得到的汇编语言代码中查找main()函数。这一过程中，我们要了解基本的调试方法和汇编指令。</p>
+<h3 id="2-2-2开始调试"><a href="#2-2-2开始调试" class="headerlink" title="2.2.2开始调试"></a>2.2.2开始调试</h3><p>首先使用OllyDbg调试工具打开HelloWorld.exe程序，如图2-3所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580956715601-a783b68c-3d70-4217-80ef-c27ab1e80a5e.png" alt="QQ截图20200206103826.png"></p>
+<p>图2-3 OllyDbg基本界面</p>
+<p>OllyDbg:<a target="_blank" rel="noopener" href="http://www.ollydbg.de/">http://www.ollydbg.de</a></p>
+<p>提示—————————————————————————————————————–</p>
+<ul>
+<li>代码逆向分析人员分析程序文件时一般是没有源代码的，他们只有程序的可执行文件，分析时需要使用OllyDbg这类强大的Win32专业调试工具。</li>
+<li>OllyDbg是一种强大的Win32调试工具，用户界面直观、简洁，支持插件扩展功能，用户可以免费下载。它体积小，运行速度快，很多逆向分析人员都喜欢使用。</li>
+<li>你的逆向分析技术达到一定水平后，我建议使用Hex-Rays公司的IDAPro，它是一个非常棒的反编译工具，提供了众多实用的调试功能，但它是一个付费软件，性能越强大需要支付的费用也越高。</li>
+</ul>
+<hr>
+<p>图2-3为0llyDbg调试工具的运行界面，后面的程序调试过程中我们会经常见到。调试前，先简单介绍一下图2-3中的OllyDbg调试工具运行界面。</p>
+<hr>
+<p>代码窗口：默认用于显示反汇编代码，还用于显示各种注释、标签，分析代码时显示循环、跳转位置等</p>
+<p>信息寄存器窗口：实时显示CPU寄存器的值，可用于修改特定的寄存器</p>
+<p>数据窗口：以Hex&#x2F;ASCII&#x2F;Unicode值的形式显示进程的内存地址，也可在此修改内存地址</p>
+<p>栈窗口：实时显示ESP寄存器指向的进程栈内存，并允许修改</p>
+<hr>
+<h3 id="2-2-3入口点（EntryPoint）"><a href="#2-2-3入口点（EntryPoint）" class="headerlink" title="2.2.3入口点（EntryPoint）"></a>2.2.3入口点（EntryPoint）</h3><p>调试器停止的地点即为HelloWorld.exe执行的<strong>起始地址</strong>（4011A0），它是一段**EP（EntryPoint，入口点）**代码，其中最引人注意的是CALL与JMP两个命令，如下所示。</p>
+<p>Address（地址） Instruction（指令）        Disassembled code（反汇编代码）                            comment（注释）</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580957182575-f41495ad-ea36-48c8-94b8-6c9720910a2c.png" alt="QQ截图20200206104608.png"></p>
+<hr>
+<p>地址：进程的<strong>虚拟内存地址（Virtual Address，VA）</strong></p>
+<p>指令：IA32（或x86）CPU指令</p>
+<p>反汇编代码：将<strong>OP code</strong>**（<strong><strong><span style="color: #333333">操作码(Operation Code</span></strong></strong><span style="color: #333333">)</span>****）**转换为便于查看的汇编指令</p>
+<p>注释：调试器添加的注释（根据选项不同，显示的注释略有不同）</p>
+<hr>
+<p>上面两行汇编代码含义非常明确。</p>
+<p>“先调用（CALL）40270C地址处的函数，再跳转至（JMP）40104F地址处。”</p>
+<p>接下来继续调试，请记住，我们的目标是<u>在main()函数中找出调用MessageBox0函数的代码</u>。</p>
+<hr>
+<p>EP（EntryPoint,入口点）EP是**Windows可执行文件（EXE、DLL、SYS等）**的代码入口点，是执行应用程序时最先执行的代码的起始位置，它依赖于CPU。</p>
+<hr>
+<h3 id="2-2-4跟踪40270C函数"><a href="#2-2-4跟踪40270C函数" class="headerlink" title="2.2.4跟踪40270C函数"></a>2.2.4跟踪40270C函数</h3><p>正式调试前，先熟悉一下OllyDbg基本指令的使用方法。</p>
+<p>OllyDbg基本指令（适用于代码窗口）</p>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>快捷键</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Restart</td>
+<td>Ctrl+F2</td>
+<td>重新开始调试（终止正在调试的进程后再次运行）</td>
+</tr>
+<tr>
+<td>Step Into</td>
+<td>F7</td>
+<td>执行一句OPcode（操作码），若遇到调用命令（CALL），将进入函数代码内部</td>
+</tr>
+<tr>
+<td>Step Over</td>
+<td>F8</td>
+<td>执行一句OP code（操作码），若遇到调用命令（CALL），仅执行函数自身，不跟随进入</td>
+</tr>
+<tr>
+<td>Execute till Return</td>
+<td>Ctrl+F9</td>
+<td>一直在函数代码内部运行，直到遇到RETN命令，跳出函数</td>
+</tr>
+</tbody></table>
+<p>在EP代码的4011A0地址处使用Step Into（F7）指令，进入40270C函数，如图2-4所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580958399351-bc3a093a-40ad-49a5-b52a-fa331d178a29.png" alt="QQ截图20200206110629.png"></p>
+<p>图2-4 40270C函数</p>
+<p>这是一段看上去有些复杂的汇编代码。由于大家尚未掌握汇编语言，所以暂时无法全部理解这段汇编代码的含义。现在不理解没关系，不用担心，随着学习的不断深入，大家慢慢就会熟悉它，并理解它代表的含义（我刚开始学的时候就是这样的，请大家相信我）。</p>
+<p>图2-4最右侧区域中是OllyDbg的注释，其中<strong>红字部分是代码中调用的API函数名称</strong>，在注释部分只看被调用的API函数名称就可以了。它们并不是我们在源代码中调用的函数，也不是我们要查找的main()函数。**其实，这些函数是Visual C++为了保证程序正常运行而自动添加（我们的源码中并没有）的VisualC++启动函数（Stub Code，根据不同的编译器类型与版本，启动函数也会有所不同）。**现在并不需要关注它们，我们的目标是main()函数，接下来继续查找。</p>
+<p>提示——————————————————————————————————————</p>
+<p>刚开始学习时可以先忽略Win32API函数（OllyDbg注释中的红色API函数调用部分），因为它们很容易让人产生困惑，直接按Step over（F8）命令跳过即可。</p>
+<hr>
+<p>4027A1地址处有一条RETN指令，它用于返回到函数调用者的下一条指令，一般是被调用函数的最后一句，即返回4011A5地址处，如图2-3所示。在4027A1地址处的RETN指令上执行Step over（F8）或Execute till Return(Ctrl+F9)命令，继续操作。按F7&#x2F;F8执行RETN指令，程序会跳转到<u>4011A5</u>地址处，如下图所示（这与C语言中“调用函数然后返回到调用处的下一条命令”的情形类似）。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580958956805-2a4bd3e4-2c79-449c-ae49-f3685a80a6db.png" alt="QQ截图20200206111542.png"></p>
+<h3 id="2-2-5跟踪40104F跳转语句"><a href="#2-2-5跟踪40104F跳转语句" class="headerlink" title="2.2.5跟踪40104F跳转语句"></a>2.2.5跟踪40104F跳转语句</h3><p>如图2-3所示，执行4011A5地址处的跳转命令JMP 0040104F，跳转至40104F地址处，结果如图2-5所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580959195988-25d8f0d1-1314-4690-8537-7dee1a47742b.png" alt="QQ截图20200206111941.png"></p>
+<p>图2-540104F地址处的部分代码</p>
+<p>代码看上去相当复杂，它们是Visual C++启动函数（前面也提到过：40270C函数，看来启动函数真是挺多的）。跟踪这些代码就能发现我们要查找的目标——main()函数。</p>
+<p>第一次接触上述代码时，你可能会对它们感到非常陌生，甚至分不清它们是用户代码还是启动函数。但是反复调试代码的过程中你会发现，由Visual C++编写的可执行文件大都与上述形式类似。熟悉了这些启动函数后，再调试代码时就能快速识别并跳过。此外，不同的开发工具生成的启动函数不同，即使是同一种开发工具，产生的启动函数也随版本的不同而不同。如果有额外的时间与精力，建议大家多尝试几种开发工具，熟悉并掌握它们生成的文件特征。</p>
+<h3 id="2-2-6查找main-函数"><a href="#2-2-6查找main-函数" class="headerlink" title="2.2.6查找main()函数"></a>2.2.6查找main()函数</h3><p>从图2-5的40104F地址处开始逐条分析各函数调用指令，就能够查找到我们要查找的main()函数，虽然这种方法略显笨拙，但这是初学者学习调试时的必经阶段，后面会介绍更高效的方法。</p>
+<p>提示——————————————————————————————————————</p>
+<p>初学者在调试代码的过程中使用StepIn（F7)&#x2F;StepOver(F8)命令，可能会对代码感到困惑，特别是过分深入到函数调用中时，这种困惑会更加明显。此时可以使用Restart(Ctrl+F2)命令重新打开待调试的文件，再次从头调试。前面我们已经提到过，每种编译器产生的启动函数是不同的，熟悉这些启动函数后，实际调试过程中可以快速跳过类似启动函数的部分。就像刚开始学习C语言时，编译文件会遇到许多错误信息，熟悉这些错误信息后，再次出现相同错误信息时，就能利用之前的经验快速解决问题。</p>
+<hr>
+<p>前面我们介绍过OllyDbg的4种指令，分别为Restart(Ctrl+F2)、Step Into(F7)、Step Over(F8)、Execute till Return(Ctrl+F9)，下面用它们来查找main()函数。</p>
+<p>如图2-6所示，从40104F地址开始，每执行1次Step Into（F7）命令就下移1行代码，移动到401056地址处的CALL 402524函数调用指令时，执行Step Into（F7）命令，进入402524函数。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580960056536-c3466751-d48b-48dc-a76f-f4719a7a0237.png" alt="QQ截图20200206113405.png"></p>
+<p>图2-6 调试40104F</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580960138791-be3416fd-414b-4930-a8cd-306063db5cbf.png" alt="QQ截图20200206113530.png"></p>
+<p>图2-7 402524函数</p>
+<p>正如在图2-7中看到的，我们很难把402524函数称为main()函数（我们仍然没有发现main函数），因为在它的代码中并未发现调用MessageBox()API的代码。执行Execute till Return(Ctrl+F9)指令，调试转到402568地址处的RETN指令，然后使用Step Into（F7)（或者Step Over(F8))命令执行RETN指令，跳出402524函数，返回至40105B地址处，如下图所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580960333833-facadad8-50d5-4a8e-902b-c11203b41dce.png" alt="QQ截图20200206113844.png"></p>
+<p>同样，在40104F地址处执行Step Into（F7）命令调试，遇到函数调用就进入函数查看代码（使用Step Into（F7）命令）同样，我们可以模仿以上做法继续调试，遇到函数调用就进入函数内部查看代码，确认是否为main()函数。若不是main()函数，则使用Execute till Return（Ctrl+F9）命令跳出相关函数，继续以相同方式调试。调试过程中会遇到以下代码，如图2-8</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580961339268-9684ed3e-23f7-4689-a571-151ec2fc4192.png" alt="QQ截图20200206115526.png"></p>
+<p>图2-8 调用API</p>
+<p>4010E4地址处的CALLKernel32.GetCommandLineW指令是调用Win32API的代码。现在，我们还不需要进入被调用的函数，直接使用Step Over(F8)命令跳过，继续调试。</p>
+<p>提示——————————————————————————————————————</p>
+<p>4010EE地址处是调用00401C5A函数的指令，执行后进入函数，再按Ctrl+F9跳出函数，由于00401C5A函数中含有循环语句，所以跳出函数时需要花费一些时间。</p>
+<hr>
+<p>若调试一切正常，则会看到以下代码，如图2-9所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580961772276-dd3dc405-f848-41d5-9a43-9648bd786039.png" alt="QQ截图20200206120241.png"></p>
+<p>图2-9 调用401000函数</p>
+<p>401144地址处有一条CALL401000指令，用于调用401000函数，使用Step Into（F7）命令进入401000函数，如图2-10所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580961912931-e32acab2-8a40-4140-bef3-87220a5499e4.png" alt="QQ截图20200206120502.png"></p>
+<p>图2-10main()函数</p>
+<p>401000函数内部出现了调用MessageBoxW()API的代码，该API函数的参数为“<a target="_blank" rel="noopener" href="http://www.reversecore.com”与“hello/">www.reversecore.com”与“Hello</a> World!”两个字符串。这与图2-2中HelloWorld.cpp的源码内容一致，由此可以断定，401000函数就是我们一直在查找的main()函数。</p>
+<p>大家也找到main()函数了吗?（当然找到了）没找到也没关系。通过这个调试示例，主要想让大家对调试有一个大致的感受，只要能达成这一目标就足够了。如果尚未完全掌握调试的操作与步骤也没关系，经过几次调试就会很快熟悉起来。后面会讲解更多调试器指令，它们将使整个调试更加轻松（初学者经历一定的困惑是必经过程，所以上面的调试示例并未向大家详细介绍）。</p>
+<h2 id="2-3进一步熟悉调试器"><a href="#2-3进一步熟悉调试器" class="headerlink" title="2.3进一步熟悉调试器"></a>2.3进一步熟悉调试器</h2><h3 id="2-3-1调试器指令"><a href="#2-3-1调试器指令" class="headerlink" title="2.3.1调试器指令"></a>2.3.1调试器指令</h3><p>到现在为止，我们已经对调试有了大致印象，接下来学习更多调试指令。</p>
+<p><strong>调试器操作命令（适用于代码窗口）</strong></p>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>快捷键</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Go to</td>
+<td>Ctrl+G</td>
+<td>移动到指定地址，用来查看代码内存，运行时不可用</td>
+</tr>
+<tr>
+<td>Execute till Cursor（光标）</td>
+<td>F4</td>
+<td>执行到光标位置，即直接转到要调试的地址</td>
+</tr>
+<tr>
+<td>Comment</td>
+<td>；</td>
+<td>添加注释</td>
+</tr>
+<tr>
+<td>User-defined comment</td>
+<td></td>
+<td>鼠标右键菜单Search for User-defined comment（查找-&gt;用户定义的注释）</td>
+</tr>
+<tr>
+<td>Label</td>
+<td>:</td>
+<td>添加标签</td>
+</tr>
+<tr>
+<td>User-defined label</td>
+<td></td>
+<td>鼠标右键菜单Search for User-defined label（查找-&gt;用户定义的标签）</td>
+</tr>
+<tr>
+<td>Set&#x2F;Reset BreakPoint</td>
+<td>F2</td>
+<td>设置或取消断点（BP）</td>
+</tr>
+<tr>
+<td>Run</td>
+<td>F9</td>
+<td>运行（若设置了断点，则执行至断点处）</td>
+</tr>
+<tr>
+<td>Show the curent EIP</td>
+<td>*</td>
+<td>显示当前EIP（命令指针）位置</td>
+</tr>
+<tr>
+<td>Show the previous Cursor</td>
+<td>0</td>
+<td>显示上一个光标的位置</td>
+</tr>
+<tr>
+<td>Preview CALL&#x2F;JMP address</td>
+<td>Enter</td>
+<td>若光标处有CALLJMP等指令，则跟踪并显示相关地址（运行时不可用，简单查看函数内容时非常有用）</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-2“大本营”"><a href="#2-3-2“大本营”" class="headerlink" title="2.3.2“大本营”"></a>2.3.2“大本营”</h3><p>每次重新运行调试器时，调试都会返回到EP处，并从此处开始新的调试，使用起来相当不方便。经验丰富的代码逆向分析专家需要在调试代码时设置某个重要的点（地址），使调试能快速转到设置点上。在代码中设置好这样的点后，再次调试时，调试流能够经过这些指定的点，快速达到目标。</p>
+<p>这些在代码中设置的点就像在登山途中设置的营帐一样，以登喜马拉雅山为例，登顶过程中需要设置多个营帐充当据点，如“大本营”-“前进营1”-“前进营2”-“最终突击营”一“峰顶”。同样，调试代码量非常巨大时，整个调试过程可能需要好几天时间，那么在相应位置上设置这些“据点”将非常方便调试。下面向大家介绍几种在代码中设置“据点”的方法，并学习如何快速转到这些“据点”。首先运行OllyDbg，打开HelloWorld.exe可执行文件并调试，<u>将40104F地址设置为basecamp（大本营）</u>。</p>
+<h3 id="2-3-3设置“大本营”的四种方法"><a href="#2-3-3设置“大本营”的四种方法" class="headerlink" title="2.3.3设置“大本营”的四种方法"></a>2.3.3设置“大本营”的四种方法</h3><h4 id="1-Goto命令"><a href="#1-Goto命令" class="headerlink" title="1.Goto命令"></a>1.Goto命令</h4><p>请记住，我们要设置为“大本营”的地址为40104F。执行<u>Go to（Ctrl+G）</u>命令，打开一个Enterexpression to follow(输入跟踪表达式）对话框，如图2-11所示，在文本框中输入“40104F”，然后单击OK按钮。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580974371496-123e9a32-b3e6-41f6-b7a2-767e49ed1a95.png" alt="QQ截图20200206153235.png"></p>
+<p>图2-11 Go to对话框</p>
+<p>输入地址单击OK按钮后，光标自动定位到40104F地址处，执行<u>Execute till cursor(F4）</u>命令，让调试流运行到该处，然后从40104F处开始调试代码就变得非常方便了。</p>
+<h4 id="2-设置断点"><a href="#2-设置断点" class="headerlink" title="2.设置断点"></a>2.设置断点</h4><p>调试代码时，还可以设置BP（Break Point，断点）（快捷键：F2)让调试流转到“大本营”（40104F），这种方法非常方便，也很常用，如图2-12所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580974627268-2291f496-017c-4e22-8431-0b6a370bb6b0.png" alt="QQ截图20200206153657.png"></p>
+<p>图2-12 设置断点</p>
+<p>设置断点后，调试运行（F9）到断点处将会暂停（若未在代码中设置断点则继续调试）。</p>
+<p>在OlyDbg菜单栏中依次选择View-Breakpoints选项（快捷键（ALT+B）），打开Breakpoints对话框，列出代码中设置的断点，如图2-13所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580974778565-b75c50a4-4f84-4f35-93cb-6cb590f9ac88.png" alt="QQ截图20200206153926.png"></p>
+<p>图2-13 断点</p>
+<p>在断点列表中双击某个断点会直接跳转到相应位置。</p>
+<h4 id="3-注释"><a href="#3-注释" class="headerlink" title="3.注释"></a>3.注释</h4><p>按键盘上的“；”键可以在指定地址处添加注释，还可以通过查找命令找到它。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580974934530-fa06b00c-d023-4402-8223-99262f98dfd6.png" alt="QQ截图20200206154204.png"></p>
+<p>图2-14 注释</p>
+<p>调试过程中添加的注释如同编程过程中添加的注释一样重要。如图2-14所示，在重要代码上添加注释将会使整个调试变得非常轻松。首先移动光标到另一个位置（地址40104F之外的任一地方），在鼠标右键菜单中依次选择Search for（查找）-&gt;User defined comment（用户定义的注释），这样就能看到用户输入的所有注释，如图2-15所示（用户输入的注释会被保存在OlyDbg内部，每当再次运行时就会显示，调试过程中使用起来非常方便）。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580975266018-10c846af-ca80-40dc-985f-3c9ac169327d.png" alt="QQ截图20200206154615.png"><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580975266623-c704c336-c614-4277-b7af-b35242304c88.png" alt="QQ截图20200206154724.png"></p>
+<p>图2-15 用户的注释</p>
+<p>红字显示部分即是光标所处位置。注释位置与光标位置重合时，将仅以红字方式显示（所以刚开始的时候需要把光标暂时移动到其他位置）。双击相应注释，光标将自动定位到相应位置。</p>
+<h4 id="4-标签"><a href="#4-标签" class="headerlink" title="4.标签"></a>4.标签</h4><p>我们可以通过标签提供的功能在指定地址添加特定名称。移动光标至40104F地址处，按“：”键输入标签，如图2-16所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580975568114-c9ae80f7-a1bc-4725-a122-c06b61c4736f.png" alt="QQ截图20200206155238.png"></p>
+<p>图2-16 标签</p>
+<p>这样就在40104F地址处添加上一个“basecamp”标签。在OllyDbg的代码窗口中可以看到40104F地址处添加的标签，如图2-17所示。<strong>（注：在**<strong>40104F地址处添加的标签会在4011A5地址处显示出来</strong></strong>）**</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580975696776-fbf635f7-6c10-492e-aa31-46b29b60103d.png" alt="QQ截图20200206155446.png"></p>
+<p>图2-17 添加的标签</p>
+<p>图2-17显示出了EP代码（你没看错，这个也是EP代码），刚开始只显示地址40104F，添加标签后，代码变得非常直观，调试起来也更加轻松。</p>
+<p>提示：—————————————————————————————————————-</p>
+<p>若不想如图2-17那样显示出标签，可以在OllyDbg的Options（选项）菜单中选择调试设置（调试选项）的Disasm（反汇编）选项卡，点选Show symbolic address（显示符号地址）项，如图2-18所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580976332727-b6878254-4ede-4ef3-946a-21120c7341a2.png" alt="QQ截图20200206160517.png"></p>
+<p>图2-18调试选项</p>
+<hr>
+<p>与注释一样，标签也可以检索。单击鼠标右键，依次选择Search for（查找）-&gt;User defined labels（用户定义的标签）菜单即可打开User defined labels窗口，该窗口列出了用户设置的标签，如图2-19所示（名为Initial CPU selection的部分为光标当前位置）。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580976675381-78f0f7d1-ff43-4dbd-8998-bf4535849ff5.png" alt="QQ截图20200206161058.png">图2-19 User-defined labels（用户定义的标签）</p>
+<p>在User defined labels窗口中双击某个标签，光标即移动到相应位置。光标移动到标签处的地址时，执行Execute till cursor（F4）命令即可从该地址开始调试程序。</p>
+<p>我们已经学习了如何快速转到指定地址（basecamp)并调试，这些方法在程序调试中经常使用，它们使整个调试过程变得更加轻松。希望大家牢记这些方法并多加练习，直至熟练掌握。</p>
+<h2 id="2-4快速查找指定代码的四种方法"><a href="#2-4快速查找指定代码的四种方法" class="headerlink" title="2.4快速查找指定代码的四种方法"></a>2.4快速查找指定代码的四种方法</h2><p>如何在大量代码中快速查找到指定代码呢?下面为大家介绍4种方法。**调试代码时，main()函数并不直接位于可执行文件的EP位置上，出现在此的是开发工具（Visual C++）生成的启动函数。**我们需要查看的main()函数距离EP代码很远，如果有一种方法可以帮助我们快速查找到main() 函数，那么必定会为调试带来极大帮助。</p>
+<p>每个人在调试中快速查找所需代码时都有不同方法，但是归结起来，最基本、最常用的方法只有4种。</p>
+<p>提示—————————————————————————————————————–</p>
+<p>学习这4种方法之前先思考一下。我们已经知道，运行HelloWorld.exe程序会弹出一个消息框，显示“Hello World!”信息。固然是因为我们编写了代码，可在这种情形下，只要运行一下程序，不论是谁都能轻松意识到这一点。</p>
+<p>如果你是Win32API开发人员，看到弹出的消息框就会想到，这是调用MessageBox0API的结果。应用程序的功能非常明确时，只要运行一下程序，就能大致推测出其内部结构（当然这需要具备开发与分析代码的经验）。</p>
+<hr>
+<h3 id="2-4-1代码执行法"><a href="#2-4-1代码执行法" class="headerlink" title="2.4.1代码执行法"></a>2.4.1代码执行法</h3><p>我们需要查找的是main()函数中调用MessageBox()函数的代码。在调试器中调试HelloWorld.exe(Step Over(F8))时，main()函数的MessageBox()函数在某个时刻就会被调用执行，弹出消息对话框，显示“Hello World!”这条信息。</p>
+<p>以上就是代码执行法的基本原理，程序功能非常明确时，逐条执行指令来查找需要查找的位置。**代码执行法仅适用于被调试的代码量不大、且程序功能明确的情况。**倘若被调试的代码量很大且比较复杂时，此种方法就不再适用了。</p>
+<p>下面使用代码执行法来查找代码中的main()函数。从“大本营”（40104F)开始，按F8键逐行执行命令，在某个时刻弹出消息对话框，显示“Hello World!”信息。按Ctrl+F2键再次载入待调试的可执行文件并重新调试，不断按F8键，某个时刻一定会弹出消息对话框。弹出消息对话框时调用的函数即为main()函数。</p>
+<p>如图2-20所示，地址401144处有一条函数调用指令“CALL 00401000”，被调用的函数地址为401000，按F7键（Step Into)进入被调用的函数，可以发现该函数就是我们要查找的main()函数。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580977298192-a5ab96fa-e6b1-41e9-bfb7-4f6ef44f5ebd.png" alt="QQ截图20200206162120.png">图2-20 <span style="color: #F5222D">main()函数EP</span></p>
+<p>地址40100E处有一条调用MessageBoxW()API的语句，如图2-21所示。地址401002与401007处分别有一条PUSH语句，它们把消息对话框的标题与显示字符串（Title&#x3D;”htp:&#x2F;&#x2F;<a target="_blank" rel="noopener" href="http://www.reversecore.com”,text=“hello/">www.reversecore.com”，Text=“Hello</a> World!”)保存到**栈（Stack）**中，并作为参数传递给MessageBoxW()函数。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580977640267-6098786f-2082-432f-bb8e-a03d538510a8.png" alt="QQ截图20200206162709.png"></p>
+<p>图2-21 main()函数</p>
+<p>这样就准确查找到了main()函数。</p>
+<p>提示——————————————————————————————————————</p>
+<p>Win32应用程序中，API函数的参数是通过栈传递的。VC++中默认字符串是使用Unicode码表示的，并且，处理字符串的API函数也全部变更为Unicode系列函数。</p>
+<hr>
+<h3 id="2-4-2字符串检索法"><a href="#2-4-2字符串检索法" class="headerlink" title="2.4.2字符串检索法"></a>2.4.2字符串检索法</h3><p>鼠标右键菜单-Search for（查找）-All referenced text strings（所有参考文本字串）在程序中查找指定字符串的方法很多，这里向大家介绍OllyDbg中提供的字符串检索法。</p>
+<p>OllyDbg初次载入待调试的程序时，都会先经历一个预分析过程。此过程中会查看进程内存，程序中引用的字符串和调用的API都会被摘录出来，整理到另外一个列表中，这样的列表对调试是相当有用的。使用All referenced text strings命令会弹出一个窗口，其中<strong>列出了程序代码引用的字符串</strong>，如图2-22所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580978568338-58991a5c-ac4e-46cf-be97-e2931c006f43.png" alt="QQ截图20200206163634.png"></p>
+<p>图2-22 All referenced text strings</p>
+<p>地址401007处有一条PUSH004092A0命令，该命令中引用的004092A0处即是字符串“HelloWorld!”。双击字符串，光标定位到mainO函数中调用MessageBoxWO函数的代码处，请参照图2-21。</p>
+<p>在OllyDbg的**Dump窗口（数据窗口）**中使用Go to（Ctrl+G)命令，可以进一步查看位于内存4092A0地址处的字符串。首先使用鼠标单击Dump窗口，然后按Ctrl+G快捷键，打开Enter expression to follow in Dump窗口，如图2-23所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580978925667-6eff8fb7-d0f4-48cd-bb25-4fe0f4e9845c.png" alt="QQ截图20200206164827.png">图2-23“Hello World!”字符串</p>
+<p>灰色部分即是“Hello World!”字符串，它是以<strong>Unicode码</strong>形式表示的，并且字符串的后面被填充上了NULL值（后面将讲解如何把“Hello World!”字符串更改为其他字符串，届时会再次涉及这块地址空间）。</p>
+<p>提示——————————————————————————————————————</p>
+<p><strong>VC+中，static 字符串会被默认保存为Unicode码形式，static字符串是指在程序内部被硬编码（Hard Coding）的字符串。</strong></p>
+<hr>
+<p>图2-23中还需要注意的是4092A0这个地址，它与我们之前看到的代码区域地址（401XXX）不同。在<strong>HelloWorld.exe进程中，409XXX地址空间被用来保存程序使用的数据。大家要明白一点，代码与数据所在的区域是彼此分开的。</strong></p>
+<p>提示——————————————————————————————————————</p>
+<p>若想了解代码与数据在文件中是如何保存的，以及如何加载到内存的，就需要学习WindowsPE文件格式的相关内容（请参考第13章）。</p>
+<hr>
+<h3 id="2-4-3API检索法（1）：在调用代码中设置断点"><a href="#2-4-3API检索法（1）：在调用代码中设置断点" class="headerlink" title="2.4.3API检索法（1）：在调用代码中设置断点"></a>2.4.3API检索法（1）：在调用代码中设置断点</h3><p>鼠标右键莱单-Search for-All intermodular calls</p>
+<p>Windows编程中，若想向显示器显示内容，则需要使用Win32API向OS请求显示输出。**换言之，应用程序向显示器画面输出内容时，需要在程序内部调用Win32API。**认真观察一个程序的功能后，我们能够大致推测出它在运行时调用的Win32API，若能进一步查找到调用的Win32API，则会为程序调试带来极大便利。以HelloWorld.exe为例，它在运行时会弹出一个消息窗口，由此我们可以推断出该程序调用了user32.MessageBoxW()API。</p>
+<p>在OllyDbg的预分析中，不仅可以分析出程序中使用的字符串，还可以摘录出程序运行时调用的API函数列表。若只想查看程序代码中调用了哪些API函数，可以直接使用All intermodula rcalls命令。如图2-24所示，窗口中列出了程序中调用的所有API（根据OlyDbg选项设置的不同，显示形式会略微不同）。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580979449081-ef563f15-c80a-4909-afa2-0719e6c8ca28.png" alt="QQ截图20200206165719.png"></p>
+<p>可以看到调用MessageBoxW()的代码，该函数位于40100E地址处，它是user32.MessageBoxW()API。双击它，光标即定位到调用它的地址处（40100E）。观察一个程序的行为特征，若能事先推测出代码中使用的API，则使用上述方法能够帮助我们快速查找到需要的部分。</p>
+<p>提示——————————————————————————————————————</p>
+<p>对于程序中调用的API，OllyDbg如何准确摘录出它们的名称呢?首先，它不是通过查看源代码来摘取的，若要了解其中的原理，需要理解PE文件格式的**IAT（Import Address Table,导入地址表）**结构（请参考第13章）。</p>
+<hr>
+<h3 id="2-4-4API检索法（2）：在API代码中设置断点"><a href="#2-4-4API检索法（2）：在API代码中设置断点" class="headerlink" title="2.4.4API检索法（2）：在API代码中设置断点"></a>2.4.4API检索法（2）：在API代码中设置断点</h3><p>鼠标右键菜单-Search for-Name in all callsollyDbg并不能为所有可执行文件都列出API函数调用列表。使用压缩器&#x2F;保护器工具对可执行文件进行压缩或保护之后，文件结构就会改变，此时OllyDbg就无法列出API调用列表了（甚至连调试都会变得十分困难）。</p>
+<p>提示——————————————————————————————————————</p>
+<ul>
+<li>压缩器（Run time Packer，运行时压缩器）压缩器是一个实用压缩工具，能够压缩可执行文件的代码、数据、资源等，与普通压缩不同，它压缩后的文件本身就是一个可执行文件。</li>
+<li>保护器保护器不仅具有压缩功能，还添加了反调试、反模拟、反转储等功能，能够有效保护进程。若想仔细分析保护器，分析者需要具有高级逆向知识。</li>
+</ul>
+<hr>
+<p>这种情况下，DLL代码库被加载到进程内存后，我们可以直接向DLL代码库添加断点。API是操作系统对用户应用程序提供的一系列函数，它们实现于C:Windows\systems32文件夹中的*.dll文件（如kernel32.dll、user32.dll、gdi32.dll、advapi32.dll、ws2_32.dll等）内部。<strong>简言之，我们编写的应用程序执行某种操作时（如各种I&#x2F;O操作），必须使用OS提供的API向OS提出请求，然后与被调用API对应的系统DLL文件就会被加载到应用程序的进程内存。</strong></p>
+<p>在OllyDbg菜单栏中依次选择View（查看）-&gt;Memory（内存）菜单（快捷键Alt+M），打开内存映射窗口。</p>
+<p>如图2-25所示，内存映射窗口中显示了一部分HelloWorld.exe进程内存。在图底部的方框中可以看到，USER32库被加载到了内存。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580980014232-c70e0d2b-fdef-49da-a699-8bee15131fc0.png" alt="QQ截图20200206170645.png"></p>
+<p>图2-25 内存映射窗口</p>
+<p>使用OllyDbg中的Name in all modules命令可以列出被加载的DLL文件中提供的所有API。使用Name in all modules命令打开All names窗口，单击Name栏目按名称排序，通过键盘敲出MessageBoxW后，光标会自动定位到MessageBoxW上，如图2-26所示。<strong>（鼠标右键-&gt;查找-&gt;当前模块中的名称（标签））</strong></p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580980552880-b828333b-e3bd-449f-9b41-9c707f9ec90d.png" alt="QQ截图20200206171538.png"></p>
+<p>图2-26 All names窗口</p>
+<p>USER32模块中有一个Export（输出）类型的MessageBoxW函数（不同系统环境下函数地址不同）。双击MessageBoxW函数后就会显示其代码，它实现于USER32.dl库中，如图2-27所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580981285175-76e21f8e-98db-4fda-9f4f-11bfce570c5d.png" alt="QQ截图20200206172051.png"></p>
+<p>（Windows 10 家庭中文版-2004-19041.21）图2-27 USER32.MessageBoxW代码</p>
+<p>观察MessageBoxW函数的地址空间可以发现，它与HelloWorld.exe使用的地址空间完全不同。在函数起始地址上按F2键，设置好断点后按F9继续执行，如图2-28所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580981434508-ce1a68d6-8a72-41b6-9e4a-eca2ace248e9.png" alt="QQ截图20200206173020.png"></p>
+<p>提示——————————————————————————————————————</p>
+<p>若HelloWorld.exe应用程序中调用了MessageBoxW()API，则调试时程序运行到该处就会暂停。</p>
+<hr>
+<p>与预测的一样，程序执行到MesageBoxW代码的断点处就停了下来，此时寄存器窗口中ESP的值为12FF30（191760），它是进程栈的地址。在右下角的栈窗口中能够看到更详细的信息。</p>
+<p>提示——————————————————————————————————————</p>
+<p>第5章和第7章中将详细讲解函数调用及栈动作原理。</p>
+<hr>
+<p>ESP值的12FF30处对应一个返回地址401014，HelloWorld.exe的main()函数调用完MessageBoxW函数后，程序执行流将返回到该地址处。按Ctrl+F9快捷键使程序运行到MessageBoxW函数的RETN命令处，然后按F7键也可以返回到401014地址处。地址401014的上方就是地址40100E，它正是调用MessageBoxW函数的地方，如图2-21所示。</p>
+<p>上面就是快速查找代码的4种方法，接下来，我们将学习使用调试器更改“Hello World!”字符串。</p>
+<h2 id="2-5使用“打补丁”方式修改“Hello-World-”字符串"><a href="#2-5使用“打补丁”方式修改“Hello-World-”字符串" class="headerlink" title="2.5使用“打补丁”方式修改“Hello World!”字符串"></a>2.5使用“打补丁”方式修改“Hello World!”字符串</h2><p>下面我们将学习如何通过调试器简单修改程序内容。</p>
+<h3 id="2-5-1“打补丁”"><a href="#2-5-1“打补丁”" class="headerlink" title="2.5.1“打补丁”"></a>2.5.1“打补丁”</h3><p>代码逆向分析中，“打补丁”操作是不可或缺的重要主题。利用“打补丁”技术不仅可以修复已有程序中的Bug，还可以向程序中添加新功能。<strong>“打补丁”的对象可以是文件、内存，还可以是程序的代码、数据等</strong>。本示例中，我们将使用“打补丁”技术把HelloWorld.exe程序消息窗口显示的“Hello World!”字符串更改为其他字符串</p>
+<p>提示—————————————————————————————————————–</p>
+<p>其他章节中有更多“打补丁”技术使用示例。</p>
+<hr>
+<p>请记住，我们的目标是把消息对话框中显示的“Hello World!”字符串更改为其他字符串。前面我们已经查找到了调用MessageBoxW的部分和“Hello World!”字符串的地址，这已经算成功了一半。按Ctrl+F2快捷键重新调试，并使调试流运行到main函数的起始地址处（401000）（Ctrl+G-&gt;F2（断点）-&gt;F9-&gt;F2（取消断点））。在401000地址处按F2键设置断点，再按F9执行程序。main()函数的地址401000被用作“大本营”（40104F)后第一个“前进营”，如图2-29所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580982631990-a67cf796-cc8a-4530-bbac-a0f8b223f7b0.png" alt="QQ截图20200206175022.png"></p>
+<p>图2-29main ()函数</p>
+<h3 id="2-5-2修改字符串的两种方法"><a href="#2-5-2修改字符串的两种方法" class="headerlink" title="2.5.2修改字符串的两种方法"></a>2.5.2修改字符串的两种方法</h3><p>下面介绍2种简单的修改字符串的方法。</p>
+<p>①直接修改字符串<strong>缓冲区（buffer）</strong>。</p>
+<p>②在其他内存区域生成新字符串并传递给消息函数。</p>
+<p>以上2种方法各有优缺点，下面分别了解一下。</p>
+<h4 id="1-直接修改字符串缓冲区"><a href="#1-直接修改字符串缓冲区" class="headerlink" title="1.直接修改字符串缓冲区"></a>1.直接修改字符串缓冲区</h4><p>MessageBoxW函数的字符串参数“Hello World!”保存在地址4092A0处的一段缓冲区中，只要修改这段内容，就可以修改MessageBoxW函数显示出的字符串。在Dump窗口中按Ctrl+G快捷键执行Go to命令，在弹出窗口中输入4092A0进入字符串缓冲区。然后使用鼠标选中4092A0地址处的字符串，按Ctrl+E快捷键打开编辑窗口，如图2-30所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580983320683-59e6d171-c0a0-4a01-93f8-a1761dba5589.png" alt="QQ截图20200206180144.png"></p>
+<p>图2-30“Hello World!”字符串</p>
+<p>从图2-30可以看出,Unicode形式的“Hello World!”字符串占据的区域为4092A0-4092B0(Unicode编码中用2个字节表示1个字罗马母)。用新字符串覆写该区域。</p>
+<p>注意——————————————————————————————————————</p>
+<p><strong>若新字符串长度大于原有字符串，执行覆盖操作时可能损坏字符串后面的数据，所以一定要小心。特别是字符串后面有非常重要的数据时，覆盖操作导致数据损坏就会引发程序内存引用错误。</strong></p>
+<hr>
+<p>在弹出的编辑窗口UNICODE文本框中输入“Hello Reversing”字符串（<strong>将保持大小取消勾选</strong>），如图2-31所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580983614233-c860c71e-ddf2-4656-a7bd-adb0a8c9ecc7.png" alt="QQ截图20200206180623.png"></p>
+<p>图2-31更改字符串为“Hello Reversing”</p>
+<p>请注意，<strong>Unicode字符串必须以NULL结束，它占据2个字节(添加NULL时不能直接在UNICODE文本框中进行，而要在HEX项目中添加)</strong>。</p>
+<p>提示——————————————————————————————————————</p>
+<p><span style="color: #F5222D">更改后的字符串“Hello Reversing”的长度要比原字符串“Hello World！”更长一些。原字符串后一般会存在某些有意义的数据，使用更长的字符串覆盖原字符串时，数据可能会遭到损坏，这是十分危险的。本示例中之所以采用更长的字符串覆盖仅仅是为了更好地向大家演示，实际操作中不建议这样做。</span></p>
+<hr>
+<p>再返回main()函数中，如图2-32所示。（还记得第一个“前进营”吧？）</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580983859142-8eb4e241-3beb-48d3-a60c-2150b6cc2465.png" alt="QQ截图20200206181049.png"></p>
+<p>图2-32main()函数中被修改的字符串</p>
+<p>虽然指令保持不变，但原字符串已经被新字符串取代，用作MessageBoxW()函数的参数，并且参数的地址仍为4092A0，只是该地址空间中的内容（字符串）发生了改变。按F9键运行程序后，将弹出图2-33所示的消息窗口，可以看到显示出的新字符串。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580983945540-32220790-73b7-4aef-897d-b17a8e97a116.png" alt="QQ截图20200206181216.png"></p>
+<p>图2-33显示新字符串</p>
+<p>以上就是直接更改字符串缓冲区来修改的方法。<strong>这种方法的优点是使用起来十分简单，但缺点是它对新字符串的长度有限制，新字符串的长度不应比原字符串长。</strong></p>
+<p>提示—————————————————————————————————————–</p>
+<p><span style="color: #F5222D">可执行文件保存字符串时一般会给字符串多留出一些空间，图2-30中的HelloWorld.exe程序就是如此。所以，如果你的运气足够好，使用更长的字符串覆盖原字符串时，即使原字符串后面的部分空间被侵占，程序仍然能正常运行。但是我们不建议大家这样做，随着这些不安定因素逐渐增多，整个系统的稳定性最终会遭到破坏。</span><span style="color: #F5222D">请记住，我们是解决问题的人，而不是制造麻烦的。</span></p>
+<p>———————————————————————————————————————–保存更改到可执行文件</p>
+<p>上面的调试中，我们通过修改字符串缓冲区更改了程序显示的消息内容，但是这种更改只是暂时的，终止调试（即HelloWolrd.exe进程结束）后，程序中的原字符串仍然没有改变。如果想把这种更改永久保存下来，就要把更改后的程序另保存为一个可执行文件。</p>
+<p>图2-31的Dump窗口中，<strong>选中更改后的“Hello Reversing”字符串</strong>，单击鼠标右键，在弹出的菜单中选择Copy to executable file菜单，打开图2-34所示的Hex窗口。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580988932564-23c2d636-d24f-4712-ab1b-886c66b79e6c.png" alt="QQ截图20200206193518.png">图2-34 Copy to executable file</p>
+<p>在弹出的Hex窗口中单击鼠标右键，选择Savefile菜单，在Save file as对话框中输入文件名“Hello Reversing.exe”后保存为.exe可执行文件。然后运行该文件，弹出图2-33所示的消息窗口，显示的字符串已经变为“Hello Reversing”。</p>
+<h4 id="2-在其他内存区域新建字符串并传递给消息函数"><a href="#2-在其他内存区域新建字符串并传递给消息函数" class="headerlink" title="2.在其他内存区域新建字符串并传递给消息函数"></a>2.在其他内存区域新建字符串并传递给消息函数</h4><p>如果要用“Hello Reversing World!!！”替换原字符串“Hello World！”，上述方法就不适用了。此时我们可以换一种方法。</p>
+<p>按Ctrl+F2快捷键重启调试，再按F9运行，由于之前在main()函数的起始地址处（401000）设置了断点，所以调试流自动转到main()函数处。再看一下main()函数，如图2-35所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580982631990-a67cf796-cc8a-4530-bbac-a0f8b223f7b0.png" alt="QQ截图20200206175022.png"></p>
+<p>图2-35 main ()函数</p>
+<p>401007地址处有一条PUSH 004092A0命令，它把4092A0地址处的“Hello World！”字符串以参数形式传递给MessageBoxW()函数。</p>
+<p>向MessageBoxW()函数传递字符串参数时，传递的是字符串所在区域的首地址。如果改变了字符串地址，消息框就会显示变更后的字符串。在内存的某个区域新建一个长字符串，并把新字符串的首地址传递给MessageBoxW()函数，可以认为传递的是完全不同的字符串地址。</p>
+<p>提示上面的想法相当不错，但还要考虑另一个问题：“应该在内存的哪块区域创建新字符串呢?”要想解开答案，需要掌握PE文件格式与虚拟地址（Virtual Address)结构的相关知识，后面章节中会详细讲解。此处任选一块区域即可。</p>
+<p>我们在方法①中修改的<strong>字符串地址为4092A0</strong>，下面再用Dump窗口查看该部分（参见图2-30）。</p>
+<p>向下拖动滑动条，相应内存区域由NULL填充（NULL padding)结束，如图2-36所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580989437050-55c99282-ba94-4151-abb3-f225939af4ab.png" alt="QQ截图20200206194346.png"></p>
+<p>图2-36内存中的NULL填充区域</p>
+<p>这就是程序中未使用的NULL填充区域。</p>
+<p>提示—————————————————————————————————————–</p>
+<p><strong>应用程序被加载到内存时有一个最小的内存分配大小，一般为1000。即使程序运行时只占用100内存，它被加载到内存时仍然会分到1000左右的内存，这些内存一部分被程序占用，其余部分为空余区域，全部被填充为NULL。</strong></p>
+<hr>
+<p>最好将此处用作字符串缓冲区并传递给MessageBoxW函数，用快捷键Ctrl+E向结尾部分适当位置（409F50)写入新字符串（“Hello Reversing World!！”）即可，如图2-37所示。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580989799935-ad9ef3d3-9aba-457f-8547-8becdc676960.png" alt="QQ截图20200206194953.png"></p>
+<p>图2-37“Hello Reversing World!”</p>
+<p>字符串仅进行上述操作无法更改消息框中的字符串。既然已经新建了缓冲区，接下来就应该把新的缓冲区地址（409F50）作为参数传递给MessageBoxW()函数。为此，我们需要在代码窗口中使用汇编命令修改代码。如图2-38所示，将光标置于地址401007处，<strong>按空格键打开Assemble窗口</strong>。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580989940446-9d707ebd-178d-468d-bd36-b07c08ed1815.png" alt="QQ截图20200206195159.png"></p>
+<p>图2-38“Hello Reversing World!!!”字符串地址</p>
+<p>在打开的Assemble窗口中输入“PUSH 409F50”指令，地址409F50为新字符串“Hello ReversingWorld!!！”的<strong>首地址</strong>。<img src="/assets/posts/2-hello-world-1ha53nm/assets/1580990137129-72c0e1a2-853e-4f42-83ba-0cbb05470352.png" alt="QQ截图20200206195525.png"></p>
+<p>提示——————————————————————————————————————</p>
+<p>用户可以在Assemble窗口中输入任何想输入的汇编指令，输入当时就能在代码中体现出来，也可以被执行。这种“在运行过程中动态修改进程代码”的方式正是调试最强大的功能之一。</p>
+<hr>
+<p>在OllyDbg中按F9键运行程序，弹出如图2-39所示的消息窗口。</p>
+<p><img src="/assets/posts/2-hello-world-1ha53nm/assets/1580990168783-edcccc08-a279-4104-80ee-69edf593e7e4.png" alt="QQ截图20200206195600.png"></p>
+<p>图2-39 显示新字符串</p>
+<p>现在，我们就可以修改长字符串了（当然还需要积累更多更准确的基础知识）。</p>
+<p>提示——————————————————————————————————————</p>
+<p><strong><span style="color: #F5222D">若把修改后的代码重新保存为程序文件，可以发现程序无法正常运行，这是由409F50这一地址引起的。可执行文件被加载到内存并以进程形式运行时，文件并非原封不动地被载入内存，而是要遵循一定规则进行。这一过程中，通常进程的内存是存在的，但是相应的文件偏移（offset)并不存在。上面示例中，与内存409F50对应的文件偏移就不存在，所以修改后的程序无法正常运行。若想进一步了解其中原理，需要学习PE文件格式相关知识。学过第13章后就可以理解了。</span></strong></p>
+<hr>
+<h2 id="2-6小结"><a href="#2-6小结" class="headerlink" title="2.6小结"></a>2.6小结</h2><p>大家学到这里都很辛苦了，要想一次性理解前面学的全部内容是很难的，希望各位能够反复阅读、亲自操作。学习C语言编程时，我们总是会从编写Hello World!这个简单的程序开始。同样，学习调试时，我们仍然从它开始调试。希望读者们能够像征服C编程一样征服调试。</p>
+<p>其实，调试在代码逆向分析中占据着非常大的比重，也是最有意思的。希望本书能够为大家传递些许调试的乐趣。</p>
+<h3 id="归纳整理：OllyDbg常用命令"><a href="#归纳整理：OllyDbg常用命令" class="headerlink" title="归纳整理：OllyDbg常用命令"></a>归纳整理：OllyDbg常用命令</h3><table>
+<thead>
+<tr>
+<th>指令</th>
+<th>快捷键</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Step Into</td>
+<td>F7</td>
+<td>执行一条OP Code(操作码），遇到CALL命令时，进入函数代码内部。</td>
+</tr>
+<tr>
+<td>Step Over</td>
+<td>F8</td>
+<td>执行一条OP Code(操作码），遇到CALL命令时，不进入函数代码内部，仅执行函数本身。</td>
+</tr>
+<tr>
+<td>Restart</td>
+<td>Ctrl+F2</td>
+<td>再次从头调试（终止调试中的进程，重新载入调试程序）</td>
+</tr>
+<tr>
+<td>Go to</td>
+<td>Ctrl+G</td>
+<td>移动到指定地址，用来查看代码内存，运行时不可用</td>
+</tr>
+<tr>
+<td>Run</td>
+<td>F9</td>
+<td>运行（若设置了断点，则执行至断点处）</td>
+</tr>
+<tr>
+<td>Execute till return</td>
+<td>Ctrl+F9</td>
+<td>执行函数代码内的命令，直到遇到RETN命令，用于跳出函数体</td>
+</tr>
+<tr>
+<td>Execute till Cursor</td>
+<td>F4</td>
+<td>执行到光标位置，即直接转到要调试的地址</td>
+</tr>
+<tr>
+<td>Comment</td>
+<td>；</td>
+<td>添加注释</td>
+</tr>
+<tr>
+<td>User-defined comment</td>
+<td></td>
+<td>鼠标右键菜单Search for User-defined comment</td>
+</tr>
+<tr>
+<td>Label</td>
+<td>:</td>
+<td>添加标签</td>
+</tr>
+<tr>
+<td>User-defined label</td>
+<td></td>
+<td>鼠标右键菜单Search for User-defined label</td>
+</tr>
+<tr>
+<td>Set&#x2F;Reset BreakPoint</td>
+<td>F2</td>
+<td>设置或取消断点（BP）</td>
+</tr>
+<tr>
+<td>Show the curent EIP</td>
+<td>*</td>
+<td>显示当前EIP（命令指针）位置</td>
+</tr>
+<tr>
+<td>Show the previous Cursor</td>
+<td>0</td>
+<td>显示上一个光标的位置</td>
+</tr>
+<tr>
+<td>Preview CALL&#x2F;JMP address</td>
+<td>Enter</td>
+<td>若光标处有CALLJMP等指令，则跟踪并显示相关地址（运行时不可用，简单查看函数内容时非常有用）</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>快捷键</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>User-defined comment</td>
+<td>鼠标右键菜单Search for- User-defined comment</td>
+<td>查看用户输入的注释目录</td>
+</tr>
+<tr>
+<td>Label</td>
+<td>:</td>
+<td>添加标签</td>
+</tr>
+<tr>
+<td>User-defined label</td>
+<td>鼠标右键菜单Search for-User-defined label</td>
+<td>查看用户输入的标签目录</td>
+</tr>
+<tr>
+<td>Breakpoint</td>
+<td>F2</td>
+<td>设置或取消断点</td>
+</tr>
+<tr>
+<td>All referenced text strings</td>
+<td>鼠标右键菜单Search for- All referenced text strings</td>
+<td>查看代码中引用的字符串</td>
+</tr>
+<tr>
+<td>All intermodular calls</td>
+<td>鼠标右键菜单Search for All intermodular calls</td>
+<td>查看代码中调用的所有API函数</td>
+</tr>
+<tr>
+<td>Name in all modules</td>
+<td>鼠标右键菜单Search for- Name in all modules</td>
+<td>查看所有API函数</td>
+</tr>
+<tr>
+<td>Edit data</td>
+<td>Ctrl+E</td>
+<td>编辑数据</td>
+</tr>
+<tr>
+<td>Assemble</td>
+<td>Space</td>
+<td>编写汇编代码</td>
+</tr>
+<tr>
+<td>Copy to executable file</td>
+<td>鼠标右键菜单Copy to  executable file</td>
+<td>创建文本副本（修改的项目被保留）</td>
+</tr>
+</tbody></table>
+<h3 id="归纳整理：Assembly（汇编语言）基础指令"><a href="#归纳整理：Assembly（汇编语言）基础指令" class="headerlink" title="归纳整理：Assembly（汇编语言）基础指令"></a>归纳整理：Assembly（汇编语言）基础指令</h3><table>
+<thead>
+<tr>
+<th>指令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CALLXXXX</td>
+<td>调用XXXX地址处的函数</td>
+</tr>
+<tr>
+<td>JMPXXXX</td>
+<td>跳转到XXXX地址处</td>
+</tr>
+<tr>
+<td>PUSH XXXX</td>
+<td>保存XXXX到栈</td>
+</tr>
+<tr>
+<td>RETN</td>
+<td>跳转到栈中保持的地址</td>
+</tr>
+</tbody></table>
+<h3 id="修改（Patch）进程数据与代码的方法"><a href="#修改（Patch）进程数据与代码的方法" class="headerlink" title="修改（Patch）进程数据与代码的方法"></a>修改（Patch）进程数据与代码的方法</h3><p>使用OlyDbg的编辑数据与汇编功能。</p>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VA(Virtual Address)</td>
+<td>进程的虚拟地址</td>
+</tr>
+<tr>
+<td>OP code（OPeration code)</td>
+<td>CPU指令（字节码byte code)</td>
+</tr>
+<tr>
+<td>PE(Portable Executable)</td>
+<td>Windows可执行文件（EXE、DLL、SYS等）</td>
+</tr>
+</tbody></table>
+<h2 id="Q-A"><a href="#Q-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><h4 id="Q-我使用的OllyDbg软件的用户界面与书中不同，需要设置某个特别的显示选项吗？"><a href="#Q-我使用的OllyDbg软件的用户界面与书中不同，需要设置某个特别的显示选项吗？" class="headerlink" title="Q.我使用的OllyDbg软件的用户界面与书中不同，需要设置某个特别的显示选项吗？"></a>Q.我使用的OllyDbg软件的用户界面与书中不同，需要设置某个特别的显示选项吗？</h4><p>A.在OllyDbg软件窗口中选择鼠标右键菜单的Appearance选项，可以为OllyDbg设置颜色、字体、高亮等，定制个性化的用户环境。大家可以在本书源文件包OllyDbg.ini文件中看到我使用的设置，也可以直接登录<a target="_blank" rel="noopener" href="http://www.reversecore.com网站下载ollydbg.ini文件./">www.reversecore.com网站下载OllyDbg.ini文件。</a></p>
+<h4 id="Q-OllyDbg软件中，快捷键F4与F9的区别是什么？"><a href="#Q-OllyDbg软件中，快捷键F4与F9的区别是什么？" class="headerlink" title="Q.OllyDbg软件中，快捷键F4与F9的区别是什么？"></a>Q.OllyDbg软件中，快捷键F4与F9的区别是什么？</h4><p>A.首先，两个都是“运行”命令，F9为Run（运行），F4为Run to Cursor（运行到光标处），F9是运行整个程序的命令，而F4仅运行到当前光标所在位置，可以把F4看作断点与F9命令的组合。</p>
+<h4 id="Q-什么是启动函数"><a href="#Q-什么是启动函数" class="headerlink" title="Q.什么是启动函数?"></a>Q.什么是启动函数?</h4><p>A.首先，启动函数（Stubcode)不是用户编写的代码，而是编译器任意添加的代码。编译程序时，不同编译器会根据自身特点添加不同启动函数，**<span style="color: #F5222D">特别是EP代码区域中存在着许多启动函数，它们也被称为启动代码（StartUp code)。</span>**调试程序时，我们不需要仔细分析这些启动函数，但是初学者有必要分清程序中哪些是启动函数，哪些是用户代码。希望大家调试时多看一看这些代码，熟悉后就能轻松区分。</p>
+<h4 id="Q-到底什么是PE文件，为什么要等到后面才讲解？如果不懂得PE文件是否就无法调试？"><a href="#Q-到底什么是PE文件，为什么要等到后面才讲解？如果不懂得PE文件是否就无法调试？" class="headerlink" title="Q.到底什么是PE文件，为什么要等到后面才讲解？如果不懂得PE文件是否就无法调试？"></a>Q.到底什么是PE文件，为什么要等到后面才讲解？如果不懂得PE文件是否就无法调试？</h4><p>A.PE是Portable Executable的简称，它是Windows操作系统下的可执行文件的格式，主要包含了对文件规格的描述，代码逆向分析技术的初学者学习它会感到非常吃力、无趣。所以我们并没有在前面详细讲解，更重要的是先让大家感受到调试的乐趣，然后再一点点地学习。此外，如果不了解PE文件结构的相关知识，将无法进行高级调试。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC2%E7%AB%A0%20%E9%80%86%E5%90%91%E5%88%86%E6%9E%90Hello%20World!%E7%A8%8B%E5%BA%8F/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC2%E7%AB%A0%20%E9%80%86%E5%90%91%E5%88%86%E6%9E%90Hello%20World!%E7%A8%8B%E5%BA%8F/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-06/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC3%E7%AB%A0%20%E5%B0%8F%E7%AB%AF%E5%BA%8F%E6%A0%87%E8%AE%B0%E6%B3%95/" title="第3章 小端序标记法"><img class="cover" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第3章 小端序标记法</div></div><div class="info-2"><div class="info-item-1">第3章 小端序标记法计算机领域中，字节序（Byte Ordering)是多字节数据在计算机内存中存储或网络传输时各字节的存储顺序，主要分为两大类，一类是小端序（Little endian)，另一类是大端序（Big endian)。 3.1字节序如前所言，字节序是多字节数据在计算机内存中存放的字节顺序，它是学习程序调试技术必须掌握的基本概念之一。字节序主要分为小端序与大端序两大类。请先看如下一段简单的示例代码。 代码3-1： BYTE b&#x3D;0x12； WORD W&#x3D;0×1234； DWORD dw &#x3D;0×12345678； char str[]&#x3D;”abcde”; 以上代码中共有4种数据类型，它们大小不同。下面看看同一个数据根据不同字节序保存时有何不同。 表3-1 大端序与小端序的不同    TYPE（类型） Name（名称） SIZE（大小） 大端序类型 小端序类型    BYTE b 1 [12] [12]   WORD w 2 [12][34] [34][12]   DWORD dw 4 [12][34][56][78] [78][56]...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC1%E7%AB%A0%20%E5%85%B3%E4%BA%8E%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" title="第1章 关于逆向工程"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第1章 关于逆向工程</div></div><div class="info-2"><div class="info-item-1">第1章 关于逆向工程1.1逆向工程逆向工程（Reverse Engineering，简称RE）一般指，通过分析物体、机械设备或系统，了解其结构、功能、行为等，掌握其中原理并改善不足之处、添加新创意的一系列过程。 1.2代码逆向工程代码逆向工程（Reverse Code Engineering，简称RCE)是逆向工程在软件领域中的应用，目前还没有准确而统一的术语，实际交流中经常出现混用的情况，常用术语有RCE、RE、逆向工程等，使用起来较为随意。 本书中将统一使用RCE、RE，或为了方便起见，直接使用逆向工程、逆向分析等表达。从个人的喜好来说，我更喜欢使用“分析”或“深入分析”这样的词语，后续内容中将大量出现，因为对软件的逆向工程实质就是对软件进行深入细致的分析。 1.2.1逆向分析法分析可执行文件时使用的方法大致分为两种：静态分析法和动态分析法。 1、静态分析法 静态分析法是在不执行代码文件的情形下，对代码进行静态分析的一种方法。静态分析时并不执行代码，而是观察代码文件的外部特征，获取文件的类型（EXE、DLI、DOC、ZIP等）、大小、PE头信息、Import&#x2F;Exp...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC2%E7%AB%A0-%E9%80%86%E5%90%91%E5%88%86%E6%9E%90Hello-World-%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.</span> <span class="toc-text">第2章 逆向分析Hello World!程序</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-Hello-World"><span class="toc-number">1.1.</span> <span class="toc-text">2.1 Hello World!</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2%E8%B0%83%E8%AF%95HelloWorld-exe%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.2.</span> <span class="toc-text">2.2调试HelloWorld.exe程序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1%E8%B0%83%E8%AF%95%E7%9B%AE%E6%A0%87"><span class="toc-number">1.2.1.</span> <span class="toc-text">2.2.1调试目标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2%E5%BC%80%E5%A7%8B%E8%B0%83%E8%AF%95"><span class="toc-number">1.2.2.</span> <span class="toc-text">2.2.2开始调试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3%E5%85%A5%E5%8F%A3%E7%82%B9%EF%BC%88EntryPoint%EF%BC%89"><span class="toc-number">1.2.3.</span> <span class="toc-text">2.2.3入口点（EntryPoint）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-4%E8%B7%9F%E8%B8%AA40270C%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.4.</span> <span class="toc-text">2.2.4跟踪40270C函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-5%E8%B7%9F%E8%B8%AA40104F%E8%B7%B3%E8%BD%AC%E8%AF%AD%E5%8F%A5"><span class="toc-number">1.2.5.</span> <span class="toc-text">2.2.5跟踪40104F跳转语句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-6%E6%9F%A5%E6%89%BEmain-%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.6.</span> <span class="toc-text">2.2.6查找main()函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3%E8%BF%9B%E4%B8%80%E6%AD%A5%E7%86%9F%E6%82%89%E8%B0%83%E8%AF%95%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">2.3进一步熟悉调试器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-1%E8%B0%83%E8%AF%95%E5%99%A8%E6%8C%87%E4%BB%A4"><span class="toc-number">1.3.1.</span> <span class="toc-text">2.3.1调试器指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-2%E2%80%9C%E5%A4%A7%E6%9C%AC%E8%90%A5%E2%80%9D"><span class="toc-number">1.3.2.</span> <span class="toc-text">2.3.2“大本营”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-3%E8%AE%BE%E7%BD%AE%E2%80%9C%E5%A4%A7%E6%9C%AC%E8%90%A5%E2%80%9D%E7%9A%84%E5%9B%9B%E7%A7%8D%E6%96%B9%E6%B3%95"><span class="toc-number">1.3.3.</span> <span class="toc-text">2.3.3设置“大本营”的四种方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-Goto%E5%91%BD%E4%BB%A4"><span class="toc-number">1.3.3.1.</span> <span class="toc-text">1.Goto命令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E8%AE%BE%E7%BD%AE%E6%96%AD%E7%82%B9"><span class="toc-number">1.3.3.2.</span> <span class="toc-text">2.设置断点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E6%B3%A8%E9%87%8A"><span class="toc-number">1.3.3.3.</span> <span class="toc-text">3.注释</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E6%A0%87%E7%AD%BE"><span class="toc-number">1.3.3.4.</span> <span class="toc-text">4.标签</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4%E5%BF%AB%E9%80%9F%E6%9F%A5%E6%89%BE%E6%8C%87%E5%AE%9A%E4%BB%A3%E7%A0%81%E7%9A%84%E5%9B%9B%E7%A7%8D%E6%96%B9%E6%B3%95"><span class="toc-number">1.4.</span> <span class="toc-text">2.4快速查找指定代码的四种方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-1%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%B3%95"><span class="toc-number">1.4.1.</span> <span class="toc-text">2.4.1代码执行法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-2%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%A3%80%E7%B4%A2%E6%B3%95"><span class="toc-number">1.4.2.</span> <span class="toc-text">2.4.2字符串检索法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-3API%E6%A3%80%E7%B4%A2%E6%B3%95%EF%BC%881%EF%BC%89%EF%BC%9A%E5%9C%A8%E8%B0%83%E7%94%A8%E4%BB%A3%E7%A0%81%E4%B8%AD%E8%AE%BE%E7%BD%AE%E6%96%AD%E7%82%B9"><span class="toc-number">1.4.3.</span> <span class="toc-text">2.4.3API检索法（1）：在调用代码中设置断点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-4API%E6%A3%80%E7%B4%A2%E6%B3%95%EF%BC%882%EF%BC%89%EF%BC%9A%E5%9C%A8API%E4%BB%A3%E7%A0%81%E4%B8%AD%E8%AE%BE%E7%BD%AE%E6%96%AD%E7%82%B9"><span class="toc-number">1.4.4.</span> <span class="toc-text">2.4.4API检索法（2）：在API代码中设置断点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5%E4%BD%BF%E7%94%A8%E2%80%9C%E6%89%93%E8%A1%A5%E4%B8%81%E2%80%9D%E6%96%B9%E5%BC%8F%E4%BF%AE%E6%94%B9%E2%80%9CHello-World-%E2%80%9D%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.5.</span> <span class="toc-text">2.5使用“打补丁”方式修改“Hello World!”字符串</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-1%E2%80%9C%E6%89%93%E8%A1%A5%E4%B8%81%E2%80%9D"><span class="toc-number">1.5.1.</span> <span class="toc-text">2.5.1“打补丁”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-2%E4%BF%AE%E6%94%B9%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%9A%84%E4%B8%A4%E7%A7%8D%E6%96%B9%E6%B3%95"><span class="toc-number">1.5.2.</span> <span class="toc-text">2.5.2修改字符串的两种方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E7%9B%B4%E6%8E%A5%E4%BF%AE%E6%94%B9%E5%AD%97%E7%AC%A6%E4%B8%B2%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">1.5.2.1.</span> <span class="toc-text">1.直接修改字符串缓冲区</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%9C%A8%E5%85%B6%E4%BB%96%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E6%96%B0%E5%BB%BA%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%B9%B6%E4%BC%A0%E9%80%92%E7%BB%99%E6%B6%88%E6%81%AF%E5%87%BD%E6%95%B0"><span class="toc-number">1.5.2.2.</span> <span class="toc-text">2.在其他内存区域新建字符串并传递给消息函数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-6%E5%B0%8F%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">2.6小结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%92%E7%BA%B3%E6%95%B4%E7%90%86%EF%BC%9AOllyDbg%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-number">1.6.1.</span> <span class="toc-text">归纳整理：OllyDbg常用命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BD%92%E7%BA%B3%E6%95%B4%E7%90%86%EF%BC%9AAssembly%EF%BC%88%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%EF%BC%89%E5%9F%BA%E7%A1%80%E6%8C%87%E4%BB%A4"><span class="toc-number">1.6.2.</span> <span class="toc-text">归纳整理：Assembly（汇编语言）基础指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%EF%BC%88Patch%EF%BC%89%E8%BF%9B%E7%A8%8B%E6%95%B0%E6%8D%AE%E4%B8%8E%E4%BB%A3%E7%A0%81%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-number">1.6.3.</span> <span class="toc-text">修改（Patch）进程数据与代码的方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Q-A"><span class="toc-number">1.7.</span> <span class="toc-text">Q&amp;A</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Q-%E6%88%91%E4%BD%BF%E7%94%A8%E7%9A%84OllyDbg%E8%BD%AF%E4%BB%B6%E7%9A%84%E7%94%A8%E6%88%B7%E7%95%8C%E9%9D%A2%E4%B8%8E%E4%B9%A6%E4%B8%AD%E4%B8%8D%E5%90%8C%EF%BC%8C%E9%9C%80%E8%A6%81%E8%AE%BE%E7%BD%AE%E6%9F%90%E4%B8%AA%E7%89%B9%E5%88%AB%E7%9A%84%E6%98%BE%E7%A4%BA%E9%80%89%E9%A1%B9%E5%90%97%EF%BC%9F"><span class="toc-number">1.7.1.</span> <span class="toc-text">Q.我使用的OllyDbg软件的用户界面与书中不同，需要设置某个特别的显示选项吗？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q-OllyDbg%E8%BD%AF%E4%BB%B6%E4%B8%AD%EF%BC%8C%E5%BF%AB%E6%8D%B7%E9%94%AEF4%E4%B8%8EF9%E7%9A%84%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.7.2.</span> <span class="toc-text">Q.OllyDbg软件中，快捷键F4与F9的区别是什么？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q-%E4%BB%80%E4%B9%88%E6%98%AF%E5%90%AF%E5%8A%A8%E5%87%BD%E6%95%B0"><span class="toc-number">1.7.3.</span> <span class="toc-text">Q.什么是启动函数?</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q-%E5%88%B0%E5%BA%95%E4%BB%80%E4%B9%88%E6%98%AFPE%E6%96%87%E4%BB%B6%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%AD%89%E5%88%B0%E5%90%8E%E9%9D%A2%E6%89%8D%E8%AE%B2%E8%A7%A3%EF%BC%9F%E5%A6%82%E6%9E%9C%E4%B8%8D%E6%87%82%E5%BE%97PE%E6%96%87%E4%BB%B6%E6%98%AF%E5%90%A6%E5%B0%B1%E6%97%A0%E6%B3%95%E8%B0%83%E8%AF%95%EF%BC%9F"><span class="toc-number">1.7.4.</span> <span class="toc-text">Q.到底什么是PE文件，为什么要等到后面才讲解？如果不懂得PE文件是否就无法调试？</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

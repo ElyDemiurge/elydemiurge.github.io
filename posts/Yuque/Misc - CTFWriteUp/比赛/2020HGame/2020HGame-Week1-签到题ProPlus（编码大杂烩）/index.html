@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2020HGame-Week1-签到题ProPlus（编码大杂烩） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2020HGame-Week1-签到题ProPlus（编码大杂烩） 打开附件：   Three fenses first, Five Caesar next. English sentense first,  zip password next.  JRFVJYFZVRUAGMAI 题目中提示：【拼写错误修正】fenses -&gt; fences  Three fences first, Fiv">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2020HGame-Week1-签到题ProPlus（编码大杂烩）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-%E7%AD%BE%E5%88%B0%E9%A2%98ProPlus%EF%BC%88%E7%BC%96%E7%A0%81%E5%A4%A7%E6%9D%82%E7%83%A9%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="2020HGame-Week1-签到题ProPlus（编码大杂烩） 打开附件：   Three fenses first, Five Caesar next. English sentense first,  zip password next.  JRFVJYFZVRUAGMAI 题目中提示：【拼写错误修正】fenses -&gt; fences  Three fences first, Fiv">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-05/800/450">
+<meta property="article:published_time" content="2020-02-01T13:18:10.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.009Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-05/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "2020HGame-Week1-签到题ProPlus（编码大杂烩）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-%E7%AD%BE%E5%88%B0%E9%A2%98ProPlus%EF%BC%88%E7%BC%96%E7%A0%81%E5%A4%A7%E6%9D%82%E7%83%A9%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-05/800/450",
+  "datePublished": "2020-02-01T13:18:10.000Z",
+  "dateModified": "2026-07-03T14:46:15.009Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-%E7%AD%BE%E5%88%B0%E9%A2%98ProPlus%EF%BC%88%E7%BC%96%E7%A0%81%E5%A4%A7%E6%9D%82%E7%83%A9%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2020HGame-Week1-签到题ProPlus（编码大杂烩）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-05/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">2020HGame-Week1-签到题ProPlus（编码大杂烩）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">2020HGame-Week1-签到题ProPlus（编码大杂烩）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-01T13:18:10.000Z" title="发表于 2020-02-01 21:18:10">2020-02-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.009Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">416</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>2分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="2020HGame-Week1-签到题ProPlus（编码大杂烩）"><a href="#2020HGame-Week1-签到题ProPlus（编码大杂烩）" class="headerlink" title="2020HGame-Week1-签到题ProPlus（编码大杂烩）"></a>2020HGame-Week1-签到题ProPlus（编码大杂烩）</h1><p><img src="/assets/posts/2020hgame-week1-proplus-peyvxi/assets/1580563127357-deb47cd8-b59a-416b-85d3-4ae4d02c1bd9.png" alt="QQ截图20200201211835.png"></p>
+<p>打开附件：</p>
+<p><img src="/assets/posts/2020hgame-week1-proplus-peyvxi/assets/1580563184425-c5b528bd-eff6-4591-b36e-e2d167f32c4d.png" alt="QQ截图20200201211915.png"></p>
+<ul>
+<li>Three fenses first, Five Caesar next. English sentense first,  zip password next.</li>
+</ul>
+<p>JRFVJYFZVRUAGMAI</p>
+<p>题目中提示：<span style="color: #303133">【拼写错误修正】fenses -&gt; fences</span></p>
+<ul>
+<li>Three fences first, Five Caesar next. English sentense first,  zip password next.</li>
+</ul>
+<p>JRFVJYFZVRUAGMAI</p>
+<hr>
+<p>fence-&gt;栅栏-&gt;栅栏密码</p>
+<p>Caesar-&gt;凯撒-&gt;凯撒密码</p>
+<hr>
+<p>我的愚蠢想法：</p>
+<p>三次栅栏密码，五次凯撒密码</p>
+<p>解密吧，能解出来才怪！</p>
+<hr>
+<p>wp的正确想法：</p>
+<p>栅栏密码的解密key&#x3D;3，凯撒密码的解密key&#x3D;5。</p>
+<p>分别对两句话解密：</p>
+<p><span style="color: #111111">Many years later as he faced the firing squad, Colonel Aureliano Buendia was to remember that distant afternoon when his father took him to discover ice.</span></p>
+<p><span style="color: #111111"></span></p>
+<p><span style="color: #111111">EAVMUBAQHQMVEPDT</span></p>
+<p><span style="color: #111111"></span>第⼀⾏是完整的英语句⼦（《百年孤独》英⽂版第⼀句），⽽解压密码为EAVMUBAQHQMVEPDT。成</p>
+<p>功得到OK.txt。</p>
+<p>打开文档：</p>
+<p><img src="/assets/posts/2020hgame-week1-proplus-peyvxi/assets/1580563804547-298f6b6d-11b8-4335-9748-d271f2d2b8b4.png" alt="QQ截图20200201212948.png"></p>
+<p>真熟悉：Ook密码（况且开头有提示：data:text;ook,）</p>
+<p><a target="_blank" rel="noopener" href="https://www.splitbrain.org/services/ook">https://www.splitbrain.org/services/ook</a></p>
+<p>解密得到：</p>
+<p>data:text;base32,NFLEET2SO4YEWR3HN5AUCQKBJZJVK2CFKVTUCQKBKFIUCQKBIVCUGQKZIFAUCRCPINCW6S2BIFAU6V2VNRCVCVSSGRXE6MTBKM3DIRKOO53UIMZPGB3DOV3ZINJVOOCHMNCTQ33LMJFXEQKPHBQSW3CBKNLC6MRTIFAUIKZVMM4WIQKBIRVWOQ2FIF3UCY2NIFIUCK2ZIFTUCOCBIZCECSKBKBDUCSKBMZGUCUKBJ5AUI2DHIFAUQN2ZJU2GKL3WNIXWINBQM5CTANJZOZHG2YLYLJQW6L2KMIYXGM3YJMYFIVRWK52G25LNMFYGMYKZF5GFUMKRHF3TMY2WLBQXC4DNOVLVO4KQPFLTSYSOHBJXIRJRMVWHEWTSOBWXCWBSNVIHSMTEKVIGGT3OIZLDE4LRLJZGY3DRNI4GY5SXPJTEK4SSJZMHAYJSME3FU4LMHFYGUODUNZLEIM2EOB4FMZDROFWWCNK2MFXS6STCGFZTG6CLGBKFMNSXORWXK3LBOBTGCWJPJRNDCUJZO43GGVSYMFYXA3LVK5LXCUDZK44WETRYKN2EKMLFNRZFU4TQNVYVQMTNKB4TEZCWJ5FU66BRNRXHON2OJRAXGVLVOR5HGTCJMJ3XMNLNFNVUE2SDFM3XC3LHPFCVKTLOGBUE2WKUGNSFKMCIKF4WQ2ZLNNFGSQ2PF5ZG2ZZWI5KU22RQNBRVCUJTORRTCSCRPFUGWT3LJRUVGRZYOIZHGNSHIVEWQMDYMNJVCM3IMYYTGULXNBCUW3KMPFJUOOCMGZ2TMV2BJFUFK6DGKNAXU2DGKYZVIR2XHBEXCULUGBIXAOCPPJLEU6BXKVRDGRCPKI4WI2LEJZDGMYKFKBUDEYLQMVGGC2TFGRNHSUDWONKHA33RG5AWYOKPNJJEY6DCKVRDGVCPKE4TS3LEJZDFQWKFF5YDAYKKMFFWC6TFGZNHSRDWON5HI4DROJAW4OKPNZIUYQSYLBRG4VCQKFHDK3TEHFFFKWKVF5XTANSGLJFXCN3EGZFDMQTWJUXXK4CLNZBW45CDNZITOTSVLBGHMUSQKFHDK3RZGFFFKNCVHFXVKK2ILJYW2NDEOFHDOQTWJEVXKNKPNVBW45CDNZ3TOTSVNZEHIUTWMNGTKSBRGJFDAMCWHFXVCK2ILJYWYNDUOFHDO2DOJEVSW6CPNVUXC43VNM4TC6TUKJDGGMTJNVZEMODEJQZVMTZSGMYTESRQGBLFM5BSNZHW2ZTRN5VGWMCVHFQXM2TQMM3HAKZQFN2TKT3NINYXM5KVGUYHUZDEIVRW22LOOJLDQZCMNZSE4MTOHEYUUVJUKZLDSNTOJ5WWE4DPIRZTEVJZMF3GU4DDGVYHKOBPOVYEW3SDOF3HIVJVGB4GITSJMRWXS5TSKY4FMTDOORHDC3TEHFFFKWLEKY4XC3SPNVGHA4CEJUZFQOJWNZUXAYZZOJ2XG6TUOBYXERDRKB2FKNKVPBTE4322NV4WM3SXHAYUI3DUHE4W2ZCOIZLFSZC2F5YW4S3NJQ2XIQSNK5RDQNSYOVYWG5DWOZZVI4DPOFZEY4CQMRRTOVKSLBHG64DRPBTEQUZZGFKHI5BZMRUWITSGKZRGI4D2OBXDM4KJGVHEMUCXOI2DMWCPOFTHIUDSOVKHAZ3SOI3HMTKXPBUDSSZWJY2WSQ2CNJBVGTKZMZJXK2TFLFTWOWLXNNVEOSBQOJXTG3KJJFDU2SSJPBUDSSZWJY2WSQ2CNJBVGTKZMZJXK2TFLFTWOWLXNNVEOSBQOJXTG3KJJFDU2SSJPBUDSSZWJY2WSQ2CNJBVGTKZMZJXK2TFLFTWOWLXNNVEOSBQOJXTG3ZUGNUEOULDM4YG6MKOIRMGIZCTKZZG6UKSIRFUCUSEOFAU4RDRIFDEIS2BKJCHCQKOIRYUCRSEJNAVERDRIFHEI4KBIZCEWQKSIRYUCTSEOFAUMRCLIFJEI4KBJZCHCQKGIRFUCUSEOFAU4RDRIFDEIS2BKJCHCQKOIRYUCRSEJNAVERDRIFHEI4KBIZCEWQKSIRYUCTSEOFBUQYKFI42TKM2ZJZ4UOSLDPFLHESTNOQ3XU5DFKNFHK2TCNFYHGWDCNJFVOTLMMEZWETBSGU2G4NDUMFEW26DQOJHDKNDZKZZEU3LUG55HIZKTJJ2WUYTJOBZVQYTKJNLU23DBGNREYMRVGRXDI5DBJFWXQ4DSJY2TI6KWOJFG25BXPJ2GKU2KOVVGE2LQONMGE2SLK5GWYYJTMJGDENJUNY2HIYKJNV4HA4SOGU2HSVTSJJWXIN32ORSVGSTVNJRGS4DTLBRGUS2XJVWGCM3CJQZDKNDOGR2GCSLNPBYHETRVGR4VM4SKNV2DO6TUMVJUU5LKMJUXA42YMJVEWV2NNRQTGYSMGI2TO3RZOBTHOQ3TMN3WYYSVGUVW4VDQIFTCWQTVNNKWWSDXINDUCTRZIEZVGS2TIR3UERDHI4VWOYTIJBFEENCBNB3UIZCROQ2GU22BHBAVCNCCOVXVOMCUPFAVOQKJHBATGVKMKNGDKQKEIFCSWQLCOFDHARRYIFBGOQ3GIFHDC2JQM4VUCQLXIJ3HISBLOAVUUMSZLFRGYU2GGFQWYN3CMRSWU2DJJJSTSMRZGU3HI2CTJBMSWMKUK42WK2CUK5NHG2SWOZFHKZBLF5NFO2DJIN3FKOLMLBMTIK3MMJKTKWLJLB3GI5TFMVZFSVLIGJIHIVJROVMG6VJRNVRESMLCPFRG4ZTWGJLG6WLHOIYVAWSWGJHVA4CXGFHVOSLMG4ZWEM3OOEZEMSLENI3VMTTCNQ3EMTS2NV4U4VZYNU2TGNZZNRQUOSKLHFKDEVTENJVDMVTUKRWGSSTFHEZDSNJWORUFGSCZFMYVIVZVMVUFIV22ONVFM5SKOVSCWL22K5UGSQ3WKU4WYWCZGQVWYYSVGVMWSWDWMR3GKZLSLFKWQMSQORKTC5KYN5KTC3LCJEYWE6LCNZTHMMSWOBUVCMKEI5UWQWLUHFDEEY3FNZKDGMCKGFIG4VCOKZZTOVLXNBFDSSKYKRJVQSDUGA4WIT3EKQ2TA6SWMJBTATJUKNSFGRRYGJWFEM3DKAZWM3SVJ5LE2MKXO52EIK2JNZKVEWCQOAYGIMKEMR5DKML2NRKE4MLTJFIWM2KKGEYFM6BWMRIGMULOKUVWITJRK55HIVCDIVXDA2DEJZFGGZJTKQYTANJRKBXFITSWONGFC6TIJIYUSWD2MFLEQZDXF5SCWZCRGVKXUVTCIMYFANDJMRJEMYZLNZJDGVKOGNIG4WCPKZGTGV3XNBBCWSLOLBJFQSDQGA4TSQ3EKQ2TA6SWMJHTCTTHGFBFGZSLM5GECTLXGVEFE33QON5FUSCXOVMEKM2ZIRIXS2BWIRVDEVKKJUVXATZZLF2UUK3XI5UGYRBQJBEG632TLI2VIZBWPBSFI5DHJZCEWSDPJ5TFEULLNJ4W4N3MNE3W4TCBMJDUKTCSMMVWS2CKJBWE6M3CIYZE6V2FGNGUSU3JGU4UERCTMZFWG5LNKB2GG42KOVMUC2CGPI3EOSDLOVITKZDDMZQTKWKUMR3UEQ2LNZVU2UCKMNWHUNTPGYYXS53NG5TVGRKVKBMWGZKTOBGG4MKCGFZGY6COGJATATLPMVTTIOLMINKFA4KUOZLUY2LGONJHM5LWPE4XKRTIKI3UWYTNGNFHAR3RMJXEITRRPJ5EGRKJLFHEWSTMLBRDKSTZOBSTIWLIIRBGYVKNOFXGCSTVMRGTGVCNJVMWG2LHNNVW4VSONJWG4NTQGVUEGRKNI5WFK6LRORZWWNKVF5RU2ULYM54XCR2SKN2FKM2PNVRHA3SHJVFVCUKTK5KHC3JRPF5HIUJZO54EGR2EINYVUVSHGJKGGNTCOVDVSWLXLJDEISTQI5YWE3SEJYYXU6SDIVEVSTSLJJWFQYRVJJ4XAZJTMFHESVDIKE4XA3JYGNATM22TPB2DQ6CFN53UERCNLFIWQMCZO5XHG52CIRGVSULIGBMXO3TTO5BEITKZKFUDAWLXNZZXOQSEJVMVC2BQLF3W443XIJCE2WKRNAYFS53OON3UERCNLFIWQMCZO5XHG52CIRGVSULIGBMXO3TTO5BEITKZKFUDAWLXNZ2GSRCVJBNGORCMK5BWGZDQI5MHA332NBHTAVSXJNNFKM3DIR4WY2JXHBJHQRCUGE3WCMKKO5XGCS3WIVGXCZTVIJYFG6DEOVGTK2DQGY4HIS3LGVKDSQSXNFLVMTZTKEYG6WJLGNDWG53XHFSVO3CUMM2TMZ3SKJGEY3SMN5RFKTLCMFVGKY2ZMV3EYU3QOVMTQUKWONWGY2TMGFHDMQ2NORJHMUCNMZKGW4CVGNHGKWKLGJJWS6D2GZWTKQKHK5ZTG3TNKBXXSVLVMJWXMTKFMJNFMWJVORKGIZ2EJRLWE2T2JAYEUT2YJZVFQ3SDMRXXC43DPFYHK52GNRZE4MJUNJYUK3SMGIYXC6TIJ4YFMV2LLJKTGY2EPFWGSNZYKJ4EIVBRG5QTCSTXNZQUW5SFJVUWI3CZMQYU43TQIJKHSWCUJZWE2Z2QKJQXQSBWOA2WQQ2FJVDTCWRTKRXVU22TFNQUOSJZKVVGITLXPBUHSS2DGZRXU3ZQKV4USL2GJRCWK4KYOVDUSULXLJLEQZCPNAZFUSZVJFRWSMLJJYYXU6SDIVEVSUDRPJ2W4UKUJFXDQVKNKI3HATZULJUGUQTLKVHDANKILJXXA22SFNFVOSJPKVIGGTKRNBTXS4KPGZSEITLZLB4VC6CIOJVWE4DOI5GUWUKRLBMG4ZCHNFWVESBUN5MWUMKTHF3XQRCHIRFW6N3QO5HXUWSUJFCDAV3TKIVXCZKZKFUEIQTUK5SDANSHLJCXM3LINFIFMSJTMJIDEWBVMRIEKTZSI5XE23RRMQ4WKMKXHFZVET3BLBBE2SKSNJRWSYSYMY4DC6CZM5TVSULLOJHTKUDROZHVKNCNIFKU4SLZLJWGGL32LBEGSU2GM5BUG2ZVNMVXKLZVNJTXQQSBO5UEUV3EPEXWIY3DJI2GCQKJMFKGWVCLG4XW25KQIVCUIQ2FNRFHUSRZKY4XU3SCM5BWQ4CDKNGTO3RLME2DI6RRKJBW2RBYOJ4EQUCVNY2SW6LVGY2FGWSPHBAVC2DJPJEDSST2MRSFUMDXMN3WGWLXOBCGY3KKGZ5HKNRUKRNHKNCBKF4GS6KIJZHHUZDUMQYXO43XMRMUC2CENRWU4NT2OU3DMVDQNE2UC53YNB4UQSSNPI4WYZBRO5VXUZBUIFUEIRTNJ43FI3JXGZ5HA2BVM42HO2CDJBGE2VBRNZSDCMDOPJHHOQTINJBGWT3BMJXDOSZXOJUEU2ZXO5BEGR2MJVTDA3SOGEYW4VCCPJBDKNTTIY4EG2JPKZRGENKQOBKDMM3RGFITIVZRLBTTERZYIZ2HI2ZLORIHEULUIRBUCQSEFNFTEMTZMZLW4MLPKVUEESKBNAXUMYTCGVIHAVBWHBEVCQLTIFIWM4LUORRXMMTQMRLUKSKBK5AUS5RZKUZHKZRXKV2WUQ2FIFCEGRJTGJYWEWCIHFYVQUTIINAUE2SDMI3VMTTSNIVTCTDHO5UECQL2NB2DS33NGE2TSYLMHF3VC3CNJU4DIWCWOI2XGQSSNUYE4L3EK4ZHAYRXOZIEOOCSO5UU642ZOBUEUSDCKE3TSMLCK5WHM5JQFNRHQRCEJFQTK2TNIVXWG5CUNYYFMOLFK4VXEYRXOZCUKTLIG5UU6WKTOB4DCT3CKFMDCMLCGZ2HM5JYO5MXQSCPJE3GQ4LOIVKVU5CEMYZVM5DRK4VTO6TYOZCWGSLKOJDUWWKTKIZDATZPMRLTC4DCG52FA3JYKF3XSR3VLE2WQS2IJRKTKOKGMZMGY5TRGIVTO6CCIREWKNDKNVCXCY3EKRWTARRZMRLSW4TCG53E2R2NKJ5GST3PMFYHQRSHMJITGOJRMJQWY5TVHA4GE6CIINETM6DJNVCWWZDUIR3DGVTUMFLSWN2UGRSDI4LBKNSWOVDRFNUDANLVGJHXA5KVKV5EIT2FIJUG4RCXMNUXKNKSKRGU2NCRI5DWGTS2PFFTO3CGJV3XU2CBLFNHOMLOJFZHKVKVPJCE6RKCNBXEIV3DNF2TKUSUJVGTIUKHI5RU4WTZJM3WYRSNO55GQQKZLJ3TC3SJOJ2VKVL2IRHUKQTINZCFOY3JOU2VEVCNJU2FCR2HMNHFU6KLG5WEMTLXPJUECWK2O4YW4SLSOVKVO6TENNHFCTDNGN4WG2LUPJYXK5BTMFFHIYLGG5FG2M3GOF3GQU2HKU4WC3SNOFQTOZTPK4YXCL3DNVQWIZLVF5DG6WSRGFYWG6LQG5YCW2BXMFYDSU3EOIYXCMZPK5UGQQ2XLIXUW3SPOI3EQZDRNUYXAK3TK5RGMK3BGJCUSWSYGBYWGNTSOJSDE2LCK5XCW6K2OQZTM4RUKVUGYUCXOB5EW3LVGM3EM5DBOYZUU3LOLBZHM6DBI5KU4YLOJVYWKNTGN5STE4LGKVXGCOLBOQXTC32ZKFWG2ZTZOB5HCK3IGNQXA5DBMZZEM3JTF5WXI2CDI5LDSS3OJ5YTMM3EN5WTC4BPONWWEZBLOEVUMSLEIRXHOS3DNNSWKWKPJVAVINSIKBSVKSSNF5RUCWK2IFXCWT3FNN2VGWSPHBAVCNSIKBRVKNKJHBRXOY2ZIFXDET3FGBYVGWRLGRAVCNSEKBRVKOKKHBZXOZCZIFVDAT3FGRYFGWRWGVAXO6KCKBZWGOKKMNVXUZBUIFUDAT3FGRYHSURVGVTTI52CKBXWGOJVKFVXUOLXIJUGYRCVLJ5EY5LHFM3FS4BSOMZXQ5TGLJXFIUSWK5EFOZTZMJTU6ZLGKNUDGTSKNZSDSSSVLFSFMOKKOVGTMNKOI5EGG23VMYZVK3CUNBLFQM3NLF5HE22FMNTHS2JRHFSGSZCOIZLGEZC2PJFXKULYGU4UWTDGGAZFUMBQKZLGQMLOHBWTIRDONYYG6ZD2KNNDGZSTKZDUQVTGKNRGUT3VKRJGQM2KJRXDSMKKKU2FMVRZGVWU2NRVIJEEQODPORTFQWLOKRJFMVZTK5RXS4TLJVSWMU3JGM4U43LEJZDFMWLELIXUU5KBGU2TSS2IMMYHCY3KMFJXC4DHGNEWMWKOOJZDC3RLLBCSWNCFKEZWSULVOBCHKQJQPA3TGZTSOZRXGS3ELFAWOUCVNBTFGZSZIJYHEMLWF5MFKNRUIV3XU2CRMVYEG5LHHB3TOWCYOJ3DQ42KMQ2ES2CQIVUGIU2QMNBHA4RROUXVQYZVGRKTI53IIFSXAQZLNMVXOTCULBZGMODVJI4XOSTIOZAWOZCTJBSEENLKGJ2XMWDGGVMVCN3XKJAWK4CDGZVSW52EKRMHEZRLOU2XQ52KPBVEGZZZKNDGIQRZM4ZHK5SXMY2WGVBXNNJHCQ2MMM4HAV22JN2W45BQGFSWE3ZYGVYWGM2ZK5SDQSSTMFFVQRLTNNFU2MSSGUXVQNKPO52TOSKTNYYUK6KKLE2EKY3UKRXDM5SDLJXGIMSFNZIEWVTNKNUHOTBVJNVE4MDFMMYU6YTTJRHSWRLQJZLFA2KXINBEQYSZGQVXEODOLJMGIZ2KKQ3G2WSFONRUGT2XOB5DSSDMJZ5HKN2DKRXGQS32LJITIRTTNBJG2NSQKBQTGSRSIYZWEQ2VGJYW26CMIZAWU5DPMNTFMNSUOM3XK52FGU2VGTLZK5HUEWCMKU2XK2T2NVYHUZDILIZXO3CKN5YGGU3ZKFXXUWSINY4WM2ZTKA2FGQKJGREFC52DIFCHQZ2DIFEHUQKFIFCGOQJULFAUCQRYO5BECRBUM5BUKQLXIFRU2QKRIEVVSQLHIE4ECRSEIFEUCUBPO5AUM3ZQNBKVU4TIGFWUCQKBIFAUESSSKU2UK4TLJJTWOZZ5HU&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</p>
+<p><span style="color: #111111">提示是base32，解密得到：</span>iVBORw0KGgoAAAANSUhEUgAAAQQAAAEECAYAAADOCEoKAAAOWUlEQVR4nO2aS64ENwwD3&#x2F;0v7WyCSW8GcE8okbKrAO8a+lASV&#x2F;23AAD+5c9dAADkgCEAwAcMAQA+YAgA8AFDAIAPGAIAfMAQAOADhgAAH7YM4e&#x2F;vj&#x2F;d40gE059vNmaxZao&#x2F;Jb1s3xK0TV6WtmumapfaY&#x2F;LZ1Q9w6cVXaqpmuWWqPyW9bN8StE1elrZrpmqX2mPy2dUPcOnFV2qqZrllqj8lvWzfErRNXpa2a6Zql9pj8tnVD3DpxVdqqma5Zao&#x2F;Jb1s3xK0TV6WtmumapfaY&#x2F;LZ1Q9w6cVXaqpmuWWqPyW9bN8StE1elrZrpmqX2mPy2dVOKOx1lnw7NLAsUutzsLIbwv5m+kBjC+7qmgyEUMn0hMYT3dU0HQyhk+kJiCO&#x2F;rmg6GUMj0hcQQ3tc1HQyhkOkLiSG8r2s6GEIh0xcSQ3hf13QwhEKmLySG8L6u6WAIhUxfSAzhfV3TGW8IqQt0Qp8OzVJx7Ub3DOR9didNFfaEPh2apeLaje4ZyPvsTpoq7Al9OjRLxbUb3TOQ99mdNFXYE&#x2F;p0aJaKaze6ZyDvsztpqrAn9OnQLBXXbnTPQN5nd9JUYU&#x2F;o06FZKq7d6J6BvM&#x2F;upKnCntCnQ7NUXLvRPQN5n91JU4U9oU+HZqm4dqN7BvI+u5OmCntCnw7NUnHtRvcM5H12J00V9oQ+HZql4tqN7hnI++xOmiqsuk91ztRFc2imrF8dL3VO2312J00VVt2nOmfqojk0U9avjpc6p+0+u5OmCqvuU50zddEcminrV8dLndN2n91JU4VV96nOmbpoDs2U9avjpc5pu8&#x2F;upKnCqvtU50xdNIdmyvrV8VLntN1nd9JUYdV9qnOmLppDM2X96nipc9rusztpqrDqPtU5UxfNoZmyfnW81Dlt99mdNFVYdZ&#x2F;qnKmL5tBMWb86XuqctvvsTpoqrLpPdc7URXNopqxfHS91Ttt9didNFVbdpzpn6qI5NFPWr46XOqftPruTpgrr6vMWxh9K6N5iCBjCSMYfSujeYggYwkjGH0ro3mIIGMJIxh9K6N5iCBjCSMYfSujeYggYwkjGH0ro3mIIGMJIxh9K6N5iCBjCSMYfSujeYggYwkjGH0ro3o43hGQcg0o1NDXddSVroQRDKARDqANDqAFDKARDqANDqAFDKARDqANDqAFDKARDqANDqAFDKARDqANDqAFDKARDqANDqAFDKARDqANDqAFDKARDqANDqAFDKARDqANDqCHaEG553YNyGIcyVrJmt7zteSJujbipsXbjKWMla3bL254n4taImxprN54yVrJmt7zteSJujbipsXbjKWMla3bL254n4taImxprN54yVrJmt7zteSJujbipsXbjKWMla3bL254n4taImxprN54yVrJmt7zteSJujbipsXbjKWMla3bL254n4taImxprN54yVrJmt7zteSJujbipsXbjKWMla3bL257n9pfwCscwlbU5+nTpAf+BukUkHwCGAN9A3SKSDwBDgG+gbhHJB4AhwDdQt4jkA8AQ4BuoW0TyAWAI8A3ULSL5ADAE+AbqFpF8ABgCfAN1i0g+AAwBvtH+p+J2YYblSF1al7bdejhiJe92956thSHY+1TW5ehTWZsjVvJud+&#x2F;ZWhiCvU9lXY4+lbU5YiXvdveerYUh2PtU1uXoU1mbI1bybnfv2VoYgr1PZV2OPpW1OWIl73b3nq2FIdj7VNbl6FNZmyNW8m5379laGIK9T2Vdjj6VtTliJe92956thSHY+1TW5ehTWZsjVvJud+&#x2F;ZWhiCvU9lXY4+lbU5YiXvdveerYUh2PtU1uXoU1mbI1bybnfv2VpiQ1DGihYt9FBcenT30J1PnTNVs7UwhJ9IXTSXHt09dOdT50zVbC0M4SdSF82lR3cP3fnUOVM1WwtD+InURXPp0d1Ddz51zlTN1sIQfiJ10Vx6dPfQnU+dM1WztTCEn0hdNJce3T1051PnTNVsLQzhJ1IXzaVHdw&#x2F;d+dQ5UzVbC0P4idRFc+nR3UN3PnXOVM3WwhB+InXRXHp099CdT50zVbO1Ng1BSfKgLAMw5HRopszZHWuXE3YDQyh6Dj2UJM+pO9YuJ+wGhlD0HHooSZ5Td6xdTtgNDKHoOfRQkjyn7li7nLAbGELRc+ihJHlO3bF2OWE3MISi59BDSfKcumPtcsJuYAhFz6GHkuQ5dcfa5YTdwBCKnkMPJclz6o61ywm7gSEUPYceSpLn1B1rlxN2A0Moeg49lCTPqTvWLifsRvuvy9uFhR7Kbm3JpGqbnDN1zzCEIYNKJlXb5Jype4YhDBlUMqnaJudM3TMMYcigkknVNjln6p5hCEMGlUyqtsk5U&#x2F;cMQxgyqGRStU3OmbpnGMKQQSWTqm1yztQ9wxCGDCqZVG2Tc6buGYYwZFDJpGqbnDN1zzCEIYNKJlXb5Jype3aNIThQ9pm83A6kSxt8xEowBDMYQh0YwnswBDMYQh0YwnswBDMYQh0YwnswBDMYQh0YwnswBDMYQh0YwnswBDMYQh0YwnswBDMYQh0YwnswBDMYQh0YwntiDUHZgDLWCcdpGXpozhO0VWKZU3cDyli78RxDT17a1JwnaKvEMqfuBpSxduM5hp68tKk5T9BWiWVO3Q0oY+3Gcww9eWlTc56grRLLnLobUMbajecYevLSpuY8QVslljl1N6CMtRvPMfTkpU3NeYK2Sixz6m5AGWs3nmPoyUubmvMEbZVY5tTdgDLWbjzH0JOXNjXnCdoqscypuwFlrN14jqEnL21qzhO0VWKZU3cDyli78RxDT17a1JwnaKvEMidlYd1NnpBTyXTNlMgPRaxH6p5hCEMG1Z3ToZkS+aGI9UjdMwxhyKC6czo0UyI&#x2F;FLEeqXuGIQwZVHdOh2ZK5Ici1iN1zzCEIYPqzunQTIn8UMR6pO4ZhjBkUN05HZopkR+KWI&#x2F;UPcMQhgyqO6dDMyXyQxHrkbpnGMKQQXXndGimRH4oYj1S9wxDGDKo7pwOzZTID0WsR+qeYQhDBtWd06GZEvmhiPVI3bP2X5dPEO2GnMn1d9e1W9sROaXBMIRjcibXf81xYggYQkrO5PqvOU4MAUNIyZlc&#x2F;zXHiSFgCCk5k+u&#x2F;5jgxBAwhJWdy&#x2F;dccJ4aAIaTkTK7&#x2F;muPEEDCElJzJ9V9znBgChpCSM7n+a44z1RCmD8rxHPUn5+yu64SZO8AQhizH9JzddZ0wcwcYwpDlmJ6zu64TZu4AQxiyHNNzdtd1wswdYAhDlmN6zu66Tpi5AwxhyHJMz9ld1wkzd4AhDFmO6Tm76zph5g4whCHLMT1nd10nzNwBhjBkOabn7K7rhJk7wBCGLMf0nN11nTBzB56sF8Ci&#x2F;Vbb5PpT63q1Q4W1Xg2G8Fttk+tPrQtDCABD+K22yfWn1oUhBIAh&#x2F;Fbb5PpT68IQAsAQfqttcv2pdWEIAWAIv9U2uf7UujCEADCE32qbXH9qXRhCABjCb7VNrj+1LgwhAAzht9om159al9wQlMM84XVr5sBRm0N&#x2F;dW2pb7vPG8RwiOsYphJHbQ791bWlvu0+bxDDIa5jmEoctTn0V9eW+rb7vEEMh7iOYSpx1ObQX11b6tvu8wYxHOI6hqnEUZtDf3VtqW+7zxvEcIjrGKYSR20O&#x2F;dW1pb7tPm8QwyGuY5hKHLU59FfXlvq2+7xBDIe4jmEqcdTm0F9dW+rb7vMGMRziOoapxFGbQ391balvu88bxHCI6ximEkdtDv3VtaW+7T4d4qaSegTq+h05u2OpuUUzDOEBhnDWciu5RTMM4QGGcNZyK7lFMwzhAYZw1nIruUUzDOEBhnDWciu5RTMM4QGGcNZyK7lFMwzhAYZw1nIruUUzDOEBhnDWciu5RTMM4QGGcNZyK7lFMwzhAYZw1nIruUWzdkNQLm3ycitzqut3aJtaf7Jm3fqvhSGU9anMqa7foW1q&#x2F;cmadeu&#x2F;FoZQ1qcyp7p+h7ap9Sdr1q3&#x2F;WhhCWZ&#x2F;KnOr6Hdqm1p+sWbf+a2EIZX0qc6rrd2ibWn+yZt36r4UhlPWpzKmu36Ftav3JmnXrvxaGUNanMqe6foe2qfUna9at&#x2F;1oYQlmfypzq+h3aptafrFm3&#x2F;mthCGV9KnOq63dom1p&#x2F;smbd+q+FIdDnwKckeeYOMAT6HPeUJM&#x2F;cAYZAn+OekuSZO8AQ6HPcU5I8cwcYAn2Oe0qSZ+4AQ6DPcU9J8swdYAj0Oe4pSZ65AwyBPsc9Jckzd4Ah0Oe4pyR55g4wBPoc95Qkz9wBhlDUZzLug+6Yp2s3xvfZnTRVWHWfybgOefSh3NJnd9JUYdV9JuM65NGHckuf3UlThVX3mYzrkEcfyi19didNFVbdZzKuQx59KLf02Z00VVh1n8m4Dnn0odzSZ3fSVGHVfSbjOuTRh3JLn91JU4VV95mM65BHH8otfXYnTRVW3WcyrkMefSi39NmdNFVYdZ&#x2F;JuA559KHc0qcjaSqpg3IfYNrr1n+XE+4EQ3iQupDuA0x73frvcsKdYAgPUhfSfYBpr1v&#x2F;XU64EwzhQepCug8w7XXrv8sJd4IhPEhdSPcBpr1u&#x2F;Xc54U4whAepC+k+wLTXrf8uJ9wJhvAgdSHdB5j2uvXf5YQ7wRAepC6k+wDTXrf+u5xwJxjCg9SFdB9g2uvWf5cT7kRqCLc8pWZKunt01ebo85qc3YWd8JSaKXEskKM2R5&#x2F;X5Owu7ISn1EyJY4EctTn6vCZnd2EnPKVmShwL5KjN0ec1ObsLO+EpNVPiWCBHbY4+r8nZXdgJT6mZEscCOWpz9HlNzu7CTnhKzZQ4FshRm6PPa3J2F3bCU2qmxLFAjtocfV6Ts7uwE55SMyWOBXLU5ujzmpzdhZ3wlJopcSyQozZHn9fk3P4SAI4HQwCADxgCAHzAEADgA4YAAB8wBAD4gCEAwAcMAQA+YAgA8AFDAIAP&#x2F;wAFo0hUZrh1mAAAAABJRU5ErkJggg&#x3D;&#x3D;</p>
+<p>应该是base64，解密：</p>
+<p><img src="/assets/posts/2020hgame-week1-proplus-peyvxi/assets/1580564371633-3b8b51d6-1487-49b9-a358-f2fd15096fdd.png" alt="QQ截图20200201213921.png"></p>
+<p>PNG？试试base64转图片：<a target="_blank" rel="noopener" href="https://www.toolnb.com/tools/base64ToImages.html">https://www.toolnb.com/tools/base64ToImages.html</a></p>
+<p><img src="/assets/posts/2020hgame-week1-proplus-peyvxi/assets/1580564968645-ef1bc72a-1f7f-45d6-b018-dc992a651eb9.png" alt="dd4ab995eed51a46418293e539e19bf6.png"></p>
+<p>扫码得到：hgame{3Nc0dInG_@lL_iN_0Ne!}</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-%E7%AD%BE%E5%88%B0%E9%A2%98ProPlus%EF%BC%88%E7%BC%96%E7%A0%81%E5%A4%A7%E6%9D%82%E7%83%A9%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-%E7%AD%BE%E5%88%B0%E9%A2%98ProPlus%EF%BC%88%E7%BC%96%E7%A0%81%E5%A4%A7%E6%9D%82%E7%83%A9%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-05/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-%E6%89%80%E8%A7%81%E5%8D%B3%E4%B8%BA%E5%81%87%EF%BC%88F5%E9%9A%90%E5%86%99%EF%BC%89/" title="2020HGame-Week2-所见即为假（F5隐写）"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2020HGame-Week2-所见即为假（F5隐写）</div></div><div class="info-2"><div class="info-item-1">2020HGame-Week2-所见即为假（F5隐写） 首先下载下来的是加密的压缩包，因为没有给任何关于压缩包密码的提示，首先试试伪加密：  利用winrar的修复压缩包进行修复：  由于在压缩包内给出了：“F5 key: NllD7CQon6dBsFLr” 下载工具：git clone https://github.com/matthewgao/F5-steganography.git 将图片解压出来利用key解密： java Extract -p NllD7CQon6dBsFLr -e out.txt FLAG_IN_PICTURE.jpg 得到out.txt 526172211A0701003392B5E50A01050600050101808000B9527AEA2402030BA70004A70020CB5BDC2D80000008666C61672E7478740A03029A9D6C65DFCED5016867616D657B343038375E7A236D737733344552746E46557971704B556B32646D4C505736307D1D775...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-%E5%85%8B%E9%B2%81%E8%8B%8F%E7%A5%9E%E8%AF%9D%EF%BC%88Bacon%EF%BC%88%E5%9F%B9%E6%A0%B9%E5%AF%86%E7%A0%81%EF%BC%89%EF%BC%89/" title="2020HGame-Week1-克鲁苏神话（Bacon（培根密码））"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">2020HGame-Week1-克鲁苏神话（Bacon（培根密码））</div></div><div class="info-2"><div class="info-item-1">2020HGame-Week1-克鲁苏神话（Bacon（培根密码）） 下载下来是一个压缩包，用winrar打开： 打开Novel.zip  发现Novel.zip中Bacon.txt与Cthulhu_lzWIREHNWbPveclo8wZrNBL9LOat8yO9.zip中Bacon.txt的CRC32相同，并且Novel.zip是加密的，因此我们可以使用zip的明文攻击。 将Bacon.txt压缩（题目中的提示是用7zip进行压缩，当然也可以不用），进行明文攻击  A Few minutes later。。。（题目提示是爆破不出来密码，搜索完密钥之后停止就行了） 、 点击确定：提示我们保存解密后的文件  打开解密压缩包中的Word文档：  。。。。。。 康康Bacon.txt中是什么吧  of such great powers or beings there may be conceivably a survival of hugely remote period 看不懂，百度  貌似没有什么提示。 “*Password in capital letters.”，密码是大写字...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#2020HGame-Week1-%E7%AD%BE%E5%88%B0%E9%A2%98ProPlus%EF%BC%88%E7%BC%96%E7%A0%81%E5%A4%A7%E6%9D%82%E7%83%A9%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">2020HGame-Week1-签到题ProPlus（编码大杂烩）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

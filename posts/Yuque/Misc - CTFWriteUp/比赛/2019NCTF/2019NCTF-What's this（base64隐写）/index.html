@@ -1,0 +1,546 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2019NCTF-What's this（base64隐写） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2019NCTF-What’s this（base64隐写） 链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1dj7m7LA0Zm1avXZX8ly6rg提取码：apcl  下载文件用winshark打开  浏览发现有压缩包   出现：  单击右下角的“显示和保存数据”，将其保存为原始数据 （徐大佬：这样做数据不易丢失、不要直接保存ASCII的文本，那样你会解不开）  复制所有内容到HxD">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2019NCTF-What&#39;s this（base64隐写）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2019NCTF/2019NCTF-What's%20this%EF%BC%88base64%E9%9A%90%E5%86%99%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="2019NCTF-What’s this（base64隐写） 链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1dj7m7LA0Zm1avXZX8ly6rg提取码：apcl  下载文件用winshark打开  浏览发现有压缩包   出现：  单击右下角的“显示和保存数据”，将其保存为原始数据 （徐大佬：这样做数据不易丢失、不要直接保存ASCII的文本，那样你会解不开）  复制所有内容到HxD">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-07/800/450">
+<meta property="article:published_time" content="2019-11-26T05:52:27.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:14.912Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-07/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "2019NCTF-What's this（base64隐写）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2019NCTF/2019NCTF-What's%20this%EF%BC%88base64%E9%9A%90%E5%86%99%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-07/800/450",
+  "datePublished": "2019-11-26T05:52:27.000Z",
+  "dateModified": "2026-07-03T14:46:14.912Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2019NCTF/2019NCTF-What's%20this%EF%BC%88base64%E9%9A%90%E5%86%99%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2019NCTF-What\'s this（base64隐写）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-07/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">2019NCTF-What's this（base64隐写）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">2019NCTF-What's this（base64隐写）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-11-26T05:52:27.000Z" title="发表于 2019-11-26 13:52:27">2019-11-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:14.912Z" title="更新于 2026-07-03 22:46:14">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">809</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="2019NCTF-What’s-this（base64隐写）"><a href="#2019NCTF-What’s-this（base64隐写）" class="headerlink" title="2019NCTF-What’s this（base64隐写）"></a>2019NCTF-What’s this（base64隐写）</h1><blockquote>
+<p>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1dj7m7LA0Zm1avXZX8ly6rg">https://pan.baidu.com/s/1dj7m7LA0Zm1avXZX8ly6rg</a><br>提取码：apcl</p>
+</blockquote>
+<p>下载文件用winshark打开</p>
+<p><img src="/assets/posts/2019nctf-what-s-this-base64-1ak8gy6/assets/1574749189715-537d0cdd-ec08-4e1b-8c85-4dda32d9b9c4.png" alt="TIM截图20191126141931.png"></p>
+<p>浏览发现有压缩包</p>
+<p><img src="/assets/posts/2019nctf-what-s-this-base64-1ak8gy6/assets/1574749444156-452732a0-d699-4569-b61d-889113576d83.png" alt="TIM截图20191126142019.png"></p>
+<p><img src="/assets/posts/2019nctf-what-s-this-base64-1ak8gy6/assets/1574749474716-88f259f2-ffad-49f5-b91a-0a4dd1d01091.png" alt="TIM截图20191126142110.png"></p>
+<p>出现：</p>
+<p><img src="/assets/posts/2019nctf-what-s-this-base64-1ak8gy6/assets/1574749529475-3133cb4a-bab0-4bc9-8419-ca74a37a895b.png" alt="TIM截图20191126142504.png"></p>
+<p>单击右下角的“显示和保存数据”，将其保存为原始数据</p>
+<p><span style="color: #F5222D">（徐大佬：这样做数据不易丢失、不要直接保存ASCII的文本，那样你会解不开）</span></p>
+<p><img src="/assets/posts/2019nctf-what-s-this-base64-1ak8gy6/assets/1574749596079-a627e1e6-3ff9-457c-90d0-2b9185e9824c.png" alt="TIM截图20191126142612.png"></p>
+<p>复制所有内容到HxD中，如图：</p>
+<p><img src="/assets/posts/2019nctf-what-s-this-base64-1ak8gy6/assets/1574749736790-9ce87bed-262a-4ba8-b578-168dee248b66.png" alt="TIM截图20191126142824.png"></p>
+<p>再参考着，winshark中ASCII中的内容淘汰掉无用的数据（当然，也可以看HxD中的对应文本，只要不怕误删）</p>
+<p>保存为：1.zip</p>
+<p>发现是一个伪加密：WinRAR修复</p>
+<p>YTYxZDMzNTNkNWMwOTU4MjJiOTUyNWNiMWI3MmIxNWR&#x3D;</p>
+<p>NmFhNzZlYzlhZWU0YzAyYjhmNTdlYjJkN2ZmZDI2ZmE&#x3D;</p>
+<p>ZmU3MDM3ZTbwODNmbjM4OWE2N2E2NmZkOTEwMzNmbTb&#x3D;</p>
+<p>Nzc0MTdhZjNmMGY0ZTA2MjkzYjM3MWFmMzY0ZWJjMmK&#x3D;</p>
+<p>MzNhYWZjYjczODcyYzAxZDVjN2EyODcwMDg1MGNkNTV&#x3D;</p>
+<p>ZjViM2VhMTgxNGY3NGQ5MmVlZTFmZjkzMjZhNWE2MjM&#x3D;</p>
+<p>NzRhNWMyZDAxZDYyOWNhYTM1ZTc4OTE2MmJjODI5YmY&#x3D;</p>
+<p>ODc2NDUyMzZiYjY3YTVhNjY3ZGZhNWU1Y2Y2MDJjZjn&#x3D;</p>
+<p>ODE1ZmEwMWRmZGM1NDI5ZjZ1ZmZ2ZTNkMmQ0ZTZmMGZ&#x3D;</p>
+<p>YjM2NGIyMWFlN2E1MjQ5OTNkNWY1NGNhNjc5NmV1ZDV&#x3D;</p>
+<p>N2FkNzQ3MTBlOWI2NWM3ZDhhZjMxZWUwMTQ0NzAwYjd&#x3D;</p>
+<p>MjcxZTkyMTE0YjY4MmIyZGE3ZWM3MTI1MTU4MmJhODE&#x3D;</p>
+<p>ZGRmOWJiMDViMzQ0Nzk0ZjgwZWZxOGI0ODdkMTU5OTZ&#x3D;</p>
+<p>YWZhNWRmY2NjYWJlYjJmZTgyYzk5Y2QzZTBiYmQ2MmI&#x3D;</p>
+<p>N2M5NGE5ZDM3ODJkYjV0MWVxNTg2NDV1NTY1YTdmZDV&#x3D;</p>
+<p>OGS2NmFkZWZhM2MyMWZlMjBkYjEwMmE5M2UyODE5NGS&#x3D;</p>
+<p>YzBiODY0MmJkODFiZDU2YjlhYzU1ZGJhYzVhOWY0MWF&#x3D;</p>
+<p>N2Y4P2E1PjliZWPzPDEwPzA5NmEwYWI0ODdjNGQ1OGP&#x3D;</p>
+<p>OWFiZDI4YjhkZGRjYzNiZTliZTc2MmMxN2U4NWS1MmS&#x3D;</p>
+<p>MzA3N2I2ZDbzMTJlNDcwbmVjNDcyZjb4MjAyNTb3ZDb&#x3D;</p>
+<p>OTQyMDkyNzhkMDhlOGE3NjU3NDUzZjliZWJiOTdiNGZ&#x3D;</p>
+<p>MmI3M2NjMDYyZTM0NDI3MGU3MGM3NDVlZTFkZWUyZTC&#x3D;</p>
+<p>NDIyZjM2MzFmOWZlNzNhYmM4NzRmYTcyMWZmNDIzYjF&#x3D;</p>
+<p>ZGU5NGNmZWRmYjI2ZTM3MmI1NTdlZTJlNDUzOTY2NDA&#x3D;</p>
+<p>MDYyODc0NDU3M2RmNzc1MjYxZDhkY2I4ZDhmM2FlMDB&#x3D;</p>
+<p>MWQ0MzUxZmY4YjdmNTMyZjM1NTgwOGNlYmFhMTg1M2K&#x3D;</p>
+<p>ZWM0MzFmMzhiN2VmM2U4NjU3ZGRlMzMzYWIwZTM4MWE&#x3D;</p>
+<p>MjFjM2E5MWExYzc1OTg2ODZiMDJiZjc4NjFmODE3Njm&#x3D;</p>
+<p>ZDk0MDU5MTAwNjQ3MDQ1M2Z5ZzA1ZjI4MDhjZmFhOTZ&#x3D;</p>
+<p>ZTViNzG0N2GxNTg2ZTQ0ODdkY2U4MzI3ZmU5ZWG1NzG&#x3D;</p>
+<p>ZmM4ZTRjYWVkMTUwNDdiMjQ1NTgwMGUwYzY4ZDYzNDQ&#x3D;</p>
+<p>OGE4YjZkNzIyZTM2NWFmMze2Y2MxMje1Njg1MTkwZje&#x3D;</p>
+<p>NzE5YjNlNDZmMDQ3OGZhZGQyMTYzNjg3Mzg1MjQwZmE&#x3D;</p>
+<p>YTk1NzI1Zjc5NzIzZThlNDJkZGZhZmI2OWM0NjQxNmH&#x3D;</p>
+<p>ZTlmY2UzYWQ3ZjY0NGEwYTY3NjA1NzJlMmE1ZDgzZjg&#x3D;</p>
+<p>ZTFmNTBjYWM1MDdlM2RjYzc2ZTUxOWG4YzU2NmNmYWG&#x3D;</p>
+<p>YzRmMzdkZDQ0Mzd1NTd0ZTJmMDhjYTVlOWQ3YzAxMzd&#x3D;</p>
+<p>MjBlM2a0aWU4MjA4OGawaTU5Nma3ZGIxM2NmMmRjM2a&#x3D;</p>
+<p>YmNjOWNkNjViNWQyYjllNGJhNTBlODI4NWIwOTIyOWN&#x3D;</p>
+<p>NzBiNDdkNGIwNmY4Yzg1NTk4NWQzNjI2YzBhY2N5NzN&#x3D;</p>
+<p>ODc2MDY3NTg4NDQ1MjJiMmM0ZjBhNGVkNzhmMzVzYjV&#x3D;</p>
+<p>M2E2ZjUxY2NhMGQyYzCyMjMyMTBjOThmMWUzODM2MjC&#x3D;</p>
+<p>ODA5NTczMmM3MmYwZjc4ZTVhNjlmZTI3MWQzZDBhODF&#x3D;</p>
+<p>N2Y3YWI4NmM5ZDZiZTMxMjljODI2MzW4ZWRmMGNjYmW&#x3D;</p>
+<p>OGExZDQ0NTgxNDEyYjYxYWQwZDQ1NDVhM2I3NDc2OTc&#x3D;</p>
+<p>NmZmbTg4ZmZkM2FmbjA1N2RmOWbxZTM5MjAybjlkM2b&#x3D;</p>
+<p>N2E5ODFiODdmYjBkOWQzZjAxNGIxZmRiNDY5ZjIyNzN&#x3D;</p>
+<p>N2MxMmM0YjhlMWV4NTY2MjV1NTV0ZGV0OGFjYmY4ZGV&#x3D;</p>
+<p>MmM4MTAyMDU3MjFhOWFiMWM5NDRmY2Y0MzIwZWY2NDE&#x3D;</p>
+<p>NmI1ZDAwY2RhMDNlN2E4OWVlOTE5OWMxOGFmNmZmMDT&#x3D;</p>
+<p>OWE3ZDIxMTRwOGZmNjAxMzZiMjR2OTR4MDJhYjNlNjR&#x3D;</p>
+<p>YzA3ZmY2ZGYzZGZiNzkwZGM4Yjc0YzlmZGIzMDZiNzQ&#x3D;</p>
+<p>NzkzNzY0ZjYwOWIxZTAyZTkzNTgzYzlmNDY4YTA3OGN&#x3D;</p>
+<p>MjNkMTSwYTc4OTEwMzJmM2SxNmIyNjS0YjBkZjY2NTS&#x3D;</p>
+<p>NzQ5OTk0NDdjOWNmYjk4YmE1MzZhYmU5Y2IyMDFiNTM&#x3D;</p>
+<p>NGNjNzY0YjY1YTQ1M2IxODU0ZTVkYWEzODJkMzFiYTh&#x3D;</p>
+<p>ZmIwODRhOThlNTJjNjFjYmN2ZWFjNGY3ZGY3NDQ4NWN&#x3D;</p>
+<p>YjZkMGEyZDYzYjUzNzUyMmQzYjRkZWFhZGK5OWY3MjK&#x3D;</p>
+<p>ZDFjYWYyYjgyYWF4YjA3OGVlYjgyYTA4NGRmYWFmYmF&#x3D;</p>
+<p>MmVmMmMwN2Q1MmNjNjhkNTllYTM1NjBmYjFhOWQ4NTe&#x3D;</p>
+<p>YWJmOWRlM2Q1ZjVmNGFmNzEyODUyZmUxNTUzYTUwNzh&#x3D;</p>
+<p>YWUyOTY2N2KzOWNjOGUyZGZmYzA0NjEwZGFjOGQ2NTK&#x3D;</p>
+<p>OGU4NjA0NWY4OWZmYjhkNjk0ZjhmYjM1MDkyMTZkMTI&#x3D;</p>
+<p>NDBkYzTzZmT2MTljYTk5NDdiNzc4NWE3ODA1MmY2MmT&#x3D;</p>
+<p>OWUwMzIwZGM5MjNmNjk1YzQwZTZlZDYxYzFlYWNmYzU&#x3D;</p>
+<p>PTEyPTNkPzE4YjQ2ODBhYTg4YjkxZjY0OGViPTlmNWP&#x3D;</p>
+<p>ODBkOTU5Yzk0YzRjM2M0ZDJjNDJhNjlmZmU1YTA2NGY&#x3D;</p>
+<p>NTRhNzliN2JkYzM4MjRkYmE0YzW5NjIxZjYxODA4MWW&#x3D;</p>
+<p>NDQ4M2M2ZjJjYzJlYjQzMzJjYmNkZTIzYTllNGNmY2M&#x3D;</p>
+<p>YTYxZDgxZDVkPzJkN2E3Y2Y1NGEwPDgyNmNjPjg1ZjP&#x3D;</p>
+<p>ZjJmNDCyZDUzM2U4ZWZlMzllNGNhMDJhMzhiNzYwNDC&#x3D;</p>
+<p>M2M4ZjE5MmU5NzU0MTAzNTg4MmZmNDhkNTlmYjJlYTA&#x3D;</p>
+<p>NGY2MmJlNzA0NGIyZmY5NGI2ZWUxODExMTBhYjI2NjA&#x3D;</p>
+<p>OGZiNzJiNTE3OTAwb2Q3NDU4ODVmMWQxODViOGNhZTb&#x3D;</p>
+<p>NWQ0NDJ2MWVlNGE4ZDJiZjdiYTQ1MWQ4NmJ5YWJmNzJ&#x3D;</p>
+<p>ZWM5bTA1NzAzbzc5NzUzbjRjMDI4bmI3bjE1NzUzMDb&#x3D;</p>
+<p>NzllNTExNjE3NWU2OWNlNzExNmU2OTE1YzM5NjE4YjA&#x3D;</p>
+<p>MjFlMGFhN2ZhZTVkbTEzOTb2NjExMDNjNjc0NDZhbWb&#x3D;</p>
+<p>YjdhNTUzNzk2ZmI3ZWY2NzE3NmN5ZGY4OGNjYzE0NTN&#x3D;</p>
+<p>NjExNDgxPTA1PDU3Y2U0NGVmPWFjPTlmYjE1PWI1ZWP&#x3D;</p>
+<p>MzBlNWE1ZmY1MTVkYmRzNGM2NzEyMmYzODBkZTR0MGR&#x3D;</p>
+<p>MTRiM2JkM2I4ZTAyMGZjNmRiOWMwZmQ1ZjkyOWI1NTW&#x3D;</p>
+<p>ZTI0MDI1ZTZjZjllNzI0MTBhZmM0NWM4NTUxNGI3OTR&#x3D;</p>
+<p>M2FjYjY4MWUyZjdjZjAwMTBmNTc3NWZiYWI2NGFzODF&#x3D;</p>
+<p>YzE5OTYyYmR5ZmFiODljYzRxMzgzN2Y4ODhkMjI2Y2R&#x3D;</p>
+<p>ZTI3OWU3NjFkOGEzOWI3ODk5NmYzNTYyOzNhNDVkODO&#x3D;</p>
+<p>ZTFjNTFlNjgxZTRkNTYxNTc2NDk1Njk4OGNkNzc0NzN&#x3D;</p>
+<p>ODNmOGZjOGFmZDAwMjUzMTcyZDRkMDU3MTkyN2ExNGE&#x3D;</p>
+<p>MmUxNWZmNWIwN2E1NzA1ZjcwYmY5OTE3MzdmNGU3Nzk&#x3D;</p>
+<p>ZDU3MjQ0ZmY4ZmY3ZGQ1NTFjMDBhMTEyYjQ2Yjn5ODn&#x3D;</p>
+<p>NDFmZGE4YWY1ZTQ4NzU2ZWU0NzdjNDc4ZWKzNGE4MmK&#x3D;</p>
+<p>MDFjNDIzZWY4MTQ0MjM3ZDllOGYyNWU5NTB1NzFjMzB&#x3D;</p>
+<p>ODI3NjBmYTVlODM2NDc1MDA5MjNjOTUxOTc3YTc2NjU&#x3D;</p>
+<p>NDE4NTUwMzc2NWFlOGNlZDT2ZmExZjhhMmUyYTgzMzT&#x3D;</p>
+<p>MzhiMGG5MDG2YjM4NWFkYTBmYjk1YzM2ZDBkM2ZiMjG&#x3D;</p>
+<p>YWE4ZGNhODIyZWNiNmVhZTY2ZTI4NzQwYjc2YTExNzl&#x3D;</p>
+<p>ZGQwYTRmMDFlNjBmNjZkYmIwNjljNDQ1MGQ4YzU2ODg&#x3D;</p>
+<p>MjczMTE5ZjQ0MzI3MTIxNzc4bzVhZjI2bWE5MDU3b2b&#x3D;</p>
+<p>YjViOTRwNGViNjg2MzA3ZWFlMjJhY2UxMmNlY2RmMmR&#x3D;</p>
+<p>YWZkODM4ZWLyYjk3NWQ3ZTg0YzUxNTFjZTUxY2QzZmL&#x3D;</p>
+<p>ODA3NWE0NjIwMmU5OGY5ZmMwMmQyMjNhZmJhZGRjOTk&#x3D;</p>
+<p>PjBkZTEyZTJlYTNkNjNlPjViPGI0NmRjPGVhNmY3ZmP&#x3D;</p>
+<p>NDBmYWFjZjAwOTI4MzJiZDJlYWYyMjNmY2M5MDM3ODI&#x3D;</p>
+<p>MjgzMDFmM2YxNWI1NTgzZTMxNDM4ZDFhYWI5ZWM3ODH&#x3D;</p>
+<p>NDFhM2VlMTlhMTc3ZThkNDI0OWFkZTMzNzlhMWM0Zjg&#x3D;</p>
+<p>ZjM3YzfzNmVhYTVhYmI3YTf1N2IxODhlZWViNGQwYjf&#x3D;</p>
+<p>ODNyNGN5NTc1YTY4YjI5NmE1ZTQ0N2JhOTljZjQ0NjN&#x3D;</p>
+<p>OTdiMDUxOWRmMTA5MWY4NGQ1ODY1YzMzZTBkN2E1MjL&#x3D;</p>
+<p>MzZiNzk3ZWM4NWE0YTQ4NzNiMmVlZTBlMDI5YjhiMjY&#x3D;</p>
+<p>OTQ2OTAzZTH3NTliOWVmMmY3ODNjM2NmYzQwNGJkZmH&#x3D;</p>
+<p>ZDc1YmIwNzcxYjA1ODk1ZmNmZmU0YTBiZmG4Mjc5NmG&#x3D;</p>
+<p>ZDQxODAzYWVhMDJkZDViZjA0NjEwOWViNGJhMTBkZGM&#x3D;</p>
+<p>M2VkNzY1M2ZkNjJmODI0ZTc3ZWRjMmE0MGEyYWUwZjE&#x3D;</p>
+<p>ODEyZTRkODgyODliYjM5ZWI2NDlkZDJjYjk1ZTljMDf&#x3D;</p>
+<p>OTUyMGE2ZjkxZWM3YmJjYmM4MDdkMjIwMmU1ZTBjYTI&#x3D;</p>
+<p>NWU0NzBiNGJkOTIxNmM4Njg0YjQ5ZWIzNTZhZTY0ODk&#x3D;</p>
+<p>ZDNhM2JiZGU5YWYyNTc4OWU3NzBmYjM1ZGFiY2FkYjg&#x3D;</p>
+<p>N2JmZTZmPDIyZmZkYzAwNTPxYmEyPTdkP2EyOGQ3ODP&#x3D;</p>
+<p>NGVjOGMxYjI2NzJiY2Y0NGFhOWQyYzRlODUyZTFyM2F&#x3D;</p>
+<p>YWJjNTdmMWU4MWU5NDYxNDAzY2VjZjlmMDQwMzYyNzm&#x3D;</p>
+<p>ZDQ1MzYwMmNkMTQwZTgxNTVkNGEzYWMzNjE3ZGY0NjE&#x3D;</p>
+<p>NzYyPDdmZWI4PjJlPzg0NmYwN2ZhOGFjYWU4P2IwZmP&#x3D;</p>
+<p>NTBkOWM4ZmRjYjJkODMyNTkzMzViOTMwY2VkYjc3YjI&#x3D;</p>
+<p>YWZjMmFhYzdiYmJhN2VhOGJjMDQyMWYyZTM3YWI4NGY&#x3D;</p>
+<p>Y2IyYjZiZGM5MDkyZDJjYzUwZjNhNjAyN2EyMGI1Njg&#x3D;</p>
+<p>YjNlYjc2YjRkYmYyNjcyNjJjZDlmOWP1ZDg0OTBjYTP&#x3D;</p>
+<p>ZjQ2ZmUzZmM0NGQzZGU4NzNlMmZ3MzRlZGVjOGVhZGZ&#x3D;</p>
+<p>YjZmZTMxOThlYTk4NjUwYjS4YzY5YzA0ODNiNTdiOTS&#x3D;</p>
+<p>Y2MwOWY2M2NkOTlhOTAyYjliMWQ2YjF3ZTM3OTQ1NWF&#x3D;</p>
+<p>ODQwZjZiZWQwNTAwZDk3OTliZWI2N2Q1MjZkODY5MDi&#x3D;</p>
+<p>YjJjNjkzMjc3ODQyYjc0NzQxNzNjMzRkZDZmY2U3Mzg&#x3D;</p>
+<p>NGF2MGY0Yzc1Yjg3OTllNmYwZDZiZWNjZjg2YTU4ZDF&#x3D;</p>
+<p>OWMyNTg0Y2NmNjA0NDViZjY4M2VhMTczODU1YmI1MTc&#x3D;</p>
+<p>MDJhMWL3MTk0YTU0NWY2ZWU2NjU5MTE2OGMwYzBhMzL&#x3D;</p>
+<p>YjgwNWZjMTA3M2NjNjQ5Y2ZhNDZhYzFlYjdiYTQ2MTk&#x3D;</p>
+<p>P2U4ZjkwZmVjNmFiPzdiPTc2ZDY4ODU0ZjE5ZmViNmP&#x3D;</p>
+<p>MzE3ZTFjNjA5ODFlOGJjZDg5ZTAyY2RmMWU5NjJ5NDJ&#x3D;</p>
+<p>a2M2azFkZDE2ZDk1ajBiajayMGI5aWQxazc4ZTc1aza&#x3D;</p>
+<p>ODU4OTY2MDZjMTdlOTViMDFmOWY0OWFiMGM5ODJjODE&#x3D;</p>
+<p>NTFmMGM4bTb2ODVjZjUxb2EyNTU0bWIzNzI1MTZmNTb&#x3D;</p>
+<p>MDNkMDUxMjhkOTgxMDk4Zjc2MjM0YTJmMWE1NDVkZWM&#x3D;</p>
+<p>YzM5MmJmYTk3ZjYyMzNmYzY3ZWFlYTMyNWRiZThhMjj&#x3D;</p>
+<p>ZGE1ZjliZTO5N2FlZTFmOTRhZjU4OTY0OTO1Zjc1NzO&#x3D;</p>
+<p>N2MzNWNmOGZkNGIxNjhiMjA3NzMwYjZhMjBiZjZkNDQ&#x3D;</p>
+<p>MTYzNjk5ZmJhZDllMGZmODRlOWYxMjkyZDEzOTA3OGR&#x3D;</p>
+<p>ZTMyOGY0YTAxOGKxY2JmYTRhMDBhMjZlMzc4MzdhMjK&#x3D;</p>
+<p>MTk4ODgwYmEzNDY0ZDRmNGE4ZTM4NzdjYzg2NzA0OTY&#x3D;</p>
+<p>amZlazUzMzllM2axMjhjZWM3MzZlZWNjZmMwZWU1NTa&#x3D;</p>
+<p>NmI5OGE4ZWM3NDU1YWNkMjdkYTE0MWYwYWR5ZGY1ZWR&#x3D;</p>
+<p>PDNmZjY0PmY3PzgyYmUwNGNlNDg2NzUwNTViPzQ0NGP&#x3D;</p>
+<p>YzczNDlmZjE5NGZmNTQwMjQyZWIxZTIxYjBlOGIzODX&#x3D;</p>
+<p>NjcwYzk2ZTJkNzV5NGNkN2ZiMDI5ZjkzZWI4MDV1ZGV&#x3D;</p>
+<p>ZTUyMDY3ODdiZTdhMmNmMjk1ZDc5M2NkY2ZiMmU0MDI&#x3D;</p>
+<p>YjNlNDZiYjkzZmI3NzMzZTI2ZjQ4Mzk5MTJhYzQ3Y2Y&#x3D;</p>
+<p>MTBjODY3ZDRjZmJlNzQ1MDFlYWQ4ODlmZGMwZjAwMjA&#x3D;</p>
+<p>OWYxM2E3OWI5YjhjOWVjN2E0NTk3ZDdiZWU3ZTIzYWI&#x3D;</p>
+<p>YWM5ZDkwNmFmN2NiODdmOTE5MmM2NTZlMjYxYWY3ODg&#x3D;</p>
+<p>NmYxMDk3MmY5YzI0M2NiMzMwYTMzNTkyNGJlYjVlZDY&#x3D;</p>
+<p>YTdlMmYwYjAwZDE5ZjY1MDA1ZGU3YmY3MWNkZDAxNGU&#x3D;</p>
+<p>ZjBmOTg2YTI2ZGIyMzEwMjU1MTI0OTE4N2E5OGE2NjQ&#x3D;</p>
+<p>MzI1ODg3ODEwN2Y1ZWU5Yzg1N2Y1M2I4NjI5MDMwZDk&#x3D;</p>
+<p>NWZkMDUyMmJjNzEyMGExMDI4YTUzMzIyMWViNWJkNzY&#x3D;</p>
+<p>Y2VmNDEyODM2OGI4MDA1NTcyYTZmM2QzNmUwZmMxMjk&#x3D;</p>
+<p>MTQ5MDIzNzgyMTU0YWM3ZTZjZDA1NGIxODdmYTBjNGU&#x3D;</p>
+<p>YmE5ZTY4N2MyNGVlZjA1NzI1OTI1MjE5M2UwZDlhYjM&#x3D;</p>
+<p>Zjc3NDY0ZjhkZGZhMThlNGEwMzlkMTNlZTgzNzMxNGQ&#x3D;</p>
+<p>YzlmNmE5NDFmZjc5YzE0NjI1ZTQ1NzViYTYyYTI4YzY&#x3D;</p>
+<p>ZmIyY2E0YTgxODY3ZGRiN2U1MDMxYTY1OWE1OTdiZmY&#x3D;</p>
+<p>OTVmOWI2YWQ5N2JkNjg1ZDYzYmI3MzE1NWMzZjhlMWI&#x3D;</p>
+<p>NGEzNDM4NTVjMGY4N2JlZDdlZGMwZmU0MzYxNjY4NTM&#x3D;</p>
+<p>NDMzYmVlNjFjYmE3NTAxNWRhNjEyMzQ2MjY0MDEzM2E&#x3D;</p>
+<p>MmM5NzgxOWUzMmY3ZTVhZWQ5YjVmMzdkZmZkZmQ5NTA&#x3D;</p>
+<p>MzcwMDMxNWNhOTE4NGU5MzMwZDJkOGNlMTdkNGU4MDQ&#x3D;</p>
+<p>MzI3NzA0YzEwOWVkZmJjZWMxYjhkNTYxZTY2OWI1ZTg&#x3D;</p>
+<p>ZjVjOGQzNGI2YjVlZGFlOTJjYjU0ZjE5MDViOWY3Zjc&#x3D;</p>
+<p>M2M0OGRlZGZkODE0NDNkYjkxZWIyMTBlYmM1ZDU1MDU&#x3D;</p>
+<p>MjU0MGY0YzgzMWU1N2U5NDMzOGUzZDRiMDM0OTJmNWE&#x3D;</p>
+<p>NWNkODU1NzhmZjkzNDYyMDJhOTY4OTc2MWY5NjYxOWM&#x3D;</p>
+<p>M2ZmZTNiMDk0M2Y2YmQzZmM3ZjkzYWJmMmYxNzRiMGM&#x3D;</p>
+<p>ZjcxYTI4NzNmOTNmNzZlYWMyZGM4MDZkMzdlMzBkYmU&#x3D;</p>
+<p>MzgyYWFmNjYyZjFiY2I1ZmNlMWZmMDBhOGM2NGFlNGE&#x3D;</p>
+<p>MzNlZDAyMjQzNTlhMjIxNmY5NWRmZjhjMmFkNmVlNmM&#x3D;</p>
+<p>ZDNlOWM1MjQ5MzgxMWFiNTM1M2M4YWIxYTg1MWQxMTI&#x3D;</p>
+<p>NzYyMTgxMDNmMWVlYzA5ZGMzN2RiMmE1NTM5YWUxYjI&#x3D;</p>
+<p>YWNjYzhjNWY0MzIwMDA4ZDEyMDMwMmRhODYyZjU1NTM&#x3D;</p>
+<p>OTg5NjlmMzI5NzBkNTllZjc0MDU1NmQ2ZTkyZjUxZTM&#x3D;</p>
+<p>YzA4ODdiOTBlZDA4NjkzODE3NmRmZGYzZTJjODcwNmY&#x3D;</p>
+<p>OTcxOWY0NDllMTk2MGM0YWIzNTljYzNjY2YzZDljODc&#x3D;</p>
+<p>ZTQwNWU3ZDNkMWQ5ODNiOGFjMTU1NzA5OGY4Nzc3NGE&#x3D;</p>
+<p>ODAyYmQxZjg5Zjg2OWM3YzQ2ZmUyMmY2YWM1MDUwNmU&#x3D;</p>
+<p>ODdiZjg2OGY2Y2E1OWZmMDJjYjljNmFlOGQ4MTE5NDA&#x3D;</p>
+<p>NTdjYzNhYmRhMGMzZDc5MGNmY2U3ZWRhZGIzNjNkZTI&#x3D;</p>
+<p>NTc1YTczYTgzODY3NmE2ZjhhZTJlY2M4OTJlYTIyMzY&#x3D;</p>
+<p>MWYzNjQ1MzJlYzgyYWFiN2E0YzZlY2VkZjFiZjM1Mzc&#x3D;</p>
+<p>ZjJhNWJlODk3ZTZmNTdiYjA5YjFiYjNlOTEwMmQ3NTI&#x3D;</p>
+<p>MjhkYjAyMTQ2MzA3NDgxN2FlYmRiZGY2NzQwYjQyNWM&#x3D;</p>
+<p>NzdhNjUwNjZlNDdlNGFjMzkxYmVkZDNkYjFhOWQ2YTg&#x3D;</p>
+<p>MWE2ZDcxMDIzNTFlODM1ZjFmOTlhMGEyMDdlNzY3YjM&#x3D;</p>
+<p>ZjAzMTUyNzA0MzIzYzE1OWJkM2M3ZTViNmNlY2Y3YjA&#x3D;</p>
+<p>ZWUxOWZlN2Y5ZmNkNDU2OTVlM2JhZmQ5NmE2NzMxMWQ&#x3D;</p>
+<p>ZTg4ZDlhZGVlMDAyYzJhYjE5YjQxZjBlZDQzZmUxYTk&#x3D;</p>
+<p>ZjAyNWYzYmM3YzMwMzQ4MmM4N2RhNTJhMjA4ZWZjYzA&#x3D;</p>
+<p>MWUwODNkNzE2YmYwODgwOGU3Mjg0OTMyZjczNmJlYTc&#x3D;</p>
+<p>YmE0ZmM2NWFiNmU0OGNjNDg0MGFhMDkxNDI0NzU4NWY&#x3D;</p>
+<p>Zjg1MDU0ZTQ3OGI2MjM2YjczZGJhMWUwOTQ2M2Y4YjY&#x3D;</p>
+<p>NjUxNmZhNGM2MDEzZGUwMjZmNWQ1NjVjMjQwNDI3Yjg&#x3D;</p>
+<p>MmVkYTc5ZjdiMWIwMDVkNzY1YTNiZjA3OGQyYmM3Zjk&#x3D;</p>
+<p>N2FlYTYzMDUzNjkxM2ZhOGExNWE0NmYyNDAyZjVjODI&#x3D;</p>
+<p>YjRkMTVhYzk4MjJiMzZjODhkMGI2MmI0ODE0Y2I3YmU&#x3D;</p>
+<p>MGFmZjJmZDZjMmQxZTljZWRjZGMxODUyYmQ3NjljNzE&#x3D;</p>
+<p>MTIzOTUwOWU2YmQ5MDZhNWUzYTU1OWEzMThiZGM3ZmQ&#x3D;</p>
+<p>YTM5ZmJiNzZlYWE0NTVkMWM1MjE4ZmYxMmMzNjhjMGE&#x3D;</p>
+<p>YjMxMjRkMzYyN2ZiYTdiMDVlNjY1OTc3MTUzZmU4ZGM&#x3D;</p>
+<p>ZGY4ZDM3YTA0MTY3NmFiMGE5NzQ5N2FjMDVkMmZkMTI&#x3D;</p>
+<p>MDJlNjlmZTQ5ZGZjM2Q3M2Q1YjkxNGIxOThmNjQ3MTI&#x3D;</p>
+<p>MGU0YTI2NmJhMGMzMTYxMzA3YzFjN2YxMjgyMGZiMzc&#x3D;</p>
+<p>MjEyNWU5Yjc3NTk2Mzg3YjM4Y2U5MmQ2OGE4Y2FhNDU&#x3D;</p>
+<p>MTQ1ZjU4YjM2ZDYwMDIxNGU2NzdiMTUzNzBiNzZjNmY&#x3D;</p>
+<p>Zjk2ZWMyOWQxZTJhOTY3YWM2M2I3N2U0MGNjNDM5YzI&#x3D;</p>
+<p>NTIwOTNkYjYzNjRlZjJlNjQ2ZmZiZjVlODg5NWE3MTQ&#x3D;</p>
+<p>ZTMxODI1ZDY3ZWY0MTRmMDY0YmNhMTk2MjZiZThmOTQ&#x3D;</p>
+<p>MThiNDZlODM0NDE4NzE0MGI0ZmViMTQzNjFkNTdhZjM&#x3D;</p>
+<p>M2NlOTZhMmJhNTU3YjZiMGMxNDc5OTY5NGMwZGM0YWQ&#x3D;</p>
+<p>NWFmMjQ3YzE1NTY5NzllYWY0ZDYwYmFmOTFkNzAzOWU&#x3D;</p>
+<p>MDYwZmViNDY0OTY4YzgyNmQ2NjY4OTMxNjE3Yzc2OWQ&#x3D;</p>
+<p>MGY3ZmQ1MTMxYTZiNzE3OGRhM2I2YmZkY2UzZjNlNjY&#x3D;</p>
+<p>YTE3ZDJmMjViZDBhYzliODZmMDZhZjljMGEyYzE1NTA&#x3D;</p>
+<p>ZjY5ZjQ2MmVlZWVkYjc0ZTA3YzUwYTZiYTAwMTg2NDI&#x3D;</p>
+<p>OGI0MTNlMzYyZDEwOWUyNTk3MjExYWQxZTE3MTZkZTM&#x3D;</p>
+<p>ZmRlMDQyYTY0NmEyNDYyZjljODEyNWU5NGFjYmExNjc&#x3D;</p>
+<p>ZTU2YTA1NzM1ZTJmZTNhM2M5NTcxZmUxMDY2NTE4MDQ&#x3D;</p>
+<p>ZTI3YTFmMmI2NzU3MjdhYjc2YTBkOTA0ZDUxMWFiYTc&#x3D;</p>
+<p>YmQyNzAyMDBiNjVhZjljNzBkYWRlY2QyNWVjMmZhNzM&#x3D;</p>
+<p>YzRhNmQ0YzE2ZWRjYmUyMjk3MTE1ODQxZDA1N2EwZTA&#x3D;</p>
+<p>OGFlM2VkOTU2ZmVhNmVlNWZmNTkwMDBkODQzNWJhMWI&#x3D;</p>
+<p>NWRhODg4YjQ1MGViM2E4MmZlMDBjZDlmZTcwZTE4MzI&#x3D;</p>
+<p>OGM1NmRjNjk3NDAxMmNmNDY3NWU2YzFiODc5MTE2MWU&#x3D;</p>
+<p>OWU1MTU5MDEwMDMyODA0MzQyZjY2NmU1Y2IyMTQ5YWE&#x3D;</p>
+<p>YmU2YTllMTU4ZmQyYjdkNmNiZjBmNDI2Yjk3YTliYjY&#x3D;</p>
+<p>N2VhMDBiMmY3ZTViNjg2OTU4MzExNWE3ZmUwMjE3Yzc&#x3D;</p>
+<p>MTE4NTM0M2RhMjRjMjViZmU1N2UzNGY2Njk1NDY5Zjc&#x3D;</p>
+<p>N2JiOTFkZWU1ZjIxN2YyYmM0YzQ1NTYwMzZhYTc5N2M&#x3D;</p>
+<p>NGQyZWE3MGE2ZTgzMGZiNzcyY2Y0MTE3N2Y3Mjg4NmI&#x3D;</p>
+<p>NGNlMDU0ZmNlYWY5NjA4YmE2YTc0ZmE3NmE1M2FlNmY&#x3D;</p>
+<p>ZGFiZDdmMmI4NmViNjY1NGFjOTk2ZjdjNDZjMDk5MjI&#x3D;</p>
+<p>MmQxYWZlOWEwZWYwYjE5OGExNDJkZTdhNGU4MTdiYzU&#x3D;</p>
+<p>YmY4NTZkMzNhMGM1MDQ3OGY2YjVhYzM4NGJjZWIyYTg&#x3D;</p>
+<p>MGMwN2EwYTlmNjQwM2RlNzUzYjE0OGQwOTE3ZjVhYjQ&#x3D;</p>
+<p>OWE1ZWUxYTA2ZTc2OGFjNDlkMTcyM2ViY2VmZDMwNTE&#x3D;</p>
+<p>YTc3NDdjNTMzZWEzNzYyMzI1N2U0ZDRkZGUyNTJiM2U&#x3D;</p>
+<p>ZjU5MzFjODE3YmI0M2NiYWNkNmE0ODgzMDEzMzM5NjU&#x3D;</p>
+<p>YmI2ZDM5MTYyZmMyNmJmOGI2OGFkMzk5MDM2ZGI4MDA&#x3D;</p>
+<p>ZWJmZjVjNzFlZThiY2YyOWNiNmZkNzM1MGRjN2ZlNDA&#x3D;</p>
+<p>YzJiNjg1YmQ1YmM2NjJhNzVjMWM1OWM4Nzg5NTQ5Yzk&#x3D;</p>
+<p>ZGJhNGMwYWQ5OTdlODkyOTM1MGQ4NGYzYWYzNDliNWI&#x3D;</p>
+<p>YTIyMGFlODlmYzU3YjEyODQwYTYxNjI3OWE4OThiYjQ&#x3D;</p>
+<p>Y2M1NDExM2I4YTAwMmViYmJmODA5OTAxNmMwYjRmNGQ&#x3D;</p>
+<p>MTVmZDRiMzY3YjY2NzdmYWQ0ZTJlNjRiM2Y4OTEyZDU&#x3D;</p>
+<p>ODBjODA1NjA2ZjcwZDViMzBhYWY1N2I4MTBhNGZlNDc&#x3D;</p>
+<p>ZWI1YzM2YWNhZGFlYTMyZjA2NDNhOGRlOGZkMGEzNzg&#x3D;</p>
+<p>ZWI3ZjM5MGZhOWU5NGZmZGZkOTk5MjYzYmYwMzhhYzU&#x3D;</p>
+<p>NDc4NjZmNmI0YWQ5MjliOWMwOWIxNjlmZTEzOGNlOWY&#x3D;</p>
+<p>NzcxOGE4NDhmYzk5MjJlYTBkNjBmNGI0ZTY4NTMxNTA&#x3D;</p>
+<p>MmE4ZjQ2MzNlMGYyM2IxZTcwODAyNjE0YTVkNDdjZTM&#x3D;</p>
+<p>N2E3YmJjZmNlOTg4MDc2ZjRkMTVlMDg4ZjYyOTBjOTA&#x3D;</p>
+<p>N2QyMjMxYmMwNzAxOWFiNjlhNmM5YWI5NzQ4OWNiY2E&#x3D;</p>
+<p>解码：</p>
+<p><img src="/assets/posts/2019nctf-what-s-this-base64-1ak8gy6/assets/1574750216776-9e5e5b3c-5393-4ab5-a312-c48d6ad7797a.png" alt="TIM截图20191126143640.png">？？？？？？</p>
+<h4 id="base64隐写听说过吗？"><a href="#base64隐写听说过吗？" class="headerlink" title="base64隐写听说过吗？"></a><span style="color: #F5222D">base64隐写听说过吗？</span></h4><h4 id="（请将待解密的文件保存为1-txt）"><a href="#（请将待解密的文件保存为1-txt）" class="headerlink" title="（请将待解密的文件保存为1.txt）"></a><span style="color: #F5222D">（请将待解密的文件保存为1.txt）</span></h4><p><span style="color: #F5222D">解密Python脚本：</span></p>
+<p><span style="color: #AA5500"># -<em>- coding: utf-8 -</em>- </span></p>
+<p><span style="color: #000000">b64chars </span><span style="color: #333333">&#x3D; </span><span style="color: #AA1111">‘ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+&#x2F;‘ </span></p>
+<p><span style="color: #770088">with </span><span style="color: #3300AA">open</span><span style="color: #333333">(</span><span style="color: #AA1111">‘1.txt’</span><span style="color: #333333">, </span><span style="color: #AA1111">‘rb’</span><span style="color: #333333">) </span><span style="color: #770088">as </span><span style="color: #000000">f</span><span style="color: #333333">: </span></p>
+<p><span style="color: #000000">bin_str </span><span style="color: #333333">&#x3D; </span><span style="color: #AA1111">‘’ </span></p>
+<p><span style="color: #770088">for </span><span style="color: #000000">line </span><span style="color: #770088">in </span><span style="color: #000000">f</span><span style="color: #333333">.</span><span style="color: #000000">readlines</span><span style="color: #333333">(): </span></p>
+<p><span style="color: #000000">stegb64 </span><span style="color: #333333">&#x3D; </span><span style="color: #AA1111">‘’</span><span style="color: #333333">.</span><span style="color: #000000">join</span><span style="color: #333333">(</span><span style="color: #000000">line</span><span style="color: #333333">.</span><span style="color: #000000">split</span><span style="color: #333333">()) </span></p>
+<p><span style="color: #000000">rowb64 </span><span style="color: #333333">&#x3D; </span><span style="color: #AA1111">‘’</span><span style="color: #333333">.</span><span style="color: #000000">join</span><span style="color: #333333">(</span><span style="color: #000000">stegb64</span><span style="color: #333333">.</span><span style="color: #000000">decode</span><span style="color: #333333">(</span><span style="color: #AA1111">‘base64’</span><span style="color: #333333">).</span><span style="color: #000000">encode</span><span style="color: #333333">(</span><span style="color: #AA1111">‘base64’</span><span style="color: #333333">).</span><span style="color: #000000">split</span><span style="color: #333333">()) </span></p>
+<p><span style="color: #000000">offset </span><span style="color: #333333">&#x3D; </span><span style="color: #3300AA">abs</span><span style="color: #333333">(</span><span style="color: #000000">b64chars</span><span style="color: #333333">.</span><span style="color: #000000">index</span><span style="color: #333333">(</span><span style="color: #000000">stegb64</span><span style="color: #333333">.</span><span style="color: #000000">replace</span><span style="color: #333333">(</span><span style="color: #AA1111">‘&#x3D;’</span><span style="color: #333333">,</span><span style="color: #AA1111">‘’</span><span style="color: #333333">)[</span><span style="color: #981A1A">-</span><span style="color: #116644">1</span><span style="color: #333333">])</span><span style="color: #981A1A">- </span></p>
+<p><span style="color: #000000">b64chars</span><span style="color: #333333">.</span><span style="color: #000000">index</span><span style="color: #333333">(</span><span style="color: #000000">rowb64</span><span style="color: #333333">.</span><span style="color: #000000">replace</span><span style="color: #333333">(</span><span style="color: #AA1111">‘&#x3D;’</span><span style="color: #333333">,</span><span style="color: #AA1111">‘’</span><span style="color: #333333">)[</span><span style="color: #981A1A">-</span><span style="color: #116644">1</span><span style="color: #333333">])) </span></p>
+<p><span style="color: #000000">equalnum </span><span style="color: #333333">&#x3D; </span><span style="color: #000000">stegb64</span><span style="color: #333333">.</span><span style="color: #000000">count</span><span style="color: #333333">(</span><span style="color: #AA1111">‘&#x3D;’</span><span style="color: #333333">) </span><span style="color: #AA5500">#no equalnum no offset </span></p>
+<p><span style="color: #770088">if </span><span style="color: #000000">equalnum</span><span style="color: #333333">: </span></p>
+<p><span style="color: #000000">bin_str </span><span style="color: #333333">+&#x3D; </span><span style="color: #3300AA">bin</span><span style="color: #333333">(</span><span style="color: #000000">offset</span><span style="color: #333333">)[</span><span style="color: #116644">2</span><span style="color: #333333">:].</span><span style="color: #000000">zfill</span><span style="color: #333333">(</span><span style="color: #000000">equalnum </span><span style="color: #981A1A">* </span><span style="color: #116644">2</span><span style="color: #333333">) </span></p>
+<p><span style="color: #3300AA">print </span><span style="color: #AA1111">‘’</span><span style="color: #333333">.</span><span style="color: #000000">join</span><span style="color: #333333">([</span><span style="color: #3300AA">chr</span><span style="color: #333333">(</span><span style="color: #3300AA">int</span><span style="color: #333333">(</span><span style="color: #000000">bin_str</span><span style="color: #333333">[</span><span style="color: #000000">i</span><span style="color: #333333">:</span><span style="color: #000000">i </span><span style="color: #981A1A">+ </span><span style="color: #116644">8</span><span style="color: #333333">], </span><span style="color: #116644">2</span><span style="color: #333333">)) </span><span style="color: #770088">for </span><span style="color: #000000">i </span><span style="color: #770088">in </span><span style="color: #000000">xrange</span><span style="color: #333333">(</span><span style="color: #116644">0</span><span style="color: #333333">, </span></p>
+<p><span style="color: #3300AA">len</span><span style="color: #333333">(</span><span style="color: #000000">bin_str</span><span style="color: #333333">), </span><span style="color: #116644">8</span><span style="color: #333333">)]) </span><span style="color: #AA5500">#8 </span><span style="color: #AA5500">位一组</span></p>
+<p>执行脚本得到：</p>
+<p>NCTF{dbb2ef54afc2877ed9973780606a3c8b}</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2019NCTF/2019NCTF-What's%20this%EF%BC%88base64%E9%9A%90%E5%86%99%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2019NCTF/2019NCTF-What's%20this%EF%BC%88base64%E9%9A%90%E5%86%99%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-07/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2019NCTF/2019NCTF-%E5%B0%8F%E7%8B%97%E7%9A%84%E7%A7%98%E5%AF%86%EF%BC%88wireshark%E3%80%81RGB%20Python%E8%84%9A%E6%9C%AC%EF%BC%89/" title="2019NCTF-小狗的秘密（wireshark、RGB Python脚本）"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2019NCTF-小狗的秘密（wireshark、RGB Python脚本）</div></div><div class="info-2"><div class="info-item-1">2019NCTF-小狗的秘密（wireshark、RGB Python脚本） 链接：https://pan.baidu.com/s/1qSCtZhoCHYIxIzjDeUMpzA提取码：vlrz  打开文件后在筛选框里输入“http contains html”来进行筛选（看别人wp再知道要这样做的，当然，一开始你只能一个一个找）  发现其中的一条html中十分奇特 打开它  直接追踪http流   出现了一些坐标，应该是RGB的颜色坐标，用Python脚本直接转换 Python脚本如下：（请将坐标保存为1.txt） #-- coding:utf-8 --  from PIL import Image  import re  x &#x3D; 500 #x坐标 通过对html里的行数进行整数分解  y &#x3D; 100 #y坐标 x*y &#x3D; 行数  im &#x3D; Image.new(“RGB”,(x,y))#创建图片  file &#x3D; open(‘1.txt’) #打开rbg值文件  #通过一个个rgb点生成图片  for i in range(0,x...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2019NCTF/2019NCTF-RockStar/" title="2019NCTF-RockStar"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">2019NCTF-RockStar</div></div><div class="info-2"><div class="info-item-1">2019NCTF-RockStar 链接：https://pan.baidu.com/s/1eXGYQjaQ6ZRPpvS84VWG9w提取码：yj6k  用记事本打开rock文件后，我们有： Leonard Adleman says star Problem Makers is Problem Makers Problem Makers says NCTF{ God takes World A boy says flag The boy is Bob Evil takes your mind A girl says no flag The girl is Alice Truths were ctf hoster violently FUCK Bob says ar Adi Shamir says rock Love takes Alice and Bob Mallory was a eavesdroppers Mallory’s in hell Everything is literatures, potentially flag, Earth, description, so...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#2019NCTF-What%E2%80%99s-this%EF%BC%88base64%E9%9A%90%E5%86%99%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">2019NCTF-What’s this（base64隐写）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#base64%E9%9A%90%E5%86%99%E5%90%AC%E8%AF%B4%E8%BF%87%E5%90%97%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">base64隐写听说过吗？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%EF%BC%88%E8%AF%B7%E5%B0%86%E5%BE%85%E8%A7%A3%E5%AF%86%E7%9A%84%E6%96%87%E4%BB%B6%E4%BF%9D%E5%AD%98%E4%B8%BA1-txt%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">（请将待解密的文件保存为1.txt）</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

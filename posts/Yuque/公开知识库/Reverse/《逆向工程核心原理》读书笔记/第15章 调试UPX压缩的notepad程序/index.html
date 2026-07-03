@@ -1,0 +1,334 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第15章 调试UPX压缩的notepad程序 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第15章 调试UPX压缩的notepad程序本章将调试UPX压缩的notepad_upx.exe程序，进一步了解运行时压缩的相关概念。我们的目标是通过调试一点点地跟踪代码，最终找出原notepad.exe程序代码。最后再简单讲解一下经过UPX压缩的文件如何通过调试器。 提示—————————————————————————————————————— 本章示例使用的是WindowsXPSP3中的no">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第15章 调试UPX压缩的notepad程序">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC15%E7%AB%A0%20%E8%B0%83%E8%AF%95UPX%E5%8E%8B%E7%BC%A9%E7%9A%84notepad%E7%A8%8B%E5%BA%8F/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第15章 调试UPX压缩的notepad程序本章将调试UPX压缩的notepad_upx.exe程序，进一步了解运行时压缩的相关概念。我们的目标是通过调试一点点地跟踪代码，最终找出原notepad.exe程序代码。最后再简单讲解一下经过UPX压缩的文件如何通过调试器。 提示—————————————————————————————————————— 本章示例使用的是WindowsXPSP3中的no">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-04/800/450">
+<meta property="article:published_time" content="2020-02-10T03:17:18.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.263Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-04/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第15章 调试UPX压缩的notepad程序",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC15%E7%AB%A0%20%E8%B0%83%E8%AF%95UPX%E5%8E%8B%E7%BC%A9%E7%9A%84notepad%E7%A8%8B%E5%BA%8F/",
+  "image": "https://picsum.photos/seed/blog-cover-04/800/450",
+  "datePublished": "2020-02-10T03:17:18.000Z",
+  "dateModified": "2026-07-03T14:46:17.263Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC15%E7%AB%A0%20%E8%B0%83%E8%AF%95UPX%E5%8E%8B%E7%BC%A9%E7%9A%84notepad%E7%A8%8B%E5%BA%8F/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第15章 调试UPX压缩的notepad程序',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-04/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第15章 调试UPX压缩的notepad程序</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第15章 调试UPX压缩的notepad程序</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-10T03:17:18.000Z" title="发表于 2020-02-10 11:17:18">2020-02-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.263Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第15章-调试UPX压缩的notepad程序"><a href="#第15章-调试UPX压缩的notepad程序" class="headerlink" title="第15章 调试UPX压缩的notepad程序"></a>第15章 调试UPX压缩的notepad程序</h1><p>本章将调试UPX压缩的notepad_upx.exe程序，进一步了解运行时压缩的相关概念。<strong>我们的目标是通过调试一点点地跟踪代码，最终找出原notepad.exe程序代码。最后再简单讲解一下经过UPX压缩的文件如何通过调试器。</strong></p>
+<p>提示——————————————————————————————————————</p>
+<p>本章示例使用的是WindowsXPSP3中的notepad.exe程序。</p>
+<hr>
+<h2 id="15-1-notepad-exe的EP代码"><a href="#15-1-notepad-exe的EP代码" class="headerlink" title="15.1 notepad.exe的EP代码"></a>15.1 notepad.exe的EP代码</h2><p>首先看一下原notepad.exe程序的EP代码，如图15-1所示。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581304818773-15d7d256-b9bb-443f-8c0e-d87e12b22834.png" alt="QQ截图20200210112004.png"></p>
+<p>图15-1 notepad.exe的EP代码</p>
+<p>在010073B2地址处调用了GetModuleHandleA()API，获取notepad.exe程序的ImageBase（<strong>基准位置</strong>）。然后在010073B4与010073C0地址处比较MZ与PE签名。希望各位熟记原notepad.exe的EP代码。</p>
+<h2 id="15-2-notepad-upx-exe的EP代码"><a href="#15-2-notepad-upx-exe的EP代码" class="headerlink" title="15.2 notepad_upx.exe的EP代码"></a>15.2 notepad_upx.exe的EP代码</h2><p>使用olyDbg打开notepad_upx.exe时，弹出图15-2所示的警告消息框。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581305044077-50b5ba64-074f-4eb7-82ae-2a1081a5842e.png" alt="QQ截图20200210112355.png"></p>
+<p>图15-2OllyDbg警告消息框</p>
+<p>调试器判断该文件为压缩文件，在“是”与“否”中<strong>任选一个</strong>，显示出<strong>UPX EP</strong>代码，如图15-3所示。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581305124985-5e9c6055-0141-4bef-aaca-73f54e48304c.png" alt="QQ截图20200210112516.png"></p>
+<p>图15-3 notepad_upx.exe的EP代码</p>
+<p><strong>EP地址为01015330，该处即为第二个节区的末端部分。实际压缩的notepad源代码存在于EP地址（01015330）的上方。</strong></p>
+<p>下面看一下代码的开始部分（01015330）。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581305344053-b337a0bd-0180-4ca4-9ff1-7cedee4dbf1f.png" alt="QQ截图20200210112854.png"></p>
+<p><strong>首先使用PUSHAD命令将EAX~EDI寄存器的值保存到栈，然后分别把第二个节区的起始地址（01011000)与第一个节区的起始地址（01001000）设置到ESI与EDI寄存器。UPX文件第一个节区仅存在于内存。该处即是解压缩后保存源文件代码的地方。</strong></p>
+<p><strong>调试时像这样同时设置ESI与EDI，就能预见从ESI所指缓冲区到EDI所指缓冲区的内存发生了复制。此时从Source（ESI）读取数据，解压缩后保存到Destination（EDI）。我们的目标是跟踪图15-3中的全部UPX EP代码，并最终找到原notepad的EP代码，如图15-1所示。</strong></p>
+<p>提示——————————————————————————————————————</p>
+<ul>
+<li>代码逆向分析称源文件的EP为OEP。</li>
+<li>“跟踪”一词的含义是通过逐一分析代码进行追踪。</li>
+<li>实际的代码逆向分析中并不会逐一跟踪执行压缩代码，常使用自动化脚本、特殊技巧等找到OEP。但是对于初次学习运行时压缩文件的朋友而言，逐一跟踪代码才是正确的学习方法。</li>
+</ul>
+<hr>
+<h2 id="15-3跟踪UPX文件"><a href="#15-3跟踪UPX文件" class="headerlink" title="15.3跟踪UPX文件"></a>15.3跟踪UPX文件</h2><p>下面开始跟踪代码，跟踪数量庞大的代码时，请遵循如下法则。</p>
+<blockquote>
+<p><span style="color: #F5222D">“遇到循环（Loop）时，先了解作用再跳出。”</span></p>
+</blockquote>
+<p>整个解压缩过程由无数循环组成。因此，只有适当跳出循环才能加快速度。</p>
+<h3 id="15-3-1OllyDbg的跟踪命令"><a href="#15-3-1OllyDbg的跟踪命令" class="headerlink" title="15.3.1OllyDbg的跟踪命令"></a>15.3.1OllyDbg的跟踪命令</h3><p>跟踪数量庞大的代码时，通常不会使用Step Into（F7)命令，而使用OllyDbg中另外提供的跟踪调试命令，如表15-1所示。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581305889259-637b420b-7f8c-45d1-9a48-fdedc690bca2.png" alt="QQ截图20200210113759.png"></p>
+<p>除了画面显示的之外，Animate命令与跟踪命令是类似的，由于Animate命令要把跟踪过程显示在画面中，所以执行速度略微慢一些。而两者最大的差别在于，<strong>跟踪命令会自动在事先设置的跟踪条件处停下来，并生成日志文件。在UPX文件跟踪中将使用Animate Over(Ctrl+F8)命令</strong>。</p>
+<h3 id="15-3-2循环-1"><a href="#15-3-2循环-1" class="headerlink" title="15.3.2循环#1"></a>15.3.2循环#1</h3><p><strong>在EP代码处执行Animate Over(Ctrl+F8)命令，开始跟踪代码。可以看到光标快速上下移动。</strong></p>
+<p><strong>若想停止跟踪，执行Step Into（F7）命令即可。</strong></p>
+<p>开始跟踪代码不久后，会遇到一个短循环。暂停跟踪（<strong>执行Step Into（F7）命令</strong>），仔细查看相应循环，如图15-4所示。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581306643524-5b6c9976-281a-4f63-86d5-02cb5a092101.png" alt="QQ截图20200210114952.png"></p>
+<p>图15-4 第一个循环（要想出现图中的情况，可以在010153DD处F2下断点，然后执行F9）</p>
+<p>循环次数ECX&#x3D;36B，循环内容为“从EDX（01001000）中读取一个字节写入EDI（01001001）”。</p>
+<p>EDI寄存器所指的01001000地址即是第一个节区（UPX0）的起始地址，仅存在于内存中的节区（反正内容全部为NULL）。</p>
+<p>调试经过运行时压缩的文件时，遇到这样的循环应该跳出来。在010153E6地址处按F2键设置好断点后，按F9（F9：运行到断点处）跳出循环（取消之前在010153DD处F2下的断点）。</p>
+<h3 id="15-3-3循环-2"><a href="#15-3-3循环-2" class="headerlink" title="15.3.3循环#2"></a>15.3.3循环#2</h3><p>在断点处再次使用Animate Over(Ctrl+F8)命令继续跟踪代码，不久后遇到图15-5所示的循环（比前面那个循环略大一些）。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581307390018-965c2b11-3b7c-457d-9da6-bc551caf8d35.png" alt="QQ截图20200210120300.png"></p>
+<p>图15-5第二个循环（要想出现图中的情况，可以在01015402处F2下断点，然后执行F9）</p>
+<p>该循环是正式的解码循环（或称为解压缩循环）。</p>
+<p>先从ESI所指的第二个节区（UPX1)地址中依次读取值，经过适当的运算解压缩后，将值写入EDI所指的第一个节区（UPX0）地址。该过程中使用的指令如下：</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581307071982-acd856b1-2eb2-4f10-97e0-3bd08efab06d.png" alt="QQ截图20200210115743.png"></p>
+<p>只要在01015402地址处设置好断点再运行（F9），即可跳出第二个循环，如图15-5所示。运行到01015402地址后，在转储窗口中可以看到解压缩后的代码已经被写人第一个节区（UPX0）区域（01007000），如图15-5中原来用NULL填充的区域。</p>
+<h3 id="15-3-4循环-3"><a href="#15-3-4循环-3" class="headerlink" title="15.3.4循环#3"></a>15.3.4循环#3</h3><p>重新跟踪代码，稍后会遇到图15-6所示的第三个循环。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581307699499-d9c875f6-66c1-46cf-8549-163c3517a579.png" alt="QQ截图20200210120807.png"></p>
+<p>图15-5第三个循环（要想出现图中的情况，可以在01015434处F2下断点，然后执行F9）</p>
+<p>图15-6第三个循环该段循环代码用于恢复源代码的CALL&#x2F;JMP指令（操作码：E8&#x2F;E9）的destination地址。在01015436地址处设置断点运行后即可跳出循环。</p>
+<p>到此几乎接近尾声了，只要再设置好IAT，UPX解压缩代码就结束了。</p>
+<p>提示——————————————————————————————————————</p>
+<p><span style="color: #F5222D">对于普通的运行时压缩文件，源文件代码、数据、资源解压缩之后，先设置好IAT再转到OEP。</span></p>
+<p><span style="color: #F5222D">IAT（Import Address Table，导入地址表）</span><strong>简言之，IAT是一种表格，用来记录程序正在使用哪些库中的哪些函数。</strong></p>
+<hr>
+<h3 id="15-3-5循环-4"><a href="#15-3-5循环-4" class="headerlink" title="15.3.5循环#4"></a>15.3.5循环#4</h3><p>重新跟踪代码，再稍微进行一段。</p>
+<p>图15-7深色显示的部分即为设置IAT的循环。在01015436地址处设置EDI&#x3D;01014000，它指向第二个节区（UPX1）区域，该区域中保存着原notepad.exe调用的API函数名称的字符串（参考图15-8）。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581308062235-5df12e48-6654-44a2-baf4-d72c398d258a.png" alt="QQ截图20200210121414.png"></p>
+<p>图15-5第四个循环（要想出现图中的情况，可以在01015436处F2下断点，然后执行F9）</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581308146790-4d9bb746-6fd7-41bf-acdd-60255b433e42.png" alt="QQ截图20200210121539.png"></p>
+<p>图15-8 API名称字符串</p>
+<p>UPX压缩原notepad.exe文件时，它会分析其IAT，提取出程序中调用的APl名称列表，形成API名称字符串。</p>
+<p>用这些API名称字符串调用图15-7中01015467地址处的GetProcAddress()函数，获取API的起始地址，然后把API地址输入EBX寄存器所指的原notepad.exe的IAT区域。该过程会反复进行至API名称字符串结束，最终恢复原notepad.exe的IAT。</p>
+<p>notepad.exe全部解压缩完成后，应该将程序的控制返回到OEP处。图15-9显示的就是跳转到OEP的代码。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581308357168-93da9623-dff2-4f8d-8b00-33629645470c.png" alt="QQ截图20200210121910.png"></p>
+<p>图15-9 JUMP to OEP</p>
+<p>另外，010154AD地址处的<strong>POPAD命令与UPX代码的第一条PUSHAD命令对应</strong>，用来把当前寄存器恢复原状（参考图15-3）。</p>
+<p>最终，使用010154BB地址处的JMP命令跳转到OEP处，要跳转到的目标地址为0100739D，它就是原notepad.exe的EP地址（请各位确认）。</p>
+<h2 id="15-4快速查找UPX-OEP的方法"><a href="#15-4快速查找UPX-OEP的方法" class="headerlink" title="15.4快速查找UPX OEP的方法"></a>15.4快速查找UPX OEP的方法</h2><p>各位都像上面这样顺利完成代码跟踪了吗?代码逆向技术的初学者一定要亲自试试，这有助于调试用其他压缩器压缩的文件。但每次都使用上述方法（跳出循环）查找OEP非常麻烦，实际代码逆向分析中有一些更简单的方法可以找到OEP（以UPX压缩的文件为例）。</p>
+<h3 id="15-4-1在POPAD指令后的JMP指令处设置断点"><a href="#15-4-1在POPAD指令后的JMP指令处设置断点" class="headerlink" title="15.4.1在POPAD指令后的JMP指令处设置断点"></a>15.4.1在POPAD指令后的JMP指令处设置断点</h3><p><strong>UPX压缩器的特征之一是，其EP代码被包含在PUSHAD&#x2F;POPAD指令之间。并且，跳转到OEP代码的JMP指令紧接着出现在POPAD指令之后。只要在JMP指令处设置好断点，运行后就能直接找到OEP。</strong></p>
+<p>提示——————————————————————————————————————</p>
+<ul>
+<li>PUSHAD指令将8个通用寄存器（EAX~EDI）的值保存到栈。</li>
+<li>POPAD指令把PUSHAD命令存储在栈的值再次恢复到各个寄存器。</li>
+</ul>
+<hr>
+<h3 id="15-4-2在栈中设置硬件断点"><a href="#15-4-2在栈中设置硬件断点" class="headerlink" title="15.4.2在栈中设置硬件断点"></a><span style="color: #000000">15.4.2在栈中设置</span><span style="color: #F5222D">硬件断点</span></h3><p>该方法也利用UPX的PUSHAD&#x2F;POPAD指令的特点。在图15-3中执行01015330地址处的PUSHAD命令后，查看栈，如图15-10所示。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581308942094-8b5fed3c-cd69-48f7-b8dc-001f35e2a6cf.png" alt="QQ截图20200210122844.png"><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581308942823-7f804d27-1ea9-4860-8270-b9b196b0caaf.png" alt="QQ截图20200210122850.png"></p>
+<p>EAX到EDI寄存器的值依次被存储到栈。从OllyDbg的Dump窗口进入栈地址（006FFA4000DFF54)。将鼠标光标准确定位到6FFA4DFF54地址，使用鼠标右键菜单设置硬件断点，如图15-11所示。</p>
+<p><img src="/assets/posts/15-upx-notepad-10ae8as/assets/1581309124027-c242e1c0-35ba-4aa7-98a2-dbab37978924.png" alt="QQ截图20200210123154.png"></p>
+<p>硬件断点是CPU支持的断点，最多可以设置4个。与普通断点不同的是，设置断点的指令执行完成后才暂停调试。在这种状态下运行，程序就会边解压缩边执行代码，在执行POPAD的瞬间访问设置有硬件断点的（006FFA4000DFF54)地址，然后暂停调试。其下方即是跳转到OEP的JMP指令（熟悉该方法的操作原理才能在以后调试各种文件时得心应手）。</p>
+<h2 id="15-5小结"><a href="#15-5小结" class="headerlink" title="15.5小结"></a>15.5小结</h2><p>前面学习了有关调试UPX运行时压缩文件的内容。建议各位参照书中讲解亲自操作，通过逐一跳出各循环的方法查找OEP。经过这样一系列的实际操作后，相信各位的调试水平都会得到很大提高。</p>
+<h2 id="Q-A"><a href="#Q-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><p>Q.解压缩（Unpacking)过程中打开Dump窗口，若不重新设置IAT就会出现初始化错误。这到底是怎么一回事？</p>
+<p>A.比如，运行UPX文件后转储时，IAT中存在（对应于当前系统的）准确的API地址。但是INT却处于损坏状态。PE装载器使用INT中的API名称字符串（LoadLibrary()&#x2F;GetProcAddress())来获取实际API地址，并将它们记录到IAT。由于INT已经损坏，该过程中自然会发生错误。</p>
+<p>Q.很多汇编指令都不懂，请介绍可以查找汇编指令的网站吧，谢谢！</p>
+<p>A.此时，我通常会去查Intel的官方文档：<a target="_blank" rel="noopener" href="http://www.intel.com/products/processor/manuals/%E3%80%82">http://www.intel.com/products/processor/manuals/。</a></p>
+<p>Q.如何知道ESI、EDI所指的地址对应于哪个节区的地址呢？我想知道该如何才能识别出恢复IAT的代码以及解码循环。</p>
+<p>A.内存复制命令中，ESI指Source，EDI指Destination。所以使用PEView(或者OllyDbg的内存映射窗口）查看ESI&#x2F;EDI所指的地址，即可知道它们对应的节区。从反复调用GetProcAddress()函数可知，这是在恢复文件的IAT。此外，如果拥有丰富的解压缩经验，就更容易预测，这是刚刚接触的人无法企及的。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC15%E7%AB%A0%20%E8%B0%83%E8%AF%95UPX%E5%8E%8B%E7%BC%A9%E7%9A%84notepad%E7%A8%8B%E5%BA%8F/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC15%E7%AB%A0%20%E8%B0%83%E8%AF%95UPX%E5%8E%8B%E7%BC%A9%E7%9A%84notepad%E7%A8%8B%E5%BA%8F/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-04/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC16%E7%AB%A0%20%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8/" title="第16章 基址重定位表"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第16章 基址重定位表</div></div><div class="info-2"><div class="info-item-1">第16章 基址重定位表PE文件在重定位过程中会用到基址重定位表（Base Relocation Table)，本章将学习其结构及操作原理。 16.1 PE重定位向进程的虚拟内存加载PE文件（EXE&#x2F;DLL&#x2F;SYS）时，文件会被加载到PE头的ImageBase所指的地址处。若加载的是DLL（SYS）文件，且在ImageBase位置处已经加载了其他DLL（SYS)文件，那么PE装载器就会将其加载到其他未被占用的空间。这就涉及PE文件重定位的问题，PE重定位是指PE文件无法加载到ImageBase所指位置，而是被加载到其他地址时发生的一系列的处理行为。 提示—————————————————————————————————————— 使用SDK（Software DevelopmentKit,软件开发工具包）或VisualC++创建PE文件时，EXE默认的ImageBase为00400000，DLL默认的ImageBase为10000000。此外， 使用DDK（Driver Development Kit,驱动开发工具包创建的SYS文件默认的ImageBase 为1...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC14%E7%AB%A0%20%E8%BF%90%E8%A1%8C%E6%97%B6%E5%8E%8B%E7%BC%A9/" title="第14章 运行时压缩"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第14章 运行时压缩</div></div><div class="info-2"><div class="info-item-1">第14章 运行时压缩运行时压缩器（Run-Time Packer)是软件逆向分析学的常见主题。为了理解好它，需要掌握有关PE文件格式、操作系统的基本知识（进程、内存、DLL等），同时也要了解有关压缩&#x2F;解压缩算法的基本内容。其中许多部分已经在前面讲解过了，学习运行时压缩能够进一步帮助大家把前面学过的逆向分析知识系统化，做到融会贯通。 14.1数据压缩大家对于数据压缩都比较熟悉，下面简单梳理一下相关知识。数据压缩（Data Compression)是计算机工程的主要研究内容，经过数十年发展已经有了深入研究，今后还会不断出现更多、更好的算法。 如果日常生活中能够非常容易地压缩某个物体该多么方便啊！也就不再需要仓库、停车场、集装箱了，当然，得能压缩才行。而在数码世界，（只要不是压缩过的信息）任何信息都能轻松压缩。 不论哪种形态的文件（数据）都是由二进制（0或1）组成的，只要使用合适的压缩算法，就能缩减其大小。经过压缩的文件若能100%恢复，则称该压缩为“无损压缩”（Lossless DataCompression)；若不能恢复原状，则称该压缩为“有损压缩”（Loss Data ...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC15%E7%AB%A0-%E8%B0%83%E8%AF%95UPX%E5%8E%8B%E7%BC%A9%E7%9A%84notepad%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.</span> <span class="toc-text">第15章 调试UPX压缩的notepad程序</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#15-1-notepad-exe%E7%9A%84EP%E4%BB%A3%E7%A0%81"><span class="toc-number">1.1.</span> <span class="toc-text">15.1 notepad.exe的EP代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-2-notepad-upx-exe%E7%9A%84EP%E4%BB%A3%E7%A0%81"><span class="toc-number">1.2.</span> <span class="toc-text">15.2 notepad_upx.exe的EP代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-3%E8%B7%9F%E8%B8%AAUPX%E6%96%87%E4%BB%B6"><span class="toc-number">1.3.</span> <span class="toc-text">15.3跟踪UPX文件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#15-3-1OllyDbg%E7%9A%84%E8%B7%9F%E8%B8%AA%E5%91%BD%E4%BB%A4"><span class="toc-number">1.3.1.</span> <span class="toc-text">15.3.1OllyDbg的跟踪命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-3-2%E5%BE%AA%E7%8E%AF-1"><span class="toc-number">1.3.2.</span> <span class="toc-text">15.3.2循环#1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-3-3%E5%BE%AA%E7%8E%AF-2"><span class="toc-number">1.3.3.</span> <span class="toc-text">15.3.3循环#2</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-3-4%E5%BE%AA%E7%8E%AF-3"><span class="toc-number">1.3.4.</span> <span class="toc-text">15.3.4循环#3</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-3-5%E5%BE%AA%E7%8E%AF-4"><span class="toc-number">1.3.5.</span> <span class="toc-text">15.3.5循环#4</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-4%E5%BF%AB%E9%80%9F%E6%9F%A5%E6%89%BEUPX-OEP%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-number">1.4.</span> <span class="toc-text">15.4快速查找UPX OEP的方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#15-4-1%E5%9C%A8POPAD%E6%8C%87%E4%BB%A4%E5%90%8E%E7%9A%84JMP%E6%8C%87%E4%BB%A4%E5%A4%84%E8%AE%BE%E7%BD%AE%E6%96%AD%E7%82%B9"><span class="toc-number">1.4.1.</span> <span class="toc-text">15.4.1在POPAD指令后的JMP指令处设置断点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-4-2%E5%9C%A8%E6%A0%88%E4%B8%AD%E8%AE%BE%E7%BD%AE%E7%A1%AC%E4%BB%B6%E6%96%AD%E7%82%B9"><span class="toc-number">1.4.2.</span> <span class="toc-text">15.4.2在栈中设置硬件断点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-5%E5%B0%8F%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">15.5小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Q-A"><span class="toc-number">1.6.</span> <span class="toc-text">Q&amp;A</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

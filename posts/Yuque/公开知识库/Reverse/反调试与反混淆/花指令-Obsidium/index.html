@@ -1,0 +1,444 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>花指令-Obsidium | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="花指令-Obsidium 2015NCTF-2015_nctf_re  还得输一星期的液，要废了… 论右手打字的憋屈感…  参考资料：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;ZRBYYXDM&#x2F;articles&#x2F;5192953.html 首先介绍一下花指令的概念： 花指令是一些专门用来迷惑反汇编软件的代码数据，而对于cpu来说，依旧还是会执行正确的代码。通过插入无效数据，干扰反汇编软件对PE">
+<meta property="og:type" content="article">
+<meta property="og:title" content="花指令-Obsidium">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E5%8F%8D%E8%B0%83%E8%AF%95%E4%B8%8E%E5%8F%8D%E6%B7%B7%E6%B7%86/%E8%8A%B1%E6%8C%87%E4%BB%A4-Obsidium/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="花指令-Obsidium 2015NCTF-2015_nctf_re  还得输一星期的液，要废了… 论右手打字的憋屈感…  参考资料：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;ZRBYYXDM&#x2F;articles&#x2F;5192953.html 首先介绍一下花指令的概念： 花指令是一些专门用来迷惑反汇编软件的代码数据，而对于cpu来说，依旧还是会执行正确的代码。通过插入无效数据，干扰反汇编软件对PE">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-01/800/450">
+<meta property="article:published_time" content="2020-05-04T09:23:35.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.607Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-01/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "花指令-Obsidium",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E5%8F%8D%E8%B0%83%E8%AF%95%E4%B8%8E%E5%8F%8D%E6%B7%B7%E6%B7%86/%E8%8A%B1%E6%8C%87%E4%BB%A4-Obsidium/",
+  "image": "https://picsum.photos/seed/blog-cover-01/800/450",
+  "datePublished": "2020-05-04T09:23:35.000Z",
+  "dateModified": "2026-07-03T14:46:17.607Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E5%8F%8D%E8%B0%83%E8%AF%95%E4%B8%8E%E5%8F%8D%E6%B7%B7%E6%B7%86/%E8%8A%B1%E6%8C%87%E4%BB%A4-Obsidium/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '花指令-Obsidium',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-01/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">花指令-Obsidium</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">花指令-Obsidium</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-05-04T09:23:35.000Z" title="发表于 2020-05-04 17:23:35">2020-05-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.607Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="花指令-Obsidium"><a href="#花指令-Obsidium" class="headerlink" title="花指令-Obsidium"></a>花指令-Obsidium</h1><blockquote>
+<p>2015NCTF-2015_nctf_re</p>
+</blockquote>
+<p>还得输一星期的液，要废了…</p>
+<p>论右手打字的憋屈感…</p>
+<hr>
+<p>参考资料：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/ZRBYYXDM/articles/5192953.html">https://www.cnblogs.com/ZRBYYXDM/articles/5192953.html</a></p>
+<p>首先介绍一下花指令的概念：</p>
+<p>花指令是一些专门用来迷惑反汇编软件的代码数据，而对于cpu来说，依旧还是会执行正确的代码。通过插入无效数据，干扰反汇编软件对PE文件的分析，导致其显示出很多无用的信息。</p>
+<p>接下来我们开始实战：</p>
+<p>任务目标：拆解Nag窗口 &amp; 找出密钥</p>
+<p>首先查壳：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1585878723625-f0d4d7f6-09af-4f63-9cf6-41b89c21954d.png" alt="QQ截图20200403095152.png"></p>
+<p>没有壳，为了调试方便，在Windows XP虚拟机环境下运行该程序，结果无限（255次）弹出如下窗口：</p>
+<p>（任务管理器结束此进程）</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1585879089619-7adaa7f5-e01d-41fe-b98c-ce0576315a17.png" alt="QQ截图20200403095716.png">（不搞，滚！）</p>
+<p>在IDA里就可以看出（搜索字符串“小兄弟”然后交叉引用）：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1585879393475-726bb2c7-c8b9-4104-b8c0-c1aa889278c3.png" alt="QQ截图20200403100303.png"></p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1585879452649-27322a98-5bb9-44ad-b4be-74a46c7d4c03.png" alt="QQ截图20200403100404.png"></p>
+<p>接下来我们拆解Nag窗口：</p>
+<p>用OD载入该程序，对MessageBoxA下断</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1585879726048-4c3ccc14-e916-4b5d-be0f-59e24717c54e.png" alt="QQ截图20200403100825.png"></p>
+<p>F9运行后中断：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1585879802574-b12445fe-c394-47fc-b841-30769dd5a3f8.png" alt="QQ截图20200403100945.png"></p>
+<p>按F8单步走，当步过call user32.MessageBoxExA后，此时的堆栈窗口如下：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1585881538345-8385ba47-21fa-43a1-8f1a-aa9d7d686b5c.png" alt="QQ截图20200403101258.png"></p>
+<p>并且弹出窗口：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586048327081-6a136c52-647b-4341-88ef-5c28bce0d9d9.png" alt="QQ截图20200405085819.png"></p>
+<p>单击窗口中的确定后，我们继续在OD中步过，来到：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586048610366-5f3ab0a2-8847-4f35-96be-99da9f7a93d2.png" alt="QQ截图20200405090313.png"></p>
+<p>继续：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586048694841-9ae9a422-e6a3-463c-b433-cfb8a6edbc7b.png" alt="QQ截图20200405090444.png"></p>
+<p>继续：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586048763939-ce02b9a4-48ef-449b-b7b3-ba41008fc19a.png" alt="QQ截图20200405090545.png"></p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586048801720-06f26312-4819-4dca-9df8-c17d2b62d3e1.png" alt="QQ截图20200405090627.png"></p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586048849275-1f155a66-098e-4f5f-aca0-a61ec5e0519a.png" alt="QQ截图20200405090718.png"></p>
+<p>结果我们又回到了：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586048927130-77bcf9b6-f014-4a3a-bccc-3e938652a8f5.png" alt="QQ截图20200405090829.png"></p>
+<p>在上述循环，我们发现关键语句：地址的00401311 jnz short 00401300</p>
+<p>这条语句关乎着是否弹出窗口，我们再次单步来到地址的00401311 jnz short 00401300</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586049302416-a9048dcb-d46d-4c64-90e4-5c958db93f9e.png" alt="QQ截图20200405091451.png"></p>
+<p>要使其不跳转，修改jnz short 00401300为：je short 00401300</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586049419605-993e6a4a-7098-48ca-9879-20b292737e01.png" alt="QQ截图20200405091644.png"></p>
+<p>然后保存exe：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586049584701-41c54b2f-0848-4bf1-8c24-4fff73555003.png" alt="QQ截图20200405091913.png"></p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586049624284-4bc29006-8b4d-4569-8e6c-c4c04a7dc679.png" alt="QQ截图20200405092014.png"></p>
+<p>保存为2.exe，关闭OD</p>
+<p>打开2.exe，弹出一次窗口后，有：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586049848670-a7289ad1-1559-4ef5-8dfa-ab39d5379ccb.png" alt="QQ截图20200405092347.png"></p>
+<p>用OD载入修改后的2.exe，由于有上述窗口，我们对GetDlgItemTextA下断：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586050087804-30fe8ac7-303b-4b70-8a22-4449777bb5ff.png" alt="QQ截图20200405092732.png"></p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586050082316-808d3fec-7425-485a-b303-6d5e5952023a.png" alt="QQ截图20200405092751.png"></p>
+<p>按F9执行，在弹出的窗口中点击确定：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586048327081-6a136c52-647b-4341-88ef-5c28bce0d9d9.png" alt="QQ截图20200405085819.png"></p>
+<p>然后出现：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586049848670-a7289ad1-1559-4ef5-8dfa-ab39d5379ccb.png" alt="QQ截图20200405092347.png"></p>
+<p>随便输入内容：“123456789”，单击确定，OD中有：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586050595027-eb2eb159-f49e-4a0b-9c36-ddf8e21265ad.png" alt="QQ截图20200405093621.png"></p>
+<p>多次F8单步执行回到程序领空</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586050756199-f9d41331-516b-4099-a08c-c3c80614139d.png" alt="QQ截图20200405093902.png"></p>
+<p>（为了方便，在地址0040141F处下断）如图所示，程序后面出现了一大段无用数据，继续运行，发现程序跟入了无用数据中，但寄存器的值却在不停的变换，说明该处指令被混淆过。</p>
+<p>由于吾爱破解的OD中没有去除“Obsidium”花指令的插件，我们记下地址0040141F，打开吾爱破解工具包中的</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586051172412-993651f3-beb7-4cd1-8663-bf61c5a9891e.png" alt="QQ截图20200405094557.png"></p>
+<p>将程序载入，使程序的EIP来到地址0040141F（期间需要一些操作）：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586051369554-9151c6d9-4dab-42e0-9cb7-57cac0c298cc.png" alt="QQ截图20200405094919.png"></p>
+<p>选择40141F-401431处指令，右键-&gt;去除花指令-&gt;Obsidium即可去除花指令</p>
+<blockquote>
+<p>注意：请在去除花指令之前让EIP指向地址401433处，否则可能会出现调试异常！</p>
+</blockquote>
+<p>此时的寄存器窗口：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586051688604-8706cbbd-60aa-4868-adee-ff12da798a58.png" alt="QQ截图20200405095435.png"></p>
+<p>接下来我们慢慢的分析：（此时EIP指向：00401433）（十六进制：123456789ABCDEF）</p>
+<p>00401431      C3            retn</p>
+<p>00401432      C45B 5A       les     ebx, fword ptr [ebx+5A]</p>
+<p>00401435      59            pop     ecx</p>
+<p>00401436      51            push    ecx</p>
+<p>00401437      52            push    edx</p>
+<p>00401438      53            push    ebx</p>
+<p>00401439      33DB          xor     ebx, ebx</p>
+<p>0040143B      74 01         <strong>je      short 0040143E</strong></p>
+<p><span style="color: #F5222D">0040143D      E8 5B5A5980   call    80996E9D（未执行，可nop）</span></p>
+<p>00401442      306E 51       xor     byte ptr [esi+51], ch</p>
+<p>00401445      52            push    edx</p>
+<p>00401446      53            push    ebx</p>
+<p>00401447      33DB          xor     ebx, ebx</p>
+<p>00401449      74 01         <strong>je      short 0040144C</strong></p>
+<p><span style="color: #F5222D">0040144B    - E9 5B5A5980   jmp     80996EAB（未执行，可nop）</span></p>
+<p>00401450      70 01         jo      short 00401453</p>
+<p>00401452      6251 52       bound   edx, qword ptr [ecx+52]</p>
+<p>…（省略一部分指令）</p>
+<p>没有执行的地方可以确定是垃圾数据，<span style="color: #303030">用n</span>op填充（“剩余的用nop填充”不要打钩）</p>
+<p>从地址00401441处就开始对我们输入的数据进行异或，可以跟随一下数据窗口</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586079373198-baae62a9-fba4-4848-9bb4-2526b5d224a3.png" alt="QQ截图20200405173525.png"></p>
+<p><span style="color: #800080">00401441</span>      <span style="color: #800080">8030</span> 6E       <span style="color: #0000FF">xor</span>     byte ptr [eax], 6E               <span style="color: #008000">;</span><span style="color: #008000">  第一个字符与6E异或</span></p>
+<p><span style="color: #800080">00401444</span>      <span style="color: #800080">51</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ecx</span></p>
+<p><span style="color: #800080">00401445</span>      <span style="color: #800080">52</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    edx</span></p>
+<p><span style="color: #800080">00401446</span>      <span style="color: #800080">53</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ebx</span></p>
+<p><span style="color: #800080">00401447</span>      33DB          <span style="color: #0000FF">xor</span>     ebx, ebx                         <span style="color: #008000">;</span><span style="color: #008000">  清空ebx</span></p>
+<p><span style="color: #800080">00401449</span>      <span style="color: #800080">74</span> <span style="color: #800080">01</span>         <span style="color: #0000FF">je</span>      short <span style="color: #800080">0040144C</span>                   <span style="color: #008000">;</span><span style="color: #008000">  跳入144C，144B没有被执行</span></p>
+<p><span style="color: #800080">0040144B</span>      <span style="color: #800080">90</span>            <span style="color: #0000FF">nop</span></p>
+<p><span style="color: #800080">0040144C</span>      5B            <span style="color: #0000FF">pop</span><span style="color: #000000">     ebx</span></p>
+<p><span style="color: #800080">0040144D</span>      5A            <span style="color: #0000FF">pop</span><span style="color: #000000">     edx</span></p>
+<p><span style="color: #800080">0040144E</span>      <span style="color: #800080">59</span>            <span style="color: #0000FF">pop</span><span style="color: #000000">     ecx</span></p>
+<p><span style="color: #800080">0040144F</span>      <span style="color: #800080">8070</span> <span style="color: #800080">01</span> <span style="color: #800080">62</span>    <span style="color: #0000FF">xor</span>     byte ptr [eax+<span style="color: #800080">1</span>], <span style="color: #800080">62</span>             <span style="color: #008000">;</span><span style="color: #008000">  第二个字符与62异或</span></p>
+<p><span style="color: #800080">00401453</span>      <span style="color: #800080">51</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ecx</span></p>
+<p><span style="color: #800080">00401454</span>      <span style="color: #800080">52</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    edx</span></p>
+<p><span style="color: #800080">00401455</span>      <span style="color: #800080">53</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ebx</span></p>
+<p><span style="color: #800080">00401456</span>      33DB          <span style="color: #0000FF">xor</span>     ebx, ebx                         <span style="color: #008000">;</span><span style="color: #008000">  清空ebx</span></p>
+<p><span style="color: #800080">00401458</span>      <span style="color: #800080">74</span> <span style="color: #800080">01</span>         <span style="color: #0000FF">je</span>      short <span style="color: #800080">0040145B</span>                   <span style="color: #008000">;</span><span style="color: #008000">  跳入145B，145A没有被执行</span></p>
+<p><span style="color: #800080">0040145A</span>      <span style="color: #800080">90</span>            <span style="color: #0000FF">nop</span></p>
+<p><span style="color: #800080">0040145B</span>      5B            <span style="color: #0000FF">pop</span><span style="color: #000000">     ebx</span></p>
+<p><span style="color: #800080">0040145C</span>      5A            <span style="color: #0000FF">pop</span><span style="color: #000000">     edx</span></p>
+<p><span style="color: #800080">0040145D</span>      <span style="color: #800080">59</span>            <span style="color: #0000FF">pop</span><span style="color: #000000">     ecx</span></p>
+<p><span style="color: #800080">0040145E</span>      <span style="color: #800080">8070</span> <span style="color: #800080">02</span> <span style="color: #800080">76</span>    <span style="color: #0000FF">xor</span>     byte ptr [eax+<span style="color: #800080">2</span>], <span style="color: #800080">76</span>             <span style="color: #008000">;</span><span style="color: #008000">  第三个字符与76异或</span></p>
+<p><span style="color: #800080">00401462</span>      <span style="color: #800080">51</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ecx</span></p>
+<p><span style="color: #800080">00401463</span>      <span style="color: #800080">52</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    edx</span></p>
+<p><span style="color: #800080">00401464</span>      <span style="color: #800080">53</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ebx</span></p>
+<p><span style="color: #800080">00401465</span>      33DB          <span style="color: #0000FF">xor</span>     ebx, ebx                         <span style="color: #008000">;</span><span style="color: #008000">  清空ebx</span></p>
+<p><span style="color: #800080">00401467</span>      <span style="color: #800080">74</span> <span style="color: #800080">01</span>         <span style="color: #0000FF">je</span>      short <span style="color: #800080">0040146A</span>                   <span style="color: #008000">;</span><span style="color: #008000">  跳入146A，1469没有被执行</span></p>
+<p><span style="color: #800080">00401469</span>      <span style="color: #800080">90</span>            <span style="color: #0000FF">nop</span></p>
+<p><span style="color: #800080">0040146A</span>      5B            <span style="color: #0000FF">pop</span><span style="color: #000000">     ebx</span></p>
+<p><span style="color: #800080">0040146B</span>      5A            <span style="color: #0000FF">pop</span><span style="color: #000000">     edx</span></p>
+<p><span style="color: #800080">0040146C</span>      <span style="color: #800080">59</span>            <span style="color: #0000FF">pop</span><span style="color: #000000">     ecx</span></p>
+<p><span style="color: #800080">0040146D</span>      <span style="color: #800080">8070</span> <span style="color: #800080">03</span> <span style="color: #800080">65</span>    <span style="color: #0000FF">xor</span>     byte ptr [eax+<span style="color: #800080">3</span>], <span style="color: #800080">65</span>             <span style="color: #008000">;</span><span style="color: #008000">  第四个字符与65异或</span></p>
+<p><span style="color: #800080">00401471</span>      <span style="color: #800080">51</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ecx</span></p>
+<p><span style="color: #800080">00401472</span>      <span style="color: #800080">52</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    edx</span></p>
+<p><span style="color: #800080">00401473</span>      <span style="color: #800080">53</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ebx</span></p>
+<p><span style="color: #800080">00401474</span>      33DB          <span style="color: #0000FF">xor</span>     ebx, ebx                         <span style="color: #008000">;</span><span style="color: #008000">  清空ebx</span></p>
+<p><span style="color: #800080">00401476</span>      <span style="color: #800080">74</span> <span style="color: #800080">01</span>         <span style="color: #0000FF">je</span>      short <span style="color: #800080">00401479</span>                   <span style="color: #008000">;</span><span style="color: #008000">  跳入1479，1478没有被执行</span></p>
+<p><span style="color: #800080">00401478</span>      <span style="color: #800080">90</span>            <span style="color: #0000FF">nop</span></p>
+<p><span style="color: #800080">00401479</span>      5B            <span style="color: #0000FF">pop</span><span style="color: #000000">     ebx</span></p>
+<p><span style="color: #800080">0040147A</span>      5A            <span style="color: #0000FF">pop</span><span style="color: #000000">     edx</span></p>
+<p><span style="color: #800080">0040147B</span>      <span style="color: #800080">59</span>            <span style="color: #0000FF">pop</span><span style="color: #000000">     ecx</span></p>
+<p><span style="color: #800080">0040147C</span>      <span style="color: #800080">8070</span> <span style="color: #800080">04</span> 7F    <span style="color: #0000FF">xor</span>     byte ptr [eax+<span style="color: #800080">4</span>], 7F             <span style="color: #008000">;</span><span style="color: #008000">  第五个字符与7F异或</span></p>
+<p><span style="color: #800080">00401480</span>      <span style="color: #800080">51</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ecx</span></p>
+<p><span style="color: #800080">00401481</span>      <span style="color: #800080">52</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    edx</span></p>
+<p><span style="color: #800080">00401482</span>      <span style="color: #800080">53</span>            <span style="color: #0000FF">push</span><span style="color: #000000">    ebx</span></p>
+<p><span style="color: #800080">00401483</span>      33DB          <span style="color: #0000FF">xor</span>     ebx, ebx                         <span style="color: #008000">;</span><span style="color: #008000">  清空ebx</span></p>
+<p><span style="color: #800080">00401485</span>      <span style="color: #800080">74</span> <span style="color: #800080">01</span>         <span style="color: #0000FF">je</span>      short <span style="color: #800080">00401488</span>                   <span style="color: #008000">;</span><span style="color: #008000">  跳入1488，1487没有被执行</span></p>
+<p><span style="color: #800080">00401487</span>      <span style="color: #800080">90</span>            <span style="color: #0000FF">nop</span></p>
+<p><span style="color: #800080">00401488</span>      5B            <span style="color: #0000FF">pop</span><span style="color: #000000">     ebx</span></p>
+<p><span style="color: #800080">00401489</span>      5A            <span style="color: #0000FF">pop</span><span style="color: #000000">     edx</span></p>
+<p><span style="color: #800080">0040148A</span>      <span style="color: #800080">59</span>            <span style="color: #0000FF">pop</span><span style="color: #000000">     ecx</span></p>
+<p><span style="color: #800080">0040148B</span>      <span style="color: #800080">8070</span> <span style="color: #800080">05</span> <span style="color: #800080">49</span>    <span style="color: #0000FF">xor</span>     byte ptr [eax+<span style="color: #800080">5</span>], <span style="color: #800080">49</span>             <span style="color: #008000">;</span><span style="color: #008000">  第六个字符与49异或</span></p>
+<p><span style="color: #008000">;</span><span style="color: #008000">省略一部分异或指令</span></p>
+<p>数据进行异或后，数据窗口如下：</p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586079582357-c10926dc-b409-4e45-922d-9b9e571e2bf3.png" alt="QQ截图20200405173933.png"></p>
+<p>异或运算完成后，来到判断算法：</p>
+<p>0040156C      8B0D 3C524400 mov     ecx, dword ptr [44523C]<span style="color: #52C41A"> &#x2F;&#x2F;取出异或后的字符串</span></p>
+<p>00401572      0FB611        movzx   edx, byte ptr [ecx]<span style="color: #52C41A">&#x2F;&#x2F;判断首字符</span></p>
+<p>00401575      85D2          test    edx, edx&#x2F;<span style="color: #52C41A">&#x2F;非零则跳转出错</span></p>
+<p>00401577      75 4A         jnz     short 004015C3<span style="color: #52C41A">&#x2F;&#x2F;退出</span></p>
+<p>00401579      C645 FF 00    mov     byte ptr [ebp-1], 0<span style="color: #52C41A">&#x2F;&#x2F;计数器置零</span></p>
+<p>0040157D      EB 08         jmp     short 00401587</p>
+<p>0040157F      8A45 FF       mov     al, byte ptr [ebp-1]</p>
+<p>00401582      04 01         add     al, 1</p>
+<p>00401584      8845 FF       mov     byte ptr [ebp-1], al</p>
+<p>00401587      0FB64D FF     movzx   ecx, byte ptr [ebp-1]</p>
+<p>0040158B      83F9 14       cmp     ecx, 14<span style="color: #52C41A">&#x2F;&#x2F;计数器为0x14？</span></p>
+<p>0040158E      7D 33         jge     short 004015C3<span style="color: #52C41A">&#x2F;&#x2F;是则结束</span></p>
+<p>00401590      0FB655 FF     movzx   edx, byte ptr [ebp-1]</p>
+<p>00401594      0FB645 FF     movzx   eax, byte ptr [ebp-1]</p>
+<p>00401598      8B0D 3C524400 mov     ecx, dword ptr [44523C]<span style="color: #52C41A">&#x2F;&#x2F;异或后字符地址存入ecx</span></p>
+<p>0040159E      0FB60401      movzx   eax, byte ptr [ecx+eax]</p>
+<p>004015A2      3BD0          cmp     edx, eax<span style="color: #52C41A">&#x2F;&#x2F;迭代字串的第n个字符是否等于n？</span></p>
+<p>004015A4      75 19         jnz     short 004015BF <span style="color: #52C41A">&#x2F;&#x2F;否则直接结束比较</span></p>
+<p>004015A6      0FB64D FF     movzx   ecx, byte ptr [ebp-1]</p>
+<p>004015AA      83F9 13       cmp     ecx, 13<span style="color: #52C41A">&#x2F;&#x2F;计数器为0x13？</span></p>
+<p>004015AD      75 0E         jnz     short 004015BD <span style="color: #52C41A"> &#x2F;&#x2F;否则跳转 继续循环</span></p>
+<p>004015AF      6A 00         push    0</p>
+<p>004015B1      6A 00         push    0</p>
+<p>004015B3      68 84894300   push    00438984</p>
+<p>004015B8      E8 49480000   call    00405E06</p>
+<p>004015BD      90            nop</p>
+<p>004015BE      90            nop</p>
+<p>004015BF      90            nop</p>
+<p>004015C0      90            nop</p>
+<p>004015C1    ^ EB BC         jmp     short 0040157F</p>
+<p>004015C3      5B            pop     ebx</p>
+<p>004015C4      8BE5          mov     esp, ebp</p>
+<p>004015C6      5D            pop     ebp</p>
+<p>004015C7      C3            retn</p>
+<p>该处将我们输入的字符串和一串固定的密钥进行异或，结果字串值应为0,1,2,3,4…….</p>
+<p>写一段C代码实现逆算法：</p>
+<p><span style="color: #c586c0">#include</span><span style="color: #569cd6"> <iostream></span></p>
+<p><span style="color: #c586c0">using</span><span style="color: #d4d4d4"> </span><span style="color: #569cd6">namespace</span><span style="color: #d4d4d4"> </span><span style="color: #4ec9b0">std;</span></p>
+<p><span style="color: #569cd6">int</span><span style="color: #d4d4d4"> </span><span style="color: #dcdcaa">main(){</span></p>
+<p><span style="color: #d4d4d4">    </span><span style="color: #569cd6">char</span><span style="color: #d4d4d4"> ch &#x3D; </span><span style="color: #b5cea8">0x7F</span><span style="color: #d4d4d4">;</span></p>
+<p><span style="color: #d4d4d4">    string str &#x3D; </span><span style="color: #ce9178">“nbve”;</span></p>
+<p><span style="color: #d4d4d4">    str +&#x3D; ch;</span></p>
+<p><span style="color: #d4d4d4">    str +&#x3D;</span><span style="color: #ce9178">“I6KWyoex&gt;QDy #n”</span><span style="color: #d4d4d4">;</span><span style="color: #6a9955">                        &#x2F;&#x2F;拼接用来异或的字串</span></p>
+<p><span style="color: #52C41A">&#x2F;&#x2F;str相当于：”nbve</span><span style="color: #52C41A">0x7F</span><span style="color: #52C41A">I6KWyoex&gt;QDy #n</span><span style="color: #52C41A">“;</span></p>
+<p><span style="color: #d4d4d4">    </span><span style="color: #4ec9b0">string</span><span style="color: #d4d4d4">::iterator iter &#x3D; </span><span style="color: #9cdcfe">str</span><span style="color: #d4d4d4">.</span><span style="color: #dcdcaa">begin</span><span style="color: #d4d4d4">();</span></p>
+<p><span style="color: #d4d4d4">    </span><span style="color: #c586c0">for</span><span style="color: #d4d4d4"> ( </span><span style="color: #569cd6">int</span><span style="color: #d4d4d4"> i &#x3D; </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4"> ; iter !&#x3D; </span><span style="color: #9cdcfe">str</span><span style="color: #d4d4d4">.</span><span style="color: #dcdcaa">end</span><span style="color: #d4d4d4">() ; iter++,i++ ){</span></p>
+<p><span style="color: #d4d4d4">        *iter ^&#x3D; i;</span></p>
+<p><span style="color: #d4d4d4">    }</span></p>
+<p><span style="color: #d4d4d4">    cout &lt;&lt; str &lt;&lt; endl;</span></p>
+<p><span style="color: #d4d4d4">    </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></p>
+<p><span style="color: #d4d4d4">}</span></p>
+<p><img src="/assets/posts/obsidium-19gc17l/assets/1586079824884-d345870a-67a4-420e-bdc1-9b25e8664e38.png" alt="QQ截图20200405174334.png"></p>
+<p>flag：nctf{L0L_pent3_Ki11}</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E5%8F%8D%E8%B0%83%E8%AF%95%E4%B8%8E%E5%8F%8D%E6%B7%B7%E6%B7%86/%E8%8A%B1%E6%8C%87%E4%BB%A4-Obsidium/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E5%8F%8D%E8%B0%83%E8%AF%95%E4%B8%8E%E5%8F%8D%E6%B7%B7%E6%B7%86/%E8%8A%B1%E6%8C%87%E4%BB%A4-Obsidium/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-01/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-%E7%94%B1%E4%BA%8E%E5%A0%86%E6%A0%88%E4%B8%8D%E5%B9%B3%E8%A1%A1%E5%AF%BC%E8%87%B4%E6%97%A0%E6%B3%95%E6%9F%A5%E7%9C%8B%E4%BC%AA%E4%BB%A3%E7%A0%81/" title="IDA学习笔记-由于堆栈不平衡导致无法查看伪代码"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">IDA学习笔记-由于堆栈不平衡导致无法查看伪代码</div></div><div class="info-2"><div class="info-item-1">IDA学习笔记-由于堆栈不平衡导致无法查看伪代码 参考资料：https://blog.csdn.net/xiangshangbashaonian/article/details/81950110  报错信息：positive sp value has been found，如下图所示  解决方法： 0x01:Options –&gt;General—&gt;把Stack pointer（堆栈指针）勾选上  0x02:鼠标点击上面的call   快捷键Alt+K   输入相应的值   使得下面的retn前面为0  就可以F5了   </div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0-IDA%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" title="IDA学习笔记-IDA远程调试"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">IDA学习笔记-IDA远程调试</div></div><div class="info-2"><div class="info-item-1">IDA学习笔记-IDA远程调试 2019NCTF-debug（IDA远程调试）  配置报错解决方法： Linux执行可执行文件提示No such file or directory的解决方法： https://blog.csdn.net/sun927/article/details/46593129 Incompatible debugging server:address size is 4 bytes, expected 4 的解决方法： 你的android_server 是32位的  而你启动的 ida 是64位的  换成32位的ida 就OK 材料：linux虚拟机、debug文件一个、IDA7.0 首先我们需要启动ubuntu（linux），然后在Windows环境下找到IDA的安装目录： 例如，我的是：D:\Program Files (x86)\IDA_Pro_v7.0\dbgsrv 将dbgsrv目录完整的拷贝到ubuntu中（我拷贝到ubuntu的桌面上） 我的是：&#x2F;home&#x2F;ubuntu&#x2F;Desktop&#x2F;  接下来我们需...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%8A%B1%E6%8C%87%E4%BB%A4-Obsidium"><span class="toc-number">1.</span> <span class="toc-text">花指令-Obsidium</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

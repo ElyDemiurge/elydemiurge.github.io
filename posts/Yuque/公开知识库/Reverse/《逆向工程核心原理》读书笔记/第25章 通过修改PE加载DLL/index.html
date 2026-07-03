@@ -1,0 +1,472 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第25章 通过修改PE加载DLL | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第25章 通过修改PE加载DLL除了前面讲过的DLL动态注入技术外，还可以采用“手工修改可执行文件”的方式加载用户指定的DLL文件，本章将向各位介绍这种方法。学习这种技术前，首先要掌握有关PE文件格式的知识。 前面我们学过向“运行中的进程”强制注入指定DLL文件的方法。下面我们将换用另外一种方法，通过“直接修改目标程序的可执行文件”，使其运行时强制加载指定的DLL文件。这种方法只要应用过一次后（不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第25章 通过修改PE加载DLL">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC25%E7%AB%A0%20%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9PE%E5%8A%A0%E8%BD%BDDLL/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第25章 通过修改PE加载DLL除了前面讲过的DLL动态注入技术外，还可以采用“手工修改可执行文件”的方式加载用户指定的DLL文件，本章将向各位介绍这种方法。学习这种技术前，首先要掌握有关PE文件格式的知识。 前面我们学过向“运行中的进程”强制注入指定DLL文件的方法。下面我们将换用另外一种方法，通过“直接修改目标程序的可执行文件”，使其运行时强制加载指定的DLL文件。这种方法只要应用过一次后（不">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-08/800/450">
+<meta property="article:published_time" content="2020-02-19T07:48:27.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.454Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-08/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第25章 通过修改PE加载DLL",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC25%E7%AB%A0%20%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9PE%E5%8A%A0%E8%BD%BDDLL/",
+  "image": "https://picsum.photos/seed/blog-cover-08/800/450",
+  "datePublished": "2020-02-19T07:48:27.000Z",
+  "dateModified": "2026-07-03T14:46:17.454Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC25%E7%AB%A0%20%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9PE%E5%8A%A0%E8%BD%BDDLL/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第25章 通过修改PE加载DLL',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-08/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第25章 通过修改PE加载DLL</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第25章 通过修改PE加载DLL</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-19T07:48:27.000Z" title="发表于 2020-02-19 15:48:27">2020-02-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.454Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>14分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第25章-通过修改PE加载DLL"><a href="#第25章-通过修改PE加载DLL" class="headerlink" title="第25章 通过修改PE加载DLL"></a>第25章 通过修改PE加载DLL</h1><p>除了前面讲过的DLL动态注入技术外，还可以采用“手工修改可执行文件”的方式加载用户指定的DLL文件，本章将向各位介绍这种方法。学习这种技术前，首先要掌握有关PE文件格式的知识。</p>
+<p>前面我们学过向“运行中的进程”强制注入指定DLL文件的方法。下面我们将换用另外一种方法，通过“直接修改目标程序的可执行文件”，使其运行时强制加载指定的DLL文件。这种方法只要应用过一次后（不需要另外的注入操作），每当进程开始运行时就会自动加载指定的DLL文件。其实，这是一种破解的方法。</p>
+<h2 id="25-1练习文件"><a href="#25-1练习文件" class="headerlink" title="25.1练习文件"></a>25.1练习文件</h2><p>本节将做个简单练习以帮助大家更好地理解要学习的内容。我们的目标是，直接修改TextView.exe文件，使其在运行时自动加载myhack3.dll文件（这需要各位事先掌握修改PE文件头的相关知识与技术）。</p>
+<h3 id="25-1-1-TextView-exe"><a href="#25-1-1-TextView-exe" class="headerlink" title="25.1.1 TextView.exe"></a>25.1.1 TextView.exe</h3><p>TextView.exe是一个非常简单的文本查看程序，只要用鼠标将要查看的文本文件（myhack3.cpp）拖动（Drop）到其中，即可通过它查看文本文件的内容，如图25-1所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582098766267-b031b8d0-7b19-44bf-901a-30db3ed757c3.png" alt="QQ截图20200219155235.png"></p>
+<p>各位可将任意一个文本文件拖入其中测试。接下来，使用PEView工具查看TextView.exe可执行文件的IDT（Import Directory Table，导入目录表）。</p>
+<p>从图25-2中可以看到，TextView.exe中直接导入的DLL文件为KERNEL32.dll、USER32.dll、 GDI32.dll、SHELL32.dll。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582098914745-f4945aeb-6d61-4685-82bf-40e0455865ad.png" alt="QQ截图20200219155503.png"></p>
+<p>图25-2PEView：TextView.exe的IDT</p>
+<h3 id="25-1-2-TextView-patched-exe"><a href="#25-1-2-TextView-patched-exe" class="headerlink" title="25.1.2 TextView_patched.exe"></a>25.1.2 TextView_patched.exe</h3><p>TextView_patched.exe是修改TextView.exe文件的IDT后得到的文件，即在IDT中添加了导入 myhack3.dll的部分，运行时会自动导入myhakc3.dll文件。使用PEView工具查看TextView_ patched.exe的IDT，如图25-3所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582099084335-ad061d4f-c27e-429d-a55f-c8852a40ddc0.png" alt="QQ截图20200219155752.png"></p>
+<p>图25-3 PEView:TextView _Patched.exe的IDT</p>
+<p>从图25-3可以看到，IDT中除了原来的4个DLL文件外，还新增了一个myhack3.dll文件。这样，运行TextView_Patched.exe文件时程序就会自动加载myhack3.dl文件。下面运行TextView_Patched.exe看看是否如此。</p>
+<p>运行程序并稍等片刻，指定的index.html文件会被下载到工作目录，同时，文本查看程序会自动将其打开，如图25-4所示（运行程序后会自动加载myhack3.dll，尝试连接Google网站，下载网站的index.html文件，并将其拖放到TextView_Patched.exe程序）。进入工作目录，使用网络浏览器打开下载的index.html文件，如图25-5所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582099225801-2c2aef59-9617-4935-8353-9052c045ad06.png" alt="QQ截图20200219160002.png"><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582099226993-a0b2654a-dd98-4318-a2cf-ff0643b21ef7.png" alt="QQ截图20200219160016.png"></p>
+<p>从图25-5中可以看到，下载的的确是谷歌的index.html文件。</p>
+<p>提示——————————————————————————————————————</p>
+<p>系统环境不同（网络、防火墙策略、安全&#x2F;管理程序等），可能导致index.html文件无法下载。若正常运行仍无法成功下载index.html文件，建议更换不同的系统环境再次测试。</p>
+<hr>
+<h2 id="25-2源代码-myhack3-cpp"><a href="#25-2源代码-myhack3-cpp" class="headerlink" title="25.2源代码-myhack3.cpp"></a>25.2源代码-myhack3.cpp</h2><p>本节将分析myhack3.dll的源代码（myhack3.cpp)。</p>
+<p>提示——————————————————————————————————————</p>
+<p>所有源代码均使用MS Visual C++2010 Express Edition编写而成，在WindowsXP&#x2F;7 32位环境中通过测试。</p>
+<hr>
+<h3 id="25-2-1-DlIMain"><a href="#25-2-1-DlIMain" class="headerlink" title="25.2.1 DlIMain()"></a>25.2.1 DlIMain()</h3><p><strong><span style="color: #c586c0">#include</span><span style="color: #569cd6"> </span><span style="color: #ce9178">“stdio.h”</span></strong></p>
+<p><strong><span style="color: #c586c0">#include</span><span style="color: #569cd6"> </span><span style="color: #ce9178">“windows.h”</span></strong></p>
+<p><strong><span style="color: #c586c0">#include</span><span style="color: #569cd6"> </span><span style="color: #ce9178">“shlobj.h”</span></strong></p>
+<p><strong><span style="color: #c586c0">#include</span><span style="color: #569cd6"> </span><span style="color: #ce9178">“Wininet.h”</span></strong></p>
+<p><strong><span style="color: #c586c0">#include</span><span style="color: #569cd6"> </span><span style="color: #ce9178">“tchar.h”</span></strong></p>
+<p><strong><span style="color: #c586c0">#pragma</span><span style="color: #569cd6"> </span><span style="color: #9cdcfe">comment</span><span style="color: #569cd6">(</span><span style="color: #9cdcfe">lib</span><span style="color: #569cd6">, “</span><span style="color: #9cdcfe">Wininet</span><span style="color: #569cd6">.</span><span style="color: #9cdcfe">lib</span><span style="color: #569cd6">“)</span></strong></p>
+<p><strong><span style="color: #c586c0">#define</span><span style="color: #569cd6"> DEF_BUF_SIZE            (4096)</span></strong></p>
+<p><strong><span style="color: #c586c0">#define</span><span style="color: #569cd6"> DEF_URL                 </span><span style="color: #ce9178">L”<a target="_blank" rel="noopener" href="http://www.google.com/index.html">http://www.google.com/index.html</a>“</span></strong></p>
+<p><strong><span style="color: #c586c0">#define</span><span style="color: #569cd6"> DEF_INDEX_FILE          </span><span style="color: #ce9178">L”index.html”</span></strong></p>
+<p><strong><span style="color: #d4d4d4">HWND g_hWnd &#x3D; </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #c586c0">#ifdef</span><span style="color: #569cd6"> __cplusplus</span></strong></p>
+<p><strong><span style="color: #569cd6">extern</span><span style="color: #d4d4d4"> </span><span style="color: #ce9178">“C”</span><span style="color: #d4d4d4"> {</span></strong></p>
+<p><strong><span style="color: #c586c0">#endif</span></strong></p>
+<p><strong><span style="color: #6a9955">&#x2F;&#x2F; IDT 형식을 위한 dummy export function…</span></strong></p>
+<p><strong><span style="color: #d4d4d4">__declspec(</span><span style="color: #4ec9b0">dllexport</span><span style="color: #d4d4d4">) </span><span style="color: #569cd6">void</span><span style="color: #d4d4d4"> </span><span style="color: #dcdcaa">dummy</span><span style="color: #d4d4d4">()</span></strong></p>
+<p><strong><span style="color: #d4d4d4">{</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span></strong></p>
+<p><strong><span style="color: #c586c0">#ifdef</span><span style="color: #569cd6"> __cplusplus</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span></strong></p>
+<p><strong><span style="color: #c586c0">#endif</span></strong></p>
+<p>DlIMain()函数的功能非常简单，创建线程运行指定的线程过程，在线程过程（ThreadProc)中调用DownloadURL()与DropFile()函数，下载指定的网页并将其拖放到文本查看程序。下面分别详细查看这2个函数。</p>
+<h3 id="25-2-2-DownloadURL"><a href="#25-2-2-DownloadURL" class="headerlink" title="25.2.2 DownloadURL()"></a>25.2.2 DownloadURL()</h3><p><strong><span style="color: #4ec9b0">BOOL </span><span style="color: #dcdcaa">DownloadURL</span><span style="color: #d4d4d4">(</span><span style="color: #4ec9b0">LPCTSTR</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">szURL</span><span style="color: #d4d4d4">, </span><span style="color: #4ec9b0">LPCTSTR</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">szFile</span><span style="color: #d4d4d4">)</span></strong></p>
+<p><strong><span style="color: #d4d4d4">{</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    BOOL            bRet &#x3D; FALSE;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    HINTERNET       hInternet &#x3D; </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">, hURL &#x3D; </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    BYTE            </span><span style="color: #9cdcfe">pBuf</span><span style="color: #d4d4d4">[DEF_BUF_SIZE] &#x3D; {</span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">,};</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    DWORD           dwBytesRead &#x3D; </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></strong></p>
+<p>**<span style="color: #d4d4d4">    FILE            <em>pFile &#x3D; </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">;</span></em>*</p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #4ec9b0">errno_t</span><span style="color: #d4d4d4">         err &#x3D; </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    hInternet &#x3D; </span><span style="color: #dcdcaa">InternetOpen</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">L”ReverseCore”</span><span style="color: #d4d4d4">, </span></strong></p>
+<p><strong><span style="color: #d4d4d4">                             INTERNET_OPEN_TYPE_PRECONFIG, </span></strong></p>
+<p><strong><span style="color: #d4d4d4">                             </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">, </span></strong></p>
+<p><strong><span style="color: #d4d4d4">                             </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">, </span></strong></p>
+<p><strong><span style="color: #d4d4d4">                             </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4"> &#x3D;&#x3D; hInternet )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    {</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">OutputDebugString</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">L”InternetOpen() failed!”</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> FALSE;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    }</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    hURL &#x3D; </span><span style="color: #dcdcaa">InternetOpenUrl</span><span style="color: #d4d4d4">(hInternet,</span></strong></p>
+<p><strong><span style="color: #d4d4d4">                           szURL,</span></strong></p>
+<p><strong><span style="color: #d4d4d4">                           </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">,</span></strong></p>
+<p><strong><span style="color: #d4d4d4">                           </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">,</span></strong></p>
+<p><strong><span style="color: #d4d4d4">                           INTERNET_FLAG_RELOAD,</span></strong></p>
+<p><strong><span style="color: #d4d4d4">                           </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4"> &#x3D;&#x3D; hURL )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    {</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">OutputDebugString</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">L”InternetOpenUrl() failed!”</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #c586c0">goto</span><span style="color: #d4d4d4"> _DownloadURL_EXIT;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    }</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( err &#x3D; </span><span style="color: #dcdcaa">_tfopen_s</span><span style="color: #d4d4d4">(&amp;pFile, szFile, </span><span style="color: #ce9178">L”wt”</span><span style="color: #d4d4d4">) )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    {</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">OutputDebugString</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">L”fopen() failed!”</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #c586c0">goto</span><span style="color: #d4d4d4"> _DownloadURL_EXIT;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    }</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">while</span><span style="color: #d4d4d4">( </span><span style="color: #dcdcaa">InternetReadFile</span><span style="color: #d4d4d4">(hURL, pBuf, DEF_BUF_SIZE, &amp;dwBytesRead) )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    {</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( !dwBytesRead )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">            </span><span style="color: #c586c0">break</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">fwrite</span><span style="color: #d4d4d4">(pBuf, dwBytesRead, </span><span style="color: #b5cea8">1</span><span style="color: #d4d4d4">, pFile);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    }</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    bRet &#x3D; TRUE;</span></strong></p>
+<p><strong><span style="color: #c8c8c8">_DownloadURL_EXIT</span><span style="color: #d4d4d4">:</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( pFile )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">fclose</span><span style="color: #d4d4d4">(pFile);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( hURL )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">InternetCloseHandle</span><span style="color: #d4d4d4">(hURL);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( hInternet )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">InternetCloseHandle</span><span style="color: #d4d4d4">(hInternet);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> bRet;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span></strong></p>
+<p>DownloadURL()函数会下载参数szURL中指定的网页文件，并将其保存到szFile目录。示例中， 该函数用来连接谷歌网站（<a target="_blank" rel="noopener" href="http://www.google.com),并下载网站的index.html文件./">www.google.com)，并下载网站的index.html文件。</a></p>
+<p>提示——————————————————————————————————————</p>
+<p>实际上，上述示例中的DownloadURL()函数是使用InternetOpen()、InternetOpenUrl()、 InternetReadFile()API对URLDownloadToFile()API的简单实现。InternetOpen()、 InternetOpenUrl()、InternetReadFile()API均在wininet.dll中提供，而URLDownloadToFile()API在urlmon.dll中提供。</p>
+<hr>
+<h3 id="25-2-3-DropFile"><a href="#25-2-3-DropFile" class="headerlink" title="25.2.3 DropFile()"></a>25.2.3 DropFile()</h3><p><strong><span style="color: #d4d4d4">BOOL CALLBACK </span><span style="color: #dcdcaa">EnumWindowsProc</span><span style="color: #d4d4d4">(HWND hWnd, LPARAM lParam)</span></strong></p>
+<p><strong><span style="color: #d4d4d4">{</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    DWORD dwPID &#x3D; </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #dcdcaa">GetWindowThreadProcessId</span><span style="color: #d4d4d4">(hWnd, &amp;dwPID);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( dwPID &#x3D;&#x3D; (DWORD)lParam )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    {</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        g_hWnd &#x3D; hWnd;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> FALSE;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    }</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> TRUE;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span></strong></p>
+<p><strong><span style="color: #4ec9b0">HWND</span><span style="color: #d4d4d4"> </span><span style="color: #dcdcaa">GetWindowHandleFromPID</span><span style="color: #d4d4d4">(</span><span style="color: #4ec9b0">DWORD</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">dwPID</span><span style="color: #d4d4d4">)</span></strong></p>
+<p><strong><span style="color: #d4d4d4">{</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #dcdcaa">EnumWindows</span><span style="color: #d4d4d4">(EnumWindowsProc, dwPID);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> g_hWnd;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span></strong></p>
+<p><strong><span style="color: #4ec9b0">BOOL</span><span style="color: #d4d4d4"> </span><span style="color: #dcdcaa">DropFile</span><span style="color: #d4d4d4">(</span><span style="color: #4ec9b0">LPCTSTR</span><span style="color: #d4d4d4"> </span><span style="color: #9cdcfe">wcsFile</span><span style="color: #d4d4d4">)</span></strong></p>
+<p><strong><span style="color: #d4d4d4">{</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    HWND            hWnd &#x3D; </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    DWORD           dwBufSize &#x3D; </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></strong></p>
+<p>**<span style="color: #d4d4d4">    BYTE            <em>pBuf &#x3D; </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">; </span></em>*</p>
+<p>**<span style="color: #d4d4d4">    DROPFILES       <em>pDrop &#x3D; </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">;</span></em>*</p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #569cd6">char</span><span style="color: #d4d4d4">            </span><span style="color: #9cdcfe">szFile</span><span style="color: #d4d4d4">[MAX_PATH] &#x3D; {</span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">,};</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    HANDLE          hMem &#x3D; </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #dcdcaa">WideCharToMultiByte</span><span style="color: #d4d4d4">(CP_ACP, </span><span style="color: #b5cea8">0</span><span style="color: #d4d4d4">, wcsFile, -</span><span style="color: #b5cea8">1</span><span style="color: #d4d4d4">,</span></strong></p>
+<p><strong><span style="color: #d4d4d4">                        szFile, MAX_PATH, </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">, </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    dwBufSize &#x3D; </span><span style="color: #569cd6">sizeof</span><span style="color: #d4d4d4">(DROPFILES) + </span><span style="color: #dcdcaa">strlen</span><span style="color: #d4d4d4">(szFile) + </span><span style="color: #b5cea8">1</span><span style="color: #d4d4d4">;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( !(hMem &#x3D; </span><span style="color: #dcdcaa">GlobalAlloc</span><span style="color: #d4d4d4">(GMEM_ZEROINIT, dwBufSize)) )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    {</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">OutputDebugString</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">L”GlobalAlloc() failed!!!”</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> FALSE;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    }</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    pBuf &#x3D; (LPBYTE)</span><span style="color: #dcdcaa">GlobalLock</span><span style="color: #d4d4d4">(hMem);</span></strong></p>
+<p><em><em><span style="color: #d4d4d4">    pDrop &#x3D; (DROPFILES</em>)pBuf; </span></em>*</p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #9cdcfe">pDrop</span><span style="color: #d4d4d4">-&gt;</span><span style="color: #9cdcfe">pFiles</span><span style="color: #d4d4d4"> &#x3D; </span><span style="color: #569cd6">sizeof</span><span style="color: #d4d4d4">(DROPFILES);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #dcdcaa">strcpy_s</span><span style="color: #d4d4d4">((</span><span style="color: #569cd6">char</span><span style="color: #d4d4d4">*)(pBuf + </span><span style="color: #569cd6">sizeof</span><span style="color: #d4d4d4">(DROPFILES)), </span><span style="color: #dcdcaa">strlen</span><span style="color: #d4d4d4">(szFile)+</span><span style="color: #b5cea8">1</span><span style="color: #d4d4d4">, szFile);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #dcdcaa">GlobalUnlock</span><span style="color: #d4d4d4">(hMem);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">if</span><span style="color: #d4d4d4">( !(hWnd &#x3D; </span><span style="color: #dcdcaa">GetWindowHandleFromPID</span><span style="color: #d4d4d4">(</span><span style="color: #dcdcaa">GetCurrentProcessId</span><span style="color: #d4d4d4">())) )</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    {</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #dcdcaa">OutputDebugString</span><span style="color: #d4d4d4">(</span><span style="color: #ce9178">L”GetWndHandleFromPID() failed!!!”</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">        </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> FALSE;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    }</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #dcdcaa">PostMessage</span><span style="color: #d4d4d4">(hWnd, WM_DROPFILES, (WPARAM)pBuf, </span><span style="color: #569cd6">NULL</span><span style="color: #d4d4d4">);</span></strong></p>
+<p><strong><span style="color: #d4d4d4">    </span><span style="color: #c586c0">return</span><span style="color: #d4d4d4"> TRUE;</span></strong></p>
+<p><strong><span style="color: #d4d4d4">}</span></strong></p>
+<p>DropFile()函数将下载的index.html文件拖放到TextView_Patch.exe进程并显示其内容。为此，需要先获取TextView Patch.exe进程的主窗口句柄，再传送WM_DROPFILES消息。总之，DropFile()函数的主要功能是，使用PID获取窗口句柄，再调用postMessage(WM_DROPFILES)API将消息放入消息队列（此处省略有关API的详细说明）。</p>
+<h3 id="25-2-4-dummy"><a href="#25-2-4-dummy" class="headerlink" title="25.2.4 dummy()"></a>25.2.4 dummy()</h3><p>在myhack3.cpp源代码中还要注意dummy()这个函数。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582100105145-ee5e6e10-6373-44b4-9caf-4f06a8dcc326.png" alt="QQ截图20200219161455.png"></p>
+<p>dummy()函数是myhack3.dll文件向外部提供服务的导出函数，但正如所见，它没有任何功能。</p>
+<p>既然如此，为何还要将其导出呢？这是为了保持形式上的完整性，使myhack3.dll能够顺利添加到TextView.exe文件的导入表。</p>
+<p><strong>在PE文件中导入某个DLL，实质就是在文件代码内调用该DLL提供的导出函数。PE文件头中记录着DLL名称、函数名称等信息。因此，myhack3.dll至少要向外提供1个以上的导出函数才能保持形式上的完整性。</strong></p>
+<p>一般而言，向导入表中添加DLL是由程序的构建工具（VC++、VB、Delphi等）完成的，但下面我们将直接使用PE Viewer与Hex Editor两个工具修改TextView.exe的导入表，以便更好地学习代码逆向分析知识。</p>
+<h2 id="25-3修改TextView-exe文件的准备工作"><a href="#25-3修改TextView-exe文件的准备工作" class="headerlink" title="25.3修改TextView.exe文件的准备工作"></a>25.3修改TextView.exe文件的准备工作</h2><h3 id="25-3-1修改思路"><a href="#25-3-1修改思路" class="headerlink" title="25.3.1修改思路"></a>25.3.1修改思路</h3><p>如前所见，PE文件中导入的DLL信息以结构体列表形式存储在IDT中。只要将myhack3.dll添加到列表尾部就可以了。当然，此前要确认一下IDT中有无足够空间。</p>
+<h3 id="25-3-2查看IDT是否有足够空间"><a href="#25-3-2查看IDT是否有足够空间" class="headerlink" title="25.3.2查看IDT是否有足够空间"></a>25.3.2查看IDT是否有足够空间</h3><p>首先，使用PEView查看TextView.exe的IDT地址（PE文件头的IMAGE_OPTIONAL_HEADER结构体中导入表RVA值即为IDT的RVA）。</p>
+<p>从图25-6可知，IDT的地址（RVA）为84CC。接下来，在PEView中直接查看IDT（在PEView工具栏中设置地址视图选项为RVA）。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582101035408-e905aec6-16f2-418f-9754-af184622f3e9.png" alt="QQ截图20200219163025.png"></p>
+<p>图25-6 PEView:IMAGE_OPTIONAL_HEADER中IDT的RVA值</p>
+<p>从图中可以看到，TextView.exe的IDT存在于.rdata节区。我们在前面学过PE文件头的知识，*<em>知道IDT是由IMAGE_IMPORT_DESCRIPTOR（以下称</em><em><strong>I</strong></em><em>I</em>***D）结构体组成的数组，且数组末尾以NULL结构体结束。*<em>由于每个导入的DLL文件都对应1个IID结构体（每个IID结构体的大小为14个字节），所以图25-7中整个IID区域为RVA：84CC~852F（整体大小为14</em>5&#x3D;64）。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582101001540-d181b84b-ac42-46e4-acb6-e1578b487e16.png" alt="QQ截图20200219162948.png"></p>
+<p>图25-7 PEView:IDT</p>
+<p>在PEView工具栏中将视图改为File Offset，可以看到IDT的文件偏移为76CC，如图25-8所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582101684988-031d00ed-b737-4ee7-8e25-0dfc7c39b799.png" alt="QQ截图20200219164115.png"></p>
+<p>使用HxD实用工具打开TextView.exe文件，找到76CC地址处，如图25-9所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582101942686-da96651a-e1ee-4ea4-a2e0-1297c7bdc2ea.png" alt="QQ截图20200219164532.png"></p>
+<p>图25-9HxD:Import Directory Table</p>
+<p>IDT的文件偏移为76CC~772F，整个大小为64字节，共有5个ID结构体，其中最后一个为NULL结构体。从图中可以看出IDT尾部存在其他数据，没有足够空间来添加myhack3.dll的IID结构体。</p>
+<h3 id="25-3-3移动IDT"><a href="#25-3-3移动IDT" class="headerlink" title="25.3.3移动IDT"></a>25.3.3移动IDT</h3><p>在这种情形下，我们要先把整个IDT转移到其他更广阔的位置，然后再添加新的ID。确定移动的目标位置时，可以使用下面三种方式：</p>
+<ul>
+<li>查找文件中的空白区域；</li>
+<li>增加文件最后一个节区的大小；</li>
+<li>在文件末尾添加新节区。</li>
+</ul>
+<p>首先尝试第一种方法，即查找文件中的空白区域（程序运行时未使用的区域）。正如在图25-10中看到的一样，.rdata节区尾部恰好存在大片空白区域（一般说来，节区或文件末尾都存在空白区域，PE文件中这种空白区域称为Null-Padding区域）。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582102150429-006279ae-09d9-4e5d-bb39-80017c72ff53.png" alt="QQ截图20200219164857.png"></p>
+<p>图25-10PEView:.rdata节区尾部的Null-Padding区域</p>
+<p>接下来，把原IDT移动到该Null-Padding区域（RVA：8C60<del>8DFF)中合适位置就行了。在此之前，先要确认一下该区域（RVA：8C60</del>8DFF）是否全是空白可用区域（Null-Padding区域）。</p>
+<p>请注意，并不是文件中的所有区域都会被无条件加载到进程的虚拟内存，只有节区头中明确记录的区域才会被加载。使用PEView工具查看TextView.exe文件的.rdata节区头，如图25-11所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582102323457-109dc1e9-ba31-474b-abd2-c4f10506fa2f.png" alt="QQ截图20200219165141.png"></p>
+<p>节区头中存储着对应节区的位置、大小、属性等信息。参照图25-11，整理.rdata节区头中信息如表25-1。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582102400281-e88d6b67-bb84-4607-9a0f-60ed9ec741ad.png" alt="QQ截图20200219165259.png"></p>
+<p>从节区头中信息可以看出，.rdata节区在磁盘文件与内存中的大小是不同的。</p>
+<p>.rdata节区在磁盘文件中的大小为2E00，而文件执行后被加载到内存时，程序实际使用的数据大小（映射大小）仅为2C56，剩余未被使用的区域大小为1AA（2E00-2C56）。在这段空白区域创建IDT是不会有什么问题的。</p>
+<p>提示——————————————————————————————————————</p>
+<p><strong>PE文件尾部有些部分填充着NULL，但这并不意味着这些部分一定就是Null-Padding区域（空白可用区域）。这些区域也有可能是程序使用的区域，且并非所有Null-Padding区域都会加载到内存。只有分析节区头信息后才能判断。如果示例中TextView.exe的Null-Padding区域很小，无法容纳IDT，那么就要增加最后节区的尺寸或添加新节区，以保证有足够空间存放IDT。</strong></p>
+<hr>
+<p>由于图25-10中的Null-Padding区域可以使用，接下来，我们要在RVA：8C80（RAW：7E80）位置创建IDT（请记住这个位置）。</p>
+<h2 id="25-4修改TextView-exe"><a href="#25-4修改TextView-exe" class="headerlink" title="25.4修改TextView.exe"></a>25.4修改TextView.exe</h2><p>先把TextView.exe复制到工作文件夹，重命名为TextView Patch.exe。下面使用TextView_Patch.exe文件练习打补丁。基本的操作步骤是：先使用PEView打开TextView.exe原文件，查看各种PE信息，然后使用HxD打开TextView Patch.exe文件进行修改。</p>
+<h3 id="25-4-1修改导入表的RVA值"><a href="#25-4-1修改导入表的RVA值" class="headerlink" title="25.4.1修改导入表的RVA值"></a>25.4.1修改导入表的RVA值</h3><p><strong>IMAGE_OPTIONAL_HEADER的导入表结构体成员用来指出IDT的位置（RVA）与大小，如图25-12所示。</strong></p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582102962143-bc8f06e6-e9b2-4608-a05e-b1cc735b98c0.png" alt="QQ截图20200219170157.png"></p>
+<p>TextView.exe文件中，导入表的RVA值为84CC。接下来，将导入表的RVA值更改为新IDT的RVA值8C80，在Size原值64字节的基础上加14个字节（IID结构体的大小），修改为78字节（参考图25-13）。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582103033615-8eb19b41-acf8-4ee1-9912-7c0ecf3a04dd.png" alt="QQ截图20200219170345.png"></p>
+<p>从现在开始，导入表位于RVA：8C80（RAW：7E80）地址处。</p>
+<h3 id="25-4-2删除绑定导入表"><a href="#25-4-2删除绑定导入表" class="headerlink" title="25.4.2删除绑定导入表"></a>25.4.2删除绑定导入表</h3><p>BOUND_IMPORT_TABLE(绑定导入表）是一种提高DLL加载速度的技术，如图25-14所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582103214957-f3f974e8-9dff-4fa3-af47-ae40ab0ff2a1.png" alt="QQ截图20200219170643.png"></p>
+<p>若想正常导入myhack3.dll，需要向绑定导入表添加信息。但幸运的是，该绑定导入表是个可选项，不是必须存在的，所以可删除（修改其值为0即可）以获取更大便利。当然，绑定导入表完全不存在也没关系，但若存在，且其内信息记录错误，则会在程序运行时引发错误。本示例TextView.exe文件中，绑定导入表各项的值均为0，不需要再修改。修改其他文件时，一定要注意检查绑定导入表中的数据。</p>
+<h3 id="25-4-3创建新IDT"><a href="#25-4-3创建新IDT" class="headerlink" title="25.4.3创建新IDT"></a>25.4.3创建新IDT</h3><p>先使用Hex Editor完全复制原IDT（RAW：76CC~772F)，然后覆写（Paste write)到IDT的新位置（RAW：7E80），如图25-15所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582103333236-2883ed8c-15e5-4069-80cc-c3a75edc67f4.png" alt="QQ截图20200219170840.png"></p>
+<p>然后在新IDT尾部（RAW：7ED0）添加与myhack3.dll对应的ID（后面会单独讲解各成员的数据）：</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582103411837-ca9a52b9-db7b-4752-aed7-4b39c0ff6ba4.png" alt="QQ截图20200219170958.png"></p>
+<p>在准确位置（RAW：7ED0）写入相关数据，如图25-16所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582103474538-42ecc50c-9492-4da2-9dd8-38d44ead67d6.png" alt="QQ截图20200219171056.png"></p>
+<h3 id="25-4-4设置Name、INT、IAT"><a href="#25-4-4设置Name、INT、IAT" class="headerlink" title="25.4.4设置Name、INT、IAT"></a>25.4.4设置Name、INT、IAT</h3><p>前面添加的IID结构体成员拥有指向其他数据结构（INT、Name、IAT）的RVA值。因此，必须准确设置这些数据结构才能保证TextView_Patch.exe文件正常运行。由前面设置可知INT、Name、IAT的RVA&#x2F;RAW的值，整理如表25-2所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582103565393-45aa4808-14cc-4db6-a106-e2ce8d1961c0.png" alt="QQ截图20200219171234.png"></p>
+<p>提示——————————————————————————————————————</p>
+<p>RVA与RAW（文件偏移）间的转换可以借助PEView。但是建议各位掌握它们之间的转换方法，亲自计算（请参考第13章）。</p>
+<hr>
+<p>这些地址（RVA：8D00，8D10，8D20)就位于新创建的IDT（RVA：8C80）下方。我为了操作方便才选定该区域，各位选择其他位置也没关系。在HxD编辑器中转到7F00地址处，输入相应值，如图25-17所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582103720329-f9fd3eb7-2190-4ce3-b849-f385b6863676.png" alt="QQ截图20200219171507.png"></p>
+<p>下面讲解图25-18中显示的各值意义。</p>
+<p>8CD0地址处存在着myhack3.dl的IID结构体，其中3个主要成员（RVAofINT、RVA of Name、RVA ofIAT）的值分别是实际INT、Name、IAT的指针。</p>
+<p>简单地说，INT（Import Name Table，导入名称表）是RVA数组，数组的各个元素都是一个RVA地址，该地址由导入函数的Ordinal（2个字节）+Func Name String结构体构成，数组的末尾为NULL。上图中INT有1个元素，其值为8D30，该地址处是要导入的函数的Ordinal（2个字节）与函数的名称字符串（“dummy”）。</p>
+<p>Name是包含导入函数的DLL文件名称字符串，在8D10地址处可以看到“myhack3.dll”字符串。</p>
+<p>IAT也是RVA数组，各元素既可以拥有与INT相同的值，也可以拥有其他不同值（若INT中的数据准确，IAT也可拥有其他不同值）。反正实际运行时，PE装载器会将虚拟内存中的IAT替换为实际函数的地址。</p>
+<p>提示——————————————————————————————————————</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582104068987-b2f17030-c56e-4542-a988-32b27034ca29.png" alt="QQ截图20200219172058.png"></p>
+<hr>
+<h3 id="25-4-5修改IAT节区的属性值"><a href="#25-4-5修改IAT节区的属性值" class="headerlink" title="25.4.5修改IAT节区的属性值"></a>25.4.5修改IAT节区的属性值</h3><p>加载PE文件到内存时，PE装载器会修改IAT，写入函数的实际地址，所以相关节区一定要拥有WRITE（可写）属性。只有这样，PE装载器才能正常进行写入操作。使用PEView查看.rdata节区头，如图25-19所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582104150175-a4e92e9a-9a95-4062-99a8-cf4d9c61482e.png" alt="QQ截图20200219172215.png"></p>
+<p>向原属性值（Characteristics）40000040添加IMAGE_SCN_MEM_WRITE(80000000)属性值。执行bit OR运算，最终属性值变为C0000040，如图25-20所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582104240975-6069970b-36ac-4bb8-a7c9-fdc04fccd601.png" alt="QQ截图20200219172351.png"></p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582104339867-c00f7837-d90c-4875-88e8-804aa20f99e5.png" alt="QQ截图20200219172456.png"><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582104341720-a8b77cd8-8a5e-4de4-a98d-0b11f49c6c48.png" alt="QQ截图20200219172519.png"></p>
+<h2 id="25-5检测验证"><a href="#25-5检测验证" class="headerlink" title="25.5检测验证"></a>25.5检测验证</h2><p>首先使用PEView工具打开修改后的TextView_Patch.exe文件，查看其IDT，如图25-23所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582104459749-49d71f0c-432f-4095-b012-e7fcb43a80ef.png" alt="QQ截图20200219172730.png"></p>
+<p>向IDT导入myhack3.dll的IID结构体已设置正常。在图25-24中可以看到，myhack3.dll的dummy()函数被添加到INT。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582104545744-e744657d-8ec9-4fca-8ffa-f5e8eceb1aa4.png" alt="QQ截图20200219172838.png"></p>
+<p>从文件的结构分析来看，修改成功。接下来，直接运行文件看看程序能否正常运行。先将TextView_Patch.exe与myhack3.dl放入相同文件夹，然后运行TextViewPatch.exe文件，如图25-25所示。</p>
+<p><img src="/assets/posts/25-pe-dll-2ipm09/assets/1582104547172-96550da9-d882-4444-85dd-8c7606ad2716.png" alt="QQ截图20200219172854.png"></p>
+<p>使用Process Explorer工具查看TextView_Patch.exe进程中加载的DLL文件，可以看到已经成功加载myhack3.dll，且被加载的myhack3.dl文件下载了指定网站的index.html文件，并在TextView Patch.exe中显示。</p>
+<h2 id="25-6小结"><a href="#25-6小结" class="headerlink" title="25.6小结"></a>25.6小结</h2><p>本章我们一起学习了直接修改PE文件来加载指定DLL文件的方法，其基本原理是将要加载的dll添加到IDT，这样程序运行时就会自动加载。只要理解了这一基本原理，再结合前面学过的有关PE文件头的知识，相信大家能够非常容易理解（关于PE文件头的知识请参考第13章）。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC25%E7%AB%A0%20%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9PE%E5%8A%A0%E8%BD%BDDLL/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC25%E7%AB%A0%20%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9PE%E5%8A%A0%E8%BD%BDDLL/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-08/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/CTF%E8%AE%BA%E5%89%91%E5%9C%BA/CTF%E8%AE%BA%E5%89%91%E5%9C%BA-%E4%BD%A0%E8%83%BD%E6%89%BE%E5%88%B0flag%E5%90%97%EF%BC%9F%EF%BC%88%E5%8E%8B%E7%BC%A9%E5%8C%85%E7%9A%84%E8%8A%B1%E5%BC%8F%E6%94%BB%E5%87%BB%EF%BC%89/" title="CTF论剑场-你能找到flag吗？（压缩包的花式攻击）"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">CTF论剑场-你能找到flag吗？（压缩包的花式攻击）</div></div><div class="info-2"><div class="info-item-1">CTF论剑场-你能找到flag吗？（压缩包的花式攻击）首先审题  这提示压缩包的密码前三位数为199；可以使用掩码攻击：  非常轻易的可以得到密码： 第二个压缩包也是加密的，但是给了我们加密压缩包里CRC32相同的文件，因此可以使用明文攻击，将文件压入压缩包中开始攻击：  虽然得不到密码，但是可以得到解密后的压缩包：  打开第三个压缩包，应该是伪加密，执行命令： 得到图片后更改一下图片的高度就行了： flag{a8d93d2f2a15fc3f531474b5f13508207cdfc924} </div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC24%E7%AB%A0%20DLL%E5%8D%B8%E8%BD%BD/" title="第24章 DLL卸载"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第24章 DLL卸载</div></div><div class="info-2"><div class="info-item-1">第24章 DLL卸载DLL卸载（DLLEjection)是将强制插入进程的DLL弹出的一种技术，其基本工作原理与使用CreateRemoteThreadAPI进行DLL注入的原理类似。 24.1DLL卸载的工作原理前面我们学习过使用CreateRemote Thread()API进行DLL注入的工作原理，概括如下：  驱使目标进程调用LoadLibrary()API  同样，DLL卸载工作原理也非常简单：  驱使目标进程调用FreeLibrary()API  也就是说，将FreeLibrary()API的地址传递给CreateRemote Thread()的IpStartAddress参数，并把要卸载的DLL的句柄传递给IpParameter参数。 提示—————————————————————————————————————— 每个Windows内核对象（KernelObject)都拥有一个引用计数（Reference Count)，代表对象被使用的次数。调用10次LoadLibrary（“a.dll”），a.dll的引用计数就变为10，卸载a.dll时同样需要调用10次Fre...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC25%E7%AB%A0-%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9PE%E5%8A%A0%E8%BD%BDDLL"><span class="toc-number">1.</span> <span class="toc-text">第25章 通过修改PE加载DLL</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#25-1%E7%BB%83%E4%B9%A0%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.</span> <span class="toc-text">25.1练习文件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#25-1-1-TextView-exe"><span class="toc-number">1.1.1.</span> <span class="toc-text">25.1.1 TextView.exe</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-1-2-TextView-patched-exe"><span class="toc-number">1.1.2.</span> <span class="toc-text">25.1.2 TextView_patched.exe</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25-2%E6%BA%90%E4%BB%A3%E7%A0%81-myhack3-cpp"><span class="toc-number">1.2.</span> <span class="toc-text">25.2源代码-myhack3.cpp</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#25-2-1-DlIMain"><span class="toc-number">1.2.1.</span> <span class="toc-text">25.2.1 DlIMain()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-2-2-DownloadURL"><span class="toc-number">1.2.2.</span> <span class="toc-text">25.2.2 DownloadURL()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-2-3-DropFile"><span class="toc-number">1.2.3.</span> <span class="toc-text">25.2.3 DropFile()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-2-4-dummy"><span class="toc-number">1.2.4.</span> <span class="toc-text">25.2.4 dummy()</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25-3%E4%BF%AE%E6%94%B9TextView-exe%E6%96%87%E4%BB%B6%E7%9A%84%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">1.3.</span> <span class="toc-text">25.3修改TextView.exe文件的准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#25-3-1%E4%BF%AE%E6%94%B9%E6%80%9D%E8%B7%AF"><span class="toc-number">1.3.1.</span> <span class="toc-text">25.3.1修改思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-3-2%E6%9F%A5%E7%9C%8BIDT%E6%98%AF%E5%90%A6%E6%9C%89%E8%B6%B3%E5%A4%9F%E7%A9%BA%E9%97%B4"><span class="toc-number">1.3.2.</span> <span class="toc-text">25.3.2查看IDT是否有足够空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-3-3%E7%A7%BB%E5%8A%A8IDT"><span class="toc-number">1.3.3.</span> <span class="toc-text">25.3.3移动IDT</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25-4%E4%BF%AE%E6%94%B9TextView-exe"><span class="toc-number">1.4.</span> <span class="toc-text">25.4修改TextView.exe</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#25-4-1%E4%BF%AE%E6%94%B9%E5%AF%BC%E5%85%A5%E8%A1%A8%E7%9A%84RVA%E5%80%BC"><span class="toc-number">1.4.1.</span> <span class="toc-text">25.4.1修改导入表的RVA值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-4-2%E5%88%A0%E9%99%A4%E7%BB%91%E5%AE%9A%E5%AF%BC%E5%85%A5%E8%A1%A8"><span class="toc-number">1.4.2.</span> <span class="toc-text">25.4.2删除绑定导入表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-4-3%E5%88%9B%E5%BB%BA%E6%96%B0IDT"><span class="toc-number">1.4.3.</span> <span class="toc-text">25.4.3创建新IDT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-4-4%E8%AE%BE%E7%BD%AEName%E3%80%81INT%E3%80%81IAT"><span class="toc-number">1.4.4.</span> <span class="toc-text">25.4.4设置Name、INT、IAT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#25-4-5%E4%BF%AE%E6%94%B9IAT%E8%8A%82%E5%8C%BA%E7%9A%84%E5%B1%9E%E6%80%A7%E5%80%BC"><span class="toc-number">1.4.5.</span> <span class="toc-text">25.4.5修改IAT节区的属性值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25-5%E6%A3%80%E6%B5%8B%E9%AA%8C%E8%AF%81"><span class="toc-number">1.5.</span> <span class="toc-text">25.5检测验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25-6%E5%B0%8F%E7%BB%93"><span class="toc-number">1.6.</span> <span class="toc-text">25.6小结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

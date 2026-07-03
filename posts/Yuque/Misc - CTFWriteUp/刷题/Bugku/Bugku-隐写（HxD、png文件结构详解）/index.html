@@ -1,0 +1,590 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Bugku-隐写（HxD、png文件结构详解） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Bugku-隐写（HxD、png文件结构详解）文件下载到桌面上以后，在略缩图发现文件中好像有某些东西没有显示出来：  嘿嘿，用“Stegsolve”进行颜色转换  emmm…还是没有东西，白高兴一场 网上查查wp提示用HxD打开文件 89 50 4E 47 0D 0A 1A 0A 00 00 00 0D 49 48 44 52 00 00 01 F4 00 00 01 A408 06 00 00">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Bugku-隐写（HxD、png文件结构详解）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E9%9A%90%E5%86%99%EF%BC%88HxD%E3%80%81png%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="Bugku-隐写（HxD、png文件结构详解）文件下载到桌面上以后，在略缩图发现文件中好像有某些东西没有显示出来：  嘿嘿，用“Stegsolve”进行颜色转换  emmm…还是没有东西，白高兴一场 网上查查wp提示用HxD打开文件 89 50 4E 47 0D 0A 1A 0A 00 00 00 0D 49 48 44 52 00 00 01 F4 00 00 01 A408 06 00 00">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-08/800/450">
+<meta property="article:published_time" content="2019-11-10T13:40:01.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:14.749Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-08/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Bugku-隐写（HxD、png文件结构详解）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E9%9A%90%E5%86%99%EF%BC%88HxD%E3%80%81png%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-08/800/450",
+  "datePublished": "2019-11-10T13:40:01.000Z",
+  "dateModified": "2026-07-03T14:46:14.749Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E9%9A%90%E5%86%99%EF%BC%88HxD%E3%80%81png%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Bugku-隐写（HxD、png文件结构详解）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-08/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Bugku-隐写（HxD、png文件结构详解）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Bugku-隐写（HxD、png文件结构详解）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-11-10T13:40:01.000Z" title="发表于 2019-11-10 21:40:01">2019-11-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:14.749Z" title="更新于 2026-07-03 22:46:14">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/%E5%88%B7%E9%A2%98/">刷题</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Bugku-隐写（HxD、png文件结构详解）"><a href="#Bugku-隐写（HxD、png文件结构详解）" class="headerlink" title="Bugku-隐写（HxD、png文件结构详解）"></a>Bugku-隐写（HxD、png文件结构详解）</h1><p>文件下载到桌面上以后，在略缩图发现文件中好像有某些东西没有显示出来：</p>
+<p><img src="/assets/posts/bugku-hxd-png-1nd0q60/assets/1573393349569-bea0df45-4a02-4778-80f5-8692482ac944.png" alt="QQ截图20191110214216.png"></p>
+<p>嘿嘿，用“Stegsolve”进行颜色转换</p>
+<p><img src="/assets/posts/bugku-hxd-png-1nd0q60/assets/1573393462645-1a2f3876-4395-496b-bb24-06c59fc7fea3.png" alt="QQ截图20191110214412.png"></p>
+<p>emmm…还是没有东西，白高兴一场</p>
+<p>网上查查wp提示用HxD打开文件</p>
+<h4 id=""><a href="#" class="headerlink" title=""></a><img src="/assets/posts/bugku-hxd-png-1nd0q60/assets/1573394262885-22ca501d-4e9a-4fe1-a02a-31aef5c321ed.png" alt="QQ截图20191110215656.png"></h4><p>89 50 4E 47 0D 0A 1A 0A 00 00 00 0D 49 48 44 52</p>
+<p>00 00 01 F4 00 00 01 <strong>A4</strong>08 06 00 00 00 CB D6 DF</p>
+<p>8A 00 00 00 09 70 48 59 73 00 00 12 74 00 00 12</p>
+<h4 id="网络资料："><a href="#网络资料：" class="headerlink" title="网络资料："></a><em>网络资料：</em></h4><p>首先分析PNG的文件标志。根据PNG文件的定义，从文件头开始前8字节数据是PNG文件的标志（文件头），即：</p>
+<p>89 50 4E 47 0D 0A 1A 0A</p>
+<ul>
+<li><p>（固定）四个字节00 00 00 0D（即为十进制的13）代表数据块的长度为13</p>
+</li>
+<li><p>（固定）四个字节49 48 44 52（即为ASCII码的IHDR）是文件头数据块的标示（IDCH）</p>
+</li>
+<li><p>（可变）13位数据块（IHDR)</p>
+</li>
+<li><p>前四个字节代表该图片的宽</p>
+<ul>
+<li>后四个字节代表该图片的高</li>
+<li>后五个字节依次为： Bit depth、ColorType、Compression method、Filter method、Interlace method</li>
+</ul>
+</li>
+<li><p>（可变）剩余四字节为该png的CRC检验码，由从IDCH到IHDR的十七位字节进行crc计算得到。</p>
+</li>
+</ul>
+<p><span style="color: #F5222D">根据图片格式，我们发现图片的宽与高有矛盾。</span><span style="color: #F5222D">？？？？？     what？！</span></p>
+<p><span style="color: #4D4D4D"></span><span style="color: #4D4D4D">将A4改成F4</span></p>
+<p>导出文件得到：</p>
+<p><img src="/assets/posts/bugku-hxd-png-1nd0q60/assets/1573395196256-6a88e90b-c6e6-47aa-98a8-32416b5034c4.png" alt="2.png"></p>
+<p>flag:BUGKU{a1e5aSA}</p>
+<p><span style="color: #4D4D4D"></span></p>
+<p>网络资料：<a target="_blank" rel="noopener" href="https://blog.csdn.net/Class_Raito/article/details/3786153">https://blog.csdn.net/Class_Raito&#x2F;article&#x2F;details&#x2F;3786153</a></p>
+<p>我们都知道，在进行J2ME的手机应用程序开发的时候，在图片的使用上，我们可以使用PNG格式的图片（甚至于在有的手机上，我们只可以使用PNG格式的图片），尽管使用图片可以为我们的应用程序增加不少亮点，然而，只支持PNG格式的图片却又限制了我们进一步发挥的可能性（其实，应该说是由于手机平台上的处理能力有限）。 在MIDP2中，或者某些厂商（如NOKIA）提供的API中，提供了drawPixels&#x2F;getPixels的方法，这些方法进一步提高了开发者处理图片的灵活性，然而，在MIDP2还未完全普及的今天，我们需要在MIDP1 .0中实现这类方法还属于异想天开，因此，为了实现更高级的应用，我们必须充分挖掘PNG的潜力。</p>
+<p><strong>PNG的文件结构</strong></p>
+<p>对于一个PNG文件来说，其文件头总是由位固定的字节来描述的：</p>
+<table>
+<thead>
+<tr>
+<th>十进制数</th>
+<th>137 80 78 71 13 10 26 10</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>十六进制数</td>
+<td>89 50 4E 47 0D 0A 1A 0A</td>
+</tr>
+</tbody></table>
+<p>其中第一个字节0x89超出了ASCII字符的范围，这是为了避免某些软件将PNG文件当做文本文件来处理。文件中剩余的部分由3个以上的PNG的数据块（Chunk）按照特定的顺序组成，因此，一个标准的PNG文件结构应该如下：</p>
+<table>
+<thead>
+<tr>
+<th>PNG文件标志</th>
+<th>PNG数据块</th>
+<th>……</th>
+<th>PNG数据块</th>
+</tr>
+</thead>
+</table>
+<p><strong>PNG数据块（Chunk）</strong></p>
+<p>PNG定义了两种类型的数据块，一种是称为关键数据块(critical chunk)，这是标准的数据块，另一种叫做辅助数据块(ancillary chunks)，这是可选的数据块。关键数据块定义了4个标准数据块，每个PNG文件都必须包含它们，PNG读写软件也都必须要支持这些数据块。虽然PNG文件规范没有要求PNG编译码器对可选数据块进行编码和译码，但规范提倡支持可选数据块。</p>
+<p>下表就是PNG中数据块的类别，其中，关键数据块部分我们使用深色背景加以区分。</p>
+<table>
+<thead>
+<tr>
+<th>PNG文件格式中的数据块</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据块符号</td>
+</tr>
+<tr>
+<td>IHDR</td>
+</tr>
+<tr>
+<td>cHRM</td>
+</tr>
+<tr>
+<td>gAMA</td>
+</tr>
+<tr>
+<td>sBIT</td>
+</tr>
+<tr>
+<td>PLTE</td>
+</tr>
+<tr>
+<td>bKGD</td>
+</tr>
+<tr>
+<td>hIST</td>
+</tr>
+<tr>
+<td>tRNS</td>
+</tr>
+<tr>
+<td>oFFs</td>
+</tr>
+<tr>
+<td>pHYs</td>
+</tr>
+<tr>
+<td>sCAL</td>
+</tr>
+<tr>
+<td>IDAT</td>
+</tr>
+<tr>
+<td>tIME</td>
+</tr>
+<tr>
+<td>tEXt</td>
+</tr>
+<tr>
+<td>zTXt</td>
+</tr>
+<tr>
+<td>fRAc</td>
+</tr>
+<tr>
+<td>gIFg</td>
+</tr>
+<tr>
+<td>gIFt</td>
+</tr>
+<tr>
+<td>gIFx</td>
+</tr>
+<tr>
+<td>IEND</td>
+</tr>
+</tbody></table>
+<p>为了简单起见，我们假设在我们使用的PNG文件中，这4个数据块按以上先后顺序进行存储，并且都只出现一次。</p>
+<p><strong>数据块结构</strong></p>
+<p>PNG文件中，每个数据块由4个部分组成，如下：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>字节数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Length (长度)</td>
+<td>4字节</td>
+<td>指定数据块中数据域的长度，其长度不超过(231－1)字节</td>
+</tr>
+<tr>
+<td>Chunk Type Code (数据块类型码)</td>
+<td>4字节</td>
+<td>数据块类型码由ASCII字母(A-Z和a-z)组成</td>
+</tr>
+<tr>
+<td>Chunk Data (数据块数据)</td>
+<td>可变长度</td>
+<td>存储按照Chunk Type Code指定的数据</td>
+</tr>
+<tr>
+<td>CRC (循环冗余检测)</td>
+<td>4字节</td>
+<td>存储用来检测是否有错误的循环冗余码</td>
+</tr>
+</tbody></table>
+<p>CRC(cyclic redundancy check)域中的值是对Chunk Type Code域和Chunk Data域中的数据进行计算得到的。CRC具体算法定义在ISO 3309和ITU-T V.42中，其值按下面的CRC码生成多项式进行计算：</p>
+<p>x32+x26+x23+x22+x16+x12+x11+x10+x8+x7+x5+x4+x2+x+1</p>
+<p>下面，我们依次来了解一下各个关键数据块的结构吧。</p>
+<p><strong>IHDR</strong></p>
+<p>文件头数据块IHDR(header chunk)：它包含有PNG文件中存储的图像数据的基本信息，并要作为第一个数据块出现在PNG数据流中，而且一个PNG数据流中只能有一个文件头数据块。</p>
+<p>文件头数据块由13字节组成，它的格式如下表所示。</p>
+<table>
+<thead>
+<tr>
+<th>域的名称</th>
+<th>字节数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Width</td>
+<td>4 bytes</td>
+<td>图像宽度，以像素为单位</td>
+</tr>
+<tr>
+<td>Height</td>
+<td>4 bytes</td>
+<td>图像高度，以像素为单位</td>
+</tr>
+<tr>
+<td>Bit depth</td>
+<td>1 byte</td>
+<td>图像深度：索引彩色图像：1，2，4或8灰度图像：1，2，4，8或16真彩色图像：8或16</td>
+</tr>
+<tr>
+<td>ColorType</td>
+<td>1 byte</td>
+<td>颜色类型：0：灰度图像, 1，2，4，8或162：真彩色图像，8或163：索引彩色图像，1，2，4或84：带α通道数据的灰度图像，8或166：带α通道数据的真彩色图像，8或16</td>
+</tr>
+<tr>
+<td>Compression method</td>
+<td>1 byte</td>
+<td>压缩方法(LZ77派生算法)</td>
+</tr>
+<tr>
+<td>Filter method</td>
+<td>1 byte</td>
+<td>滤波器方法</td>
+</tr>
+<tr>
+<td>Interlace method</td>
+<td>1 byte</td>
+<td>隔行扫描方法：0：非隔行扫描1： Adam7(由Adam M. Costello开发的7遍隔行扫描方法)</td>
+</tr>
+</tbody></table>
+<p>由于我们研究的是手机上的PNG，因此，首先我们看看MIDP1.0对所使用PNG图片的要求吧：</p>
+<ul>
+<li>在MIDP1.0中，我们只可以使用1.0版本的PNG图片。并且，所以的PNG关键数据块都有特别要求： IHDR</li>
+<li>文件大小：MIDP支持任意大小的PNG图片，然而，实际上，如果一个图片过大，会由于内存耗尽而无法读取。</li>
+<li>颜色类型：所有颜色类型都有被支持，虽然这些颜色的显示依赖于实际设备的显示能力。同时，MIDP也能支持alpha通道，但是，所有的alpha通道信息都会被忽略并且当作不透明的颜色对待。</li>
+<li>色深：所有的色深都能被支持。</li>
+<li>压缩方法：仅支持压缩方式0（deflate压缩方式），这和jar文件的压缩方式完全相同，所以，PNG图片数据的解压和jar文件的解压可以使用相同的代码。（其实这也就是为什么J2ME能很好的支持PNG图像的原因：））</li>
+<li>滤波器方法：尽管在PNG的白皮书中仅定义了方法0，然而所有的5种方法都被支持！</li>
+<li>隔行扫描：虽然MIDP支持0、1两种方式，然而，当使用隔行扫描时，MIDP却不会真正的使用隔行扫描方式来显示。</li>
+<li>PLTE chunk：支持</li>
+<li>IDAT chunk：图像信息必须使用5种过滤方式中的方式0 (None, Sub, Up, Average, Paeth)</li>
+<li>IEND chunk：当IEND数据块被找到时，这个PNG图像才认为是合法的PNG图像。</li>
+<li>可选数据块：MIDP可以支持下列辅助数据块，然而，这却不是必须的。</li>
+</ul>
+<blockquote>
+<p>bKGD cHRM gAMA hIST iCCP iTXt pHYs<br>sBIT sPLT sRGB tEXt tIME tRNS zTXt</p>
+</blockquote>
+<p>关于更多的信息，可以参考<a target="_blank" rel="noopener" href="http://www.w3.org/TR/REC-png.html">http://www.w3.org/TR/REC-png.html</a></p>
+<p><strong>PLTE</strong></p>
+<p>调色板数据块PLTE(palette chunk)包含有与索引彩色图像(indexed-color image)相关的彩色变换数据，它仅与索引彩色图像有关，而且要放在图像数据块(image data chunk)之前。</p>
+<p>PLTE数据块是定义图像的调色板信息，PLTE可以包含1~256个调色板信息，每一个调色板信息由3个字节组成：</p>
+<table>
+<thead>
+<tr>
+<th>颜色</th>
+<th>字节</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Red</td>
+<td>1 byte</td>
+<td>0 &#x3D; 黑色, 255 &#x3D; 红</td>
+</tr>
+<tr>
+<td>Green</td>
+<td>1 byte</td>
+<td>0 &#x3D; 黑色, 255 &#x3D; 绿色</td>
+</tr>
+<tr>
+<td>Blue</td>
+<td>1 byte</td>
+<td>0 &#x3D; 黑色, 255 &#x3D; 蓝色</td>
+</tr>
+</tbody></table>
+<p>因此，调色板的长度应该是3的倍数，否则，这将是一个非法的调色板。</p>
+<p>对于索引图像，调色板信息是必须的，调色板的颜色索引从0开始编号，然后是1、2……，调色板的颜色数不能超过色深中规定的颜色数（如图像色深为4的时候，调色板中的颜色数不可以超过2^4&#x3D;16），否则，这将导致PNG图像不合法。</p>
+<p>真彩色图像和带α通道数据的真彩色图像也可以有调色板数据块，目的是便于非真彩色显示程序用它来量化图像数据，从而显示该图像。</p>
+<p><strong>IDAT</strong></p>
+<p>图像数据块IDAT(image data chunk)：它存储实际的数据，在数据流中可包含多个连续顺序的图像数据块。</p>
+<p>IDAT存放着图像真正的数据信息，因此，如果能够了解IDAT的结构，我们就可以很方便的生成PNG图像。</p>
+<p><strong>IEND</strong></p>
+<p>图像结束数据IEND(image trailer chunk)：它用来标记PNG文件或者数据流已经结束，并且必须要放在文件的尾部。</p>
+<p>如果我们仔细观察PNG文件，我们会发现，文件的结尾12个字符看起来总应该是这样的：</p>
+<p>00 00 00 00 49 45 4E 44 AE 42 60 82</p>
+<p>不难明白，由于数据块结构的定义，IEND数据块的长度总是0（00 00 00 00，除非人为加入信息），数据标识总是IEND（49 45 4E 44），因此，CRC码也总是AE 42 60 82。</p>
+<p><strong>实例研究PNG</strong></p>
+<p>以下是由Fireworks生成的一幅图像，图像大小为8*8，为了方便大家观看，我们将图像放大：</p>
+<p>使用UltraEdit32打开该文件，如下：</p>
+<p><strong>00000000~00000007：</strong></p>
+<p>可以看到，选中的头8个字节即为PNG文件的标识。</p>
+<p>接下来的地方就是IHDR数据块了：</p>
+<p><strong>00000008~00000020：</strong></p>
+<ul>
+<li>00 00 00 0D 说明IHDR头块长为13</li>
+<li>49 48 44 52 IHDR标识</li>
+<li>00 00 00 08 图像的宽，8像素</li>
+<li>00 00 00 08 图像的高，8像素</li>
+<li>04 色深，2^4&#x3D;16，即这是一个16色的图像（也有可能颜色数不超过16，当然，如果颜色数不超过8，用03表示更合适）</li>
+<li>03 颜色类型，索引图像</li>
+<li>00 PNG Spec规定此处总为0（非0值为将来使用更好的压缩方法预留），表示使压缩方法(LZ77派生算法)</li>
+<li>00 同上</li>
+<li>00 非隔行扫描</li>
+<li>36 21 A3 B8 CRC校验</li>
+</ul>
+<p><strong>00000021~0000002F：</strong></p>
+<p>可选数据块sBIT，颜色采样率，RGB都是256（2^8&#x3D;256）</p>
+<p><strong>00000030~00000062：</strong></p>
+<p>这里是调色板信息</p>
+<ul>
+<li>00 00 00 27 说明调色板数据长为39字节，既13个颜色数</li>
+<li>50 4C 54 45 PLTE标识</li>
+<li>FF FF 00 颜色0</li>
+<li>FF ED 00 颜色1</li>
+<li>…… ……</li>
+<li>09 00 B2 最后一个颜色，12</li>
+<li>5F F5 BB DD CRC校验</li>
+</ul>
+<p><strong>00000063~000000C5：</strong></p>
+<p>这部分包含了pHYs、tExt两种类型的数据块共3块，由于并不太重要，因此也不再详细描述了。</p>
+<p><strong>000000C0~000000F8：</strong></p>
+<p>以上选中部分是IDAT数据块</p>
+<ul>
+<li>00 00 00 27 数据长为39字节</li>
+<li>49 44 41 54 IDAT标识</li>
+<li>78 9C…… 压缩的数据，LZ77派生压缩方法</li>
+<li>DA 12 06 A5 CRC校验</li>
+</ul>
+<p>IDAT中压缩数据部分在后面会有详细的介绍。</p>
+<p><strong>000000F9~00000104：</strong></p>
+<p>IEND数据块，这部分正如上所说，通常都应该是</p>
+<p>00 00 00 00 49 45 4E 44 AE 42 60 82</p>
+<p>至此，我们已经能够从一个PNG文件中识别出各个数据块了。由于PNG中规定除关键数据块外，其它的辅助数据块都为可选部分，因此，有了这个标准后，我们可以通过删除所有的辅助数据块来减少PNG文件的大小。（当然，需要注意的是，PNG格式可以保存图像中的层、文字等信息，一旦删除了这些辅助数据块后，图像将失去原来的可编辑性。）</p>
+<p>删除了辅助数据块后的PNG文件，现在文件大小为147字节，原文件大小为261字节，文件大小减少后，并不影响图像的内容。</p>
+<p>如上说过，IDAT数据块是使用了LZ77压缩算法生成的，由于受限于手机处理器的能力，因此，如果我们在生成IDAT数据块时仍然使用LZ77压缩算法，将会使效率大打折扣，因此，为了效率，只能使用无压缩的LZ77算法，关于LZ77算法的具体实现，此文不打算深究，如果你对LZ77算法的JAVA实现有兴趣，可以参考以下两个站点：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://jazzlib.sourceforge.net/">http://jazzlib.sourceforge.net/</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.jcraft.com/jzlib/index.html">http://www.jcraft.com/jzlib/index.html</a></li>
+</ul>
+<p><strong>参考资料：</strong></p>
+<p>PNG文件格式白皮书：<a target="_blank" rel="noopener" href="http://www.w3.org/TR/REC-png.html">http://www.w3.org/TR/REC-png.html</a></p>
+<p>为数不多的中文PNG格式说明：<a target="_blank" rel="noopener" href="http://dev.gameres.com/Program/Visual/Other/PNGFormat.htm">http://dev.gameres.com/Program/Visual/Other/PNGFormat.htm</a></p>
+<p>RFC-1950(ZLIB Compressed Data Format Specification)：<a href="ftp://ds.internic.net/rfc/rfc1950.txt">ftp://ds.internic.net/rfc/rfc1950.txt</a></p>
+<p>RFC-1950(DEFLATE Compressed Data Format Specification)：<a href="ftp://ds.internic.net/rfc/rfc1951.txt">ftp://ds.internic.net/rfc/rfc1951.txt</a></p>
+<p>LZ77算法的JAVA实现：<a target="_blank" rel="noopener" href="http://jazzlib.sourceforge.net/">http://jazzlib.sourceforge.net/</a></p>
+<p>LZ77算法的JAVA实现，包括J2ME版本：<a target="_blank" rel="noopener" href="http://www.jcraft.com/jzlib/index.html">http://www.jcraft.com/jzlib/index.html</a></p>
+<p>上面我们已经对PNG的存储格式有了了解，因此，生成PNG图片只需要按照以上的数据块写入文件即可。 (由于IHDR、PLTE的结构都非常简单，因此，这里我们只是重点讲一讲IDAT的生成方法，IHDR和PLTE的数据内容都沿用以上的数据内容)</p>
+<p>问题确实是这样的，我们知道，对于大多数的图形文件来说，我们都可以将实际的图像内容映射为一个二维的颜色数组，对于上面的PNG文件，由于它用的是16色的调色板（实际是13色），因此，对于图片的映射可以如下：</p>
+<p><img src="/assets/posts/bugku-hxd-png-1nd0q60/assets/1573395385644-094c15f8-7f25-490b-9b8e-e8a38920601e.png"></p>
+<p>(调色板对照图)</p>
+<p>12 11 10 9 8 7 6 5 11 10 9 8 7 6 5 4 10 9 8 7 6 5 4 3 9 8 7 6 5 4 3 2 8 7 6 5 4 3 2 1 7 6 5 4 3 2 1 0 6 5 4 3 2 1 0 0 5 4 3 2 1 0 0 0 PNG Spec中指出，假如PNG文件不是采用隔行扫描方法存储的话，那么，数据是按照行(ScanLine)来存储的，为了区分第一行，PNG规定在每一行的前面加上0以示区分，因此，上面的图像映射应该如下：</p>
+<p>0 12 11 10 9 8 7 6 5 0 11 10 9 8 7 6 5 4 0 10 9 8 7 6 5 4 3 0 9 8 7 6 5 4 3 2 0 8 7 6 5 4 3 2 1 0 7 6 5 4 3 2 1 0 0 6 5 4 3 2 1 0 0 0 5 4 3 2 1 0 0 0 另外，需要注重的是，由于PNG在存储图像时为了节省空间，因此每一行是按照位(Bit)来存储的，而并不是我们想象的字节（Byte），假如你没有忘记的话，我们的IHDR数据块中的色深就指明了这一点，所以，为了凑成PNG所需要的IDAT，我们的数据得改成如下：</p>
+<p>0 203 169 135 101 0 186 152 118 84 0 169 135 101 67 0 152 118 84 50 0 135 101 67 33 0 118 84 50 16 0 101 67 33 0 0 84 50 16 0最后，我们对这些数据进行LZ77压缩就可以得到IDAT的正确内容了。</p>
+<p>然而，事情并不是这么简单，因为我们研究的是手机上的PNG，假如需要在手机上完成LZ77压缩工作，消耗的时间是可想而知的，因此，我们得再想办法加减少压缩时消耗的时间。</p>
+<p>好在LZ77也提供了无压缩的压缩方法（希奇吧？），因此，我们只需要简单的使用无压缩的方式写入数据就可以了，这样虽然浪费了空间，却换回了时间！</p>
+<p>好了，让我们看一看怎么样凑成无压缩的LZ77压缩块：</p>
+<p>字节意义0<del>2压缩信息，固定为0x78, 0xda, 0x13</del>6压缩块的LEN和NLEN信息压缩的数据最后4字节Adler32信息其中的LEN是指数据的长度，占用两个字节，对于我们的图像来说，第一个Scan Line包含了5个字节（如第一行的0, 203, 169, 135, 101），所以LEN的值为5（字节&#x2F;行） * 8（行） &#x3D; 40（字节），生成字节为28 00（低字节在前），NLEN是LEN的补码，即NLEN &#x3D; LEN ^ 0xFFFF，所以NLEN的为 D7 FF，Adler32信息为24 A7 0B A4（具体算法见源程序），因此，按照这样的顺序，我们生成IDAT数据块，最后，我们将IHDR、PLTE、IDAT和IEND数据块写入文件中，就可以得到PNG文件了，如图：</p>
+<p><img src="/assets/posts/bugku-hxd-png-1nd0q60/assets/1573395385695-887a4005-cd18-41a2-bed9-f56a067b94f4.png"></p>
+<p>（选中的部分为生成的“压缩”数据）</p>
+<p>至此，我们已经能够采用最快的时间将数组转换为PNG图片了。</p>
+<p>生成的PNG文件：</p>
+<p>范例(附源程序)</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E9%9A%90%E5%86%99%EF%BC%88HxD%E3%80%81png%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E9%9A%90%E5%86%99%EF%BC%88HxD%E3%80%81png%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-08/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E9%9A%90%E5%86%992/" title="Bugku-隐写2"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Bugku-隐写2</div></div><div class="info-2"><div class="info-item-1">Bugku-隐写2 翻译：……..滚！ 用HxD打开 怎么这么奇怪呢？  binwalk分析：将文件图片移动到Python安装目录下的Scripts文件夹中 按下shift键和鼠标右键打开cmd（windows Powershell） 输入： python binwalk Welcome_.jpg（文件名） get：  嘿嘿嘿，rar我来了 将文件扩展名改为rar  then  根据提示开始爆破rar，得到密码：871  Hex分析： 哦，我亲爱的上帝，看这是什么？ f1@g{eTB1IEFyZSBhIGhAY2tlciE&#x3D;} base64解码：f1@g{y0u Are a h@cker!}     binwalk使用教程：https://www.cnblogs.com/zaqzzz/p/9460264.html 1.https://github.com/ReFirmLabs/binwalk到这里下载binwalk，下载后解压。 2.找到下载后的文件夹，  在这里要进行安装步骤，一边按着shift，一边按着鼠标右键，点击在此处打开命令窗口。  输入python setu...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E8%BF%99%E6%98%AF%E4%B8%80%E5%BC%A0%E5%8D%95%E7%BA%AF%E7%9A%84%E5%9B%BE%E7%89%87%EF%BC%88Unicode%E7%BC%96%E7%A0%81%EF%BC%89/" title="Bugku-这是一张单纯的图片（Unicode编码）"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Bugku-这是一张单纯的图片（Unicode编码）</div></div><div class="info-2"><div class="info-item-1">Bugku-这是一张单纯的图片（Unicode编码） 打开图片，什么都没有 文件属性里也没有有用的信息 用HxD打开图片，在对应文本中末尾发现： #107;ey{you are right} Unicode解码的到： key{you are right} </div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Bugku-%E9%9A%90%E5%86%99%EF%BC%88HxD%E3%80%81png%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">Bugku-隐写（HxD、png文件结构详解）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link"><span class="toc-number">1.1.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E8%B5%84%E6%96%99%EF%BC%9A"><span class="toc-number">1.2.</span> <span class="toc-text">网络资料：</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

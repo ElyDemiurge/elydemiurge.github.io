@@ -1,0 +1,513 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ESP脱壳定律（以UPX壳为例） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ESP脱壳定律（以UPX壳为例）参考资料： https:&#x2F;&#x2F;bbs.ichunqiu.com&#x2F;forum.php?mod&#x3D;viewthread&amp;tid&#x3D;15978&amp;extra&#x3D;&amp;highlight&#x3D;esp&amp;page&#x3D;1 （由于在输液时写文章，故部分语言借助如上链接，望理解） 为了方便，我们找到在吾爱破解工具包中找到单文件工具并使用加壳工具对其加壳。 使用的单文件工具">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ESP脱壳定律（以UPX壳为例）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E8%84%B1%E5%A3%B3/ESP%E8%84%B1%E5%A3%B3%E5%AE%9A%E5%BE%8B%EF%BC%88%E4%BB%A5UPX%E5%A3%B3%E4%B8%BA%E4%BE%8B%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="ESP脱壳定律（以UPX壳为例）参考资料： https:&#x2F;&#x2F;bbs.ichunqiu.com&#x2F;forum.php?mod&#x3D;viewthread&amp;tid&#x3D;15978&amp;extra&#x3D;&amp;highlight&#x3D;esp&amp;page&#x3D;1 （由于在输液时写文章，故部分语言借助如上链接，望理解） 为了方便，我们找到在吾爱破解工具包中找到单文件工具并使用加壳工具对其加壳。 使用的单文件工具">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-07/800/450">
+<meta property="article:published_time" content="2020-03-31T00:31:12.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.686Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-07/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ESP脱壳定律（以UPX壳为例）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E8%84%B1%E5%A3%B3/ESP%E8%84%B1%E5%A3%B3%E5%AE%9A%E5%BE%8B%EF%BC%88%E4%BB%A5UPX%E5%A3%B3%E4%B8%BA%E4%BE%8B%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-07/800/450",
+  "datePublished": "2020-03-31T00:31:12.000Z",
+  "dateModified": "2026-07-03T14:46:17.686Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E8%84%B1%E5%A3%B3/ESP%E8%84%B1%E5%A3%B3%E5%AE%9A%E5%BE%8B%EF%BC%88%E4%BB%A5UPX%E5%A3%B3%E4%B8%BA%E4%BE%8B%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ESP脱壳定律（以UPX壳为例）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-07/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">ESP脱壳定律（以UPX壳为例）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">ESP脱壳定律（以UPX壳为例）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-03-31T00:31:12.000Z" title="发表于 2020-03-31 08:31:12">2020-03-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.686Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="ESP脱壳定律（以UPX壳为例）"><a href="#ESP脱壳定律（以UPX壳为例）" class="headerlink" title="ESP脱壳定律（以UPX壳为例）"></a>ESP脱壳定律（以UPX壳为例）</h1><p>参考资料：</p>
+<p><a target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/forum.php?mod=viewthread&tid=15978&extra=&highlight=esp&page=1">https://bbs.ichunqiu.com/forum.php?mod=viewthread&amp;tid=15978&amp;extra=&amp;highlight=esp&amp;page=1</a></p>
+<p><span style="color: #F5222D">（</span><span style="color: #F5222D">由于在输液时写文章，故部分语言借助如上链接，望理解</span><span style="color: #F5222D">）</span></p>
+<p>为了方便，我们找到在吾爱破解工具包中找到单文件工具并使用加壳工具对其加壳。</p>
+<p>使用的单文件工具如下：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585614864724-b92c8470-df65-4392-95c6-b4f295891d4d.png" alt="QQ截图20200331083407.png"></p>
+<p>首先在加壳之前查一下壳：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585615278915-644783cc-9040-466e-afaa-bf247040642e.png" alt="QQ截图20200331084055.png"></p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585615379856-240c67cf-59ae-465b-803e-48a305e42602.png" alt="QQ截图20200331084234.png"></p>
+<p>没有壳，接下来手动对其加一个UPX壳，同样使用吾爱破解工具包中的加壳工具</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585615569572-bf7c7bff-f17c-4a2c-8a20-aa4b1a6849ee.png" alt="QQ截图20200331084534.png"></p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585615622875-46e247c5-34eb-4e9f-9977-a0ea2c6561f2.png" alt="QQ截图20200331084652.png"></p>
+<p>再检测一下：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585615706763-4fc0ef10-c7aa-448d-ba23-7bb6f33170f4.png" alt="QQ截图20200331084803.png"></p>
+<p>加壳成功，接下来使用ESP脱壳定律进行脱壳。</p>
+<hr>
+<p>ESP脱壳定律原理：“堆栈平衡”原理</p>
+<p>在开始讨论ESP定律之前，先给复习一下一些简单的汇编知识。</p>
+<p><strong>1.call</strong></p>
+<p>这个命令是访问子程序的一个汇编基本指令。也许你说，这个我早就知道了！别急请继续看完。call真正的意义是什么呢？我们可以这样来理解：</p>
+<p>1.向堆栈中压入下一行程序的地址；</p>
+<p>2.JMP到call的子程序地址处。</p>
+<p>例如：</p>
+<p>00401029.E8           call 004A3508</p>
+<p>0040102E.5A           pop edx</p>
+<p>在执行了00401029以后，程序会将0040102E压入堆栈，然后JMP到004A3508地址处！</p>
+<p><strong>2.RETN</strong></p>
+<p>与call对应的就是RETN了。对于RETN我们可以这样来理解：</p>
+<p>1.将当前的ESP中指向的地址出栈；</p>
+<p>2.JMP到这个地址。</p>
+<p>这个就完成了一次调用子程序的过程。在这里关键的地方是：如果我们要返回父程序，则当我们在堆栈中进行堆栈的操作的时候，一定要保证在RETN这条指令之前，ESP指向的是我们压入栈中的地址。这也就是著名的“堆栈平衡”原理！（<a target="_blank" rel="noopener" href="https://blog.csdn.net/D_R_L_T/article/details/74625872?depth_1-utm_source=distribute.pc_relevant.none-task&utm_source=distribute.pc_relevant.none-task">https://blog.csdn.net/D_R_L_T&#x2F;article&#x2F;details&#x2F;74625872?depth_1-utm_source&#x3D;distribute.pc_relevant.none-task&amp;utm_source&#x3D;distribute.pc_relevant.none-task</a>）</p>
+<p><span style="color: #4D4D4D"></span></p>
+<p><span style="color: #4D4D4D">ESP定律的适用范围：几乎全部的压缩壳，部分加密壳。只要是在JMP到OEP后的壳，理论上我们都可以使用。但是在何时下断点避开校验，何时下断OD才能断下来，这还需要多多总结和多多积累。</span></p>
+<hr>
+<p>将加壳后的程序载入到OD中后，点击否</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585616350171-e2180134-45c5-4a84-9b05-b20320554e7e.png" alt="QQ截图20200331085856.png"></p>
+<p>OD界面如下：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585616419334-6a908a0b-0e47-4848-9914-3be606ccff8f.png" alt="QQ截图20200331090006.png"></p>
+<p>按下F8开始单步执行</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585616519579-9feacf79-bf24-45e6-ae6e-bab14207384c.png" alt="QQ截图20200331090141.png"></p>
+<p>当有且只有ESP和EIP为红色时，我们可以用ESP定律了（也可以直接在下面的Command窗口中输入dd 0019FF54后回车）</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585616666855-96d19ea8-8b5b-40bf-be12-b7f6b47fdff2.png" alt="QQ截图20200331090405.png"></p>
+<p>此时有：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585616722361-34c75e91-36ef-490d-8620-6d7abe464a8f.png" alt="QQ截图20200331090506.png"></p>
+<p>下硬件断点：（这个操作也可以在command窗口输入 HR 0019FF54回车后完成，然后我们按F9运行程序，此时程序会暂停在我们设置的断点位置）</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585616791219-98b6f983-f87a-4511-b0c2-ccb9ce4211bd.png" alt="QQ截图20200331090616.png"></p>
+<p>这两种方法最终的效果都会在数据窗口中跟随到0012FFA4这个地址，然后我们可以右键那一段地址任意HEX设置断点→硬件访问→word型，按下F9执行，EIP停在：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585616909254-3ffc1942-5d44-4dd9-a34e-8201964ce27a.png" alt="QQ截图20200331090813.png"></p>
+<p>然后我们F8单步走，到了jnz位置后不要再按F8了（这是向上跳转的），我们用鼠标点击她的下一行然后按F4，让程序转到跳转下面继续运行（sub esp,-0x80），到达jmp后我们必须跳过去，因为接下来就有可能是程序的OEP领空。</p>
+<blockquote>
+<p>OEP：程序的入口点，软件加壳就是隐藏了OEP（或者用了假的OEP）</p>
+</blockquote>
+<p>这里就是易语言&#x2F;VC程序的OEP：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585617388007-a4b578e7-d56c-4ad5-92e5-b8ac313a1d06.png" alt="QQ截图20200331091534.png"></p>
+<p>然后我们就可以脱壳了，脱壳前我们先把断点清理掉，以免出错【调试→硬件断点→删除】</p>
+<p>此时程序真正的OEP为：0040438E</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585617443964-b8a50dc5-c042-4f16-8640-fdcd58f45c26.png" alt="QQ截图20200331091713.png"></p>
+<p>打开吾爱破解工具包的<img src="/assets/posts/esp-upx-h8nw73/assets/1585617665211-72ec7adb-d5b1-485a-bce8-71bae0137e8b.png" alt="QQ截图20200331092054.png"></p>
+<p>运行相同的进程：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585617827236-e1786b02-a945-4c90-8525-0175c80aefe8.png" alt="QQ截图20200331092335.png"></p>
+<p>在“Scylla”中“附加活动进程”：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585617940997-5112c552-bb6f-4eaf-b0e1-5e882b1494aa.png" alt="QQ截图20200331092526.png"></p>
+<p>在IAT信息框中的OEP更改为真正的OEP：0040438E，然后自动查找IAT并获取输入表（出现下图点击否）</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585618106572-06e56309-81dc-4397-8580-6af369795c41.png" alt="QQ截图20200331092753.png"></p>
+<p>最终如下图所示：</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585618159393-d5ca14a5-3cd3-4ec6-b4eb-e4698f699e87.png" alt="QQ截图20200331092855.png"></p>
+<p>然后转储到文件，保存为：UPX Unpacker_dump.exe</p>
+<p>最后修复转储后的文件，选择UPX Unpacker_dump.exe，自动保存为UPX Unpacker_dump_SCY.exe</p>
+<p>打开UPX Unpacker_dump_SCY.exe，正常运行</p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585617827236-e1786b02-a945-4c90-8525-0175c80aefe8.png" alt="QQ截图20200331092335.png"></p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585618661600-e88e4a6a-5d6e-4f38-aac6-df395d8cd9b8.png" alt="QQ截图20200331093730.png"></p>
+<p><img src="/assets/posts/esp-upx-h8nw73/assets/1585619004238-4ea459f7-d6d9-40c2-8286-0e0e267660af.png" alt="QQ截图20200331094305.png"></p>
+<p><strong>注：EP段提示UPX0是因为没有优化区段</strong></p>
+<hr>
+<p><strong>附：</strong></p>
+<p>程序校验值:</p>
+<p>文件： 吾爱破解工具包\Tools\Unpackers\UPX Unpacker.exe（加UPX壳前）</p>
+<p>大小： 155, 648 字节</p>
+<p>修改时间：2015-07-19 14:43:53</p>
+<p>MD5： E0BD593F0D6D53755123E09E78D13E59</p>
+<p>SHA1： D9E75DAD01D31A2A875E05254012F56CDC61AFC5</p>
+<p>CRC32：E3BE1942</p>
+<p>文件： C:\Users\Windows 10\Desktop\UPX Unpacker.exe（加UPX壳后）</p>
+<p>大小： 52, 224 字节</p>
+<p>修改时间：2015-07-19 14:43:53</p>
+<p>MD5： 69B3722D1049AC1DA7B8322BD90851E6</p>
+<p>SHA1： E81F81D953692E6231F49FB83FA50C89F36D28A9</p>
+<p>CRC32：EACCC927</p>
+<p>文件： C:\Users\Windows 10\Desktop\UPX Unpacker_dump.exe</p>
+<p>大小： 171, 008 字节</p>
+<p>修改时间：2020-03-31 09:29:57</p>
+<p>MD5： 3C7E50FAB84915D800CE6F2E5A68D3F4</p>
+<p>SHA1： A1BF30DA1C45376E108CE63DC1F2A98F9851A1A9</p>
+<p>CRC32：3BE1A9B1</p>
+<p>文件： C:\Users\Windows 10\Desktop\UPX Unpacker_dump_SCY.exe</p>
+<p>大小： 172, 544 字节</p>
+<p>修改时间：2020-03-31 09:31:10</p>
+<p>MD5： ED22315E459B1AA806FB1C7C920DB74B</p>
+<p>SHA1： 4DE20DB95EB6C17D6F464D5729C8F829218DAABC</p>
+<p>CRC32：5FC14E9A</p>
+<p><strong>部分语言OEP：</strong></p>
+<blockquote>
+<p><strong>delphi:</strong><br>55            PUSH EBP<br>8BEC          MOV EBP,ESP<br>83C4 F0       ADD ESP,-10<br>B8 A86F4B00   MOV EAX,PE.004B6FA8<br><span style="color: #F5222D">vc++</span><br>55            PUSH EBP<br>8BEC          MOV EBP,ESP<br>83EC 44       SUB ESP,44<br>56            PUSH ESI</p>
+</blockquote>
+<blockquote>
+<p><strong><span style="color: #F5222D">vc6.0</span></strong></p>
+</blockquote>
+<blockquote>
+<p>55                 push ebp</p>
+</blockquote>
+<blockquote>
+<p>8BEC               mov ebp,esp</p>
+</blockquote>
+<blockquote>
+<p>6A FF              push -1</p>
+</blockquote>
+<blockquote>
+<p>vc7.0</p>
+</blockquote>
+<blockquote>
+<p>6A 70              push 70</p>
+</blockquote>
+<blockquote>
+<p>68 50110001        push hh.01001150</p>
+</blockquote>
+<blockquote>
+<p>E8 1D020000        call hh.010017B0</p>
+</blockquote>
+<blockquote>
+<p>33DB               xor ebx,ebx</p>
+</blockquote>
+<blockquote>
+<p><span style="color: #F5222D">vb:</span></p>
+</blockquote>
+<blockquote>
+<p>00401166  - FF25 6C104000   JMP DWORD PTR DS:[&lt;&amp;MSVBVM60.#100&gt;]      ; MSVBVM60.ThunRTMain</p>
+</blockquote>
+<blockquote>
+<p>0040116C &gt;  68 147C4000     PUSH PACKME.00407C14</p>
+</blockquote>
+<blockquote>
+<p>00401171    E8 F0FFFFFF     CALL &lt;JMP.&amp;MSVBVM60.#100&gt;</p>
+</blockquote>
+<blockquote>
+<p>00401176    0000            ADD BYTE PTR DS:[EAX],AL</p>
+</blockquote>
+<blockquote>
+<p>00401178    0000            ADD BYTE PTR DS:[EAX],AL</p>
+</blockquote>
+<blockquote>
+<p>0040117A    0000            ADD BYTE PTR DS:[EAX],AL</p>
+</blockquote>
+<blockquote>
+<p>0040117C    3000            XOR BYTE PTR DS:[EAX],AL</p>
+</blockquote>
+<blockquote>
+<p><span style="color: #F5222D">bc++</span></p>
+</blockquote>
+<blockquote>
+<p>0040163C &gt; $ &#x2F;EB 10         JMP SHORT BCLOCK.0040164E</p>
+</blockquote>
+<blockquote>
+<p>0040163E     |66            DB 66                                    ;  CHAR ‘f’</p>
+</blockquote>
+<blockquote>
+<p>0040163F     |62            DB 62                                    ;  CHAR ‘b’</p>
+</blockquote>
+<blockquote>
+<p>00401640     |3A            DB 3A                                    ;  CHAR ‘:’</p>
+</blockquote>
+<blockquote>
+<p>00401641     |43            DB 43                                    ;  CHAR ‘C’</p>
+</blockquote>
+<blockquote>
+<p>00401642     |2B            DB 2B                                    ;  CHAR ‘+’</p>
+</blockquote>
+<blockquote>
+<p>00401643     |2B            DB 2B                                    ;  CHAR ‘+’</p>
+</blockquote>
+<blockquote>
+<p>00401644     |48            DB 48                                    ;  CHAR ‘H’</p>
+</blockquote>
+<blockquote>
+<p>00401645     |4F            DB 4F                                    ;  CHAR ‘O’</p>
+</blockquote>
+<blockquote>
+<p>00401646     |4F            DB 4F                                    ;  CHAR ‘O’</p>
+</blockquote>
+<blockquote>
+<p>00401647     |4B            DB 4B                                    ;  CHAR ‘K’</p>
+</blockquote>
+<blockquote>
+<p>00401648     |90            NOP</p>
+</blockquote>
+<blockquote>
+<p>00401649     |E9            DB E9</p>
+</blockquote>
+<blockquote>
+<p>0040164A   . |98E04E00      DD OFFSET BCLOCK.___CPPdebugHook</p>
+</blockquote>
+<blockquote>
+<p>0040164E   &gt; \A1 8BE04E00   MOV EAX,DWORD PTR DS:[4EE08B]</p>
+</blockquote>
+<blockquote>
+<p>00401653   .  C1E0 02       SHL EAX,2</p>
+</blockquote>
+<blockquote>
+<p>00401656   .  A3 8FE04E00   MOV DWORD PTR DS:[4EE08F],EAX</p>
+</blockquote>
+<blockquote>
+<p>0040165B   .  52            PUSH EDX</p>
+</blockquote>
+<blockquote>
+<p>0040165C   .  6A 00         PUSH 0                                   ; &#x2F;pModule &#x3D; NULL</p>
+</blockquote>
+<blockquote>
+<p>0040165E   .  E8 DFBC0E00   CALL &lt;JMP.&amp;KERNEL32.GetModuleHandleA&gt;    ; \GetModuleHandleA</p>
+</blockquote>
+<blockquote>
+<p>00401663   .  8BD0          MOV EDX,EAX</p>
+</blockquote>
+<blockquote>
+<p><span style="color: #F5222D">dasm:</span></p>
+</blockquote>
+<blockquote>
+<p>00401000 &gt;&#x2F;$  6A 00         PUSH 0                                   ; &#x2F;pModule &#x3D; NULL</p>
+</blockquote>
+<blockquote>
+<p>00401002  |.  E8 C50A0000   CALL &lt;JMP.&amp;KERNEL32.GetModuleHandleA&gt;    ; \GetModuleHandleA</p>
+</blockquote>
+<blockquote>
+<p>00401007  |.  A3 0C354000   MOV DWORD PTR DS:[40350C],EAX</p>
+</blockquote>
+<blockquote>
+<p>0040100C  |.  E8 B50A0000   CALL &lt;JMP.&amp;KERNEL32.GetCommandLineA&gt;     ; [GetCommandLineA</p>
+</blockquote>
+<blockquote>
+<p>00401011  |.  A3 10354000   MOV DWORD PTR DS:[403510],EAX</p>
+</blockquote>
+<blockquote>
+<p>00401016  |.  6A 0A         PUSH 0A                                  ; &#x2F;Arg4 &#x3D; 0000000A</p>
+</blockquote>
+<blockquote>
+<p>00401018  |.  FF35 10354000 PUSH DWORD PTR DS:[403510]               ; |Arg3 &#x3D; 00000000</p>
+</blockquote>
+<blockquote>
+<p>0040101E  |.  6A 00         PUSH 0                                   ; |Arg2 &#x3D; 00000000</p>
+</blockquote>
+<blockquote>
+<p>00401020  |.  FF35 0C354000 PUSH DWORD PTR DS:[40350C]               ; |Arg1 &#x3D; 00000000</p>
+</blockquote>
+<p>本节出现的名词解释</p>
+<blockquote>
+<p>EP段：EntryPoint,入口点</p>
+</blockquote>
+<blockquote>
+<p>OD：</p>
+</blockquote>
+<blockquote>
+<p>HR 访问时进行硬件中断</p>
+</blockquote>
+<blockquote>
+<p>DD 转存在堆栈格式</p>
+</blockquote>
+<blockquote>
+<p>EIP：寄存器的一种，EIP寄存器里存储的是CPU下次要执行的指令的地址</p>
+</blockquote>
+<blockquote>
+<p>ESP：寄存器的一种，寄存器里存储的是是栈的栈底指针，通常叫栈基址</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E8%84%B1%E5%A3%B3/ESP%E8%84%B1%E5%A3%B3%E5%AE%9A%E5%BE%8B%EF%BC%88%E4%BB%A5UPX%E5%A3%B3%E4%B8%BA%E4%BE%8B%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E8%84%B1%E5%A3%B3/ESP%E8%84%B1%E5%A3%B3%E5%AE%9A%E5%BE%8B%EF%BC%88%E4%BB%A5UPX%E5%A3%B3%E4%B8%BA%E4%BE%8B%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-07/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/2015NCTF/2015NCTF-2015_nctf_re%EF%BC%88%E8%8A%B1%E6%8C%87%E4%BB%A4-Obsidium%EF%BC%89/" title="2015NCTF-2015_nctf_re（花指令-Obsidium）"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2015NCTF-2015_nctf_re（花指令-Obsidium）</div></div><div class="info-2"><div class="info-item-1">2015NCTF-2015_nctf_re（花指令-Obsidium） 链接：https://pan.baidu.com/s/1bOn4empBDAk-CQqt-9Tx0g提取码：7xl1   复制这段内容后打开百度网盘手机App，操作更方便哦  wp迁移如下： 花指令-Obsidium </div></div></div></a><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/BUUCTF/BUUCTF-firmware%EF%BC%88%E8%B7%AF%E7%94%B1%E5%9B%BA%E4%BB%B6%E9%80%86%E5%90%91%EF%BC%89/" title="BUUCTF-firmware（路由固件逆向）"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">BUUCTF-firmware（路由固件逆向）</div></div><div class="info-2"><div class="info-item-1">BUUCTF-firmware（路由固件逆向）写在前面：此题目中的工具firmware-mod-kit仅适用于ubuntu，不适用于kali，如下图所示：  这里使用全新的ubuntu系统进行讲解：ubuntu v18.04.4（推荐，未经过系统更新，安装过程断网） 做题时需要全程挂SSR（当然，你也可以不用） http://releases.ubuntu.com/18.04/ubuntu-18.04.4-desktop-amd64.iso  基本信息：先来看一下题目：  为了方便，我们将“51475f91-7b90-41dd-81a3-8b82df4f29d0.bin”重命名为1.bin，将文件拖入到ubuntu中。 先看一下路由器固件的基本信息，执行命令：  file 1.bin   TP-LINK的路由器… 安装依赖：接下来安装firmware-mod-kit所需要的依赖，执行命令：  sudo apt-get install git build-essential zlib1g-dev liblzma-dev python-magic  若出现如下图类似的报错：（以kal...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ESP%E8%84%B1%E5%A3%B3%E5%AE%9A%E5%BE%8B%EF%BC%88%E4%BB%A5UPX%E5%A3%B3%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">ESP脱壳定律（以UPX壳为例）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

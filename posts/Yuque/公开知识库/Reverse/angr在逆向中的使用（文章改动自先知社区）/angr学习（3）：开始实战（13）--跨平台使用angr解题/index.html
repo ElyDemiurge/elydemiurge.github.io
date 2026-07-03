@@ -1,0 +1,373 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>angr学习（3）：开始实战（13）--跨平台使用angr解题 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="angr学习（3）：开始实战（13）–跨平台使用angr解题前言 我们时常会遇到各种平台下的程序，有时我们为了搭一个动态调试的环境需要耗费不少的时间，更有甚者无功而返，那么这时不妨用angr试试，毕竟多一分尝试，多一分希望。  如何跨平台使用angr解题通常来说，我们会在linux下安装angr框架，那么如果遇到不是linux的程序该怎么办呢？程序无法运行还能使用angr解决么！答案当然是可以。因">
+<meta property="og:type" content="article">
+<meta property="og:title" content="angr学习（3）：开始实战（13）--跨平台使用angr解题">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%8813%EF%BC%89--%E8%B7%A8%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8angr%E8%A7%A3%E9%A2%98/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="angr学习（3）：开始实战（13）–跨平台使用angr解题前言 我们时常会遇到各种平台下的程序，有时我们为了搭一个动态调试的环境需要耗费不少的时间，更有甚者无功而返，那么这时不妨用angr试试，毕竟多一分尝试，多一分希望。  如何跨平台使用angr解题通常来说，我们会在linux下安装angr框架，那么如果遇到不是linux的程序该怎么办呢？程序无法运行还能使用angr解决么！答案当然是可以。因">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-04/800/450">
+<meta property="article:published_time" content="2020-06-27T01:55:45.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.114Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-04/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "angr学习（3）：开始实战（13）--跨平台使用angr解题",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%8813%EF%BC%89--%E8%B7%A8%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8angr%E8%A7%A3%E9%A2%98/",
+  "image": "https://picsum.photos/seed/blog-cover-04/800/450",
+  "datePublished": "2020-06-27T01:55:45.000Z",
+  "dateModified": "2026-07-03T14:46:17.114Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%8813%EF%BC%89--%E8%B7%A8%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8angr%E8%A7%A3%E9%A2%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'angr学习（3）：开始实战（13）--跨平台使用angr解题',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-04/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">angr学习（3）：开始实战（13）--跨平台使用angr解题</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">angr学习（3）：开始实战（13）--跨平台使用angr解题</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-06-27T01:55:45.000Z" title="发表于 2020-06-27 09:55:45">2020-06-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.114Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>13分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="angr学习（3）：开始实战（13）–跨平台使用angr解题"><a href="#angr学习（3）：开始实战（13）–跨平台使用angr解题" class="headerlink" title="angr学习（3）：开始实战（13）–跨平台使用angr解题"></a>angr学习（3）：开始实战（13）–跨平台使用angr解题</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>我们时常会遇到各种平台下的程序，有时我们为了搭一个动态调试的环境需要耗费不少的时间，更有甚者无功而返，那么这时不妨用angr试试，毕竟多一分尝试，多一分希望。</p>
+</blockquote>
+<h3 id="如何跨平台使用angr解题"><a href="#如何跨平台使用angr解题" class="headerlink" title="如何跨平台使用angr解题"></a>如何跨平台使用angr解题</h3><p>通常来说，我们会在linux下安装angr框架，那么如果遇到不是linux的程序该怎么办呢？程序无法运行还能使用angr解决么！答案当然是可以。<span style="color: #F5222D">因为angr是符号执行框架，不是真正的在执行程序。</span>我们只需要进行正确的条件设置就可以了。</p>
+<h4 id="ARM程序"><a href="#ARM程序" class="headerlink" title="ARM程序"></a>ARM程序</h4><p>这里以 <code>android_arm_license_validation</code>为例</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/angr/angr-doc/tree/master/examples/android_arm_license_validation">https://github.com/angr/angr-doc/tree/master/examples/android_arm_license_validation</a></p>
+<p>IDA载入，来到main函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __cdecl <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">const</span> <span class="type">char</span> **argv, <span class="type">const</span> <span class="type">char</span> **envp)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">const</span> <span class="type">char</span> **v4; <span class="comment">// [sp+8h] [bp-24h]</span></span><br><span class="line">  <span class="type">int</span> v5; <span class="comment">// [sp+14h] [bp-18h]</span></span><br><span class="line">  <span class="type">char</span> v6; <span class="comment">// [sp+18h] [bp-14h]</span></span><br><span class="line"></span><br><span class="line">  v4 = argv;</span><br><span class="line">  <span class="keyword">if</span> ( argc != <span class="number">2</span> )</span><br><span class="line">    sub_16A8();</span><br><span class="line">  <span class="keyword">if</span> ( <span class="built_in">strlen</span>(argv[<span class="number">1</span>]) != <span class="number">16</span> )</span><br><span class="line">    sub_16CC();</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Entering base32_decode&quot;</span>);</span><br><span class="line">  sub_1340(<span class="number">0</span>, v4[<span class="number">1</span>], <span class="number">16</span>, &amp;v6, &amp;v5);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;Outlen = %d\n&quot;</span>, v5);</span><br><span class="line">  <span class="built_in">puts</span>(<span class="string">&quot;Entering check_license&quot;</span>);</span><br><span class="line">  sub_1760(&amp;v6);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最关键的是设置合理的初始状态，从IDA的分析来看，最后的比较部分在<code>sub_1760</code>函数，</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593224943575-37f89e62-cf0d-4a91-9618-cbb1170d2aa4.png" alt="TIM截图20200627102616.png"></p>
+<p>因此我们以此作为初始状态，同时看到该函数有一个<code>v6</code>参数，经过分析，可以知道该参数经过加密变换，最终用来校验的字符串，也就是说最后的校验过程我们可以不用了解，只需要使用angr将其爆破出来即可。</p>
+<p>我们需要设置一个空的状态</p>
+<p><code>state = b.factory.blank_state(addr=0x401760)</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop/angr$ <span class="built_in">export</span> WORKON_HOME=<span class="variable">$HOME</span>/Python-workhome</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$ <span class="built_in">source</span> /usr/share/virtualenvwrapper/virtualenvwrapper.sh</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$ workon angr</span><br><span class="line">(angr) ubuntu@ubuntu:~/Desktop/angr$ ./validate</span><br><span class="line">bash: ./validate: cannot execute binary file: Exec format error</span><br><span class="line">(angr) ubuntu@ubuntu:~/Desktop/angr$ checksec --file=validate</span><br><span class="line">RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH	Symbols		FORTIFY	Fortified	Fortifiable  FILE</span><br><span class="line">Full RELRO      No canary found   NX enabled    PIE enabled     No RPATH   No RUNPATH   No Symbols      No	0		1	validate</span><br><span class="line">(angr) ubuntu@ubuntu:~/Desktop/angr$</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #F5222D">注意：此程序开启了PIE，加载到内存之后main函数的地址为</span><code>0x401760</code></p>
+<p><span style="color: #F5222D">而后设置需要传入的参数，选取任意一个地址，用来存放变量。</span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>concrete_addr = <span class="number">0xfff00000</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>code = claripy.BVS(<span class="string">&#x27;code&#x27;</span>, <span class="number">10</span>*<span class="number">8</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>state.memory.store(concrete_addr, code, endness=<span class="string">&#x27;Iend_BE&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>concrete：具体的（形容词）<br><strong><span style="color: #F5222D">注意：此程序输入的地方并不在main函数，我们跳过了输入，所以要选取任意地址来存放输入的参数</span></strong></p>
+</blockquote>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321455-dea4deb1-915a-42b4-95d1-4bfd7b1510f6.png"></p>
+<p><span style="color: #F5222D">注意</span><span style="color: #F5222D">ARM</span><span style="color: #F5222D">程序是大端对齐。</span></p>
+<p>为了正确的传入参数，我们需要了解<code>arm</code>程序传参方式。</p>
+<hr>
+<p><code>https://blog.csdn.net/celerychen2009/article/details/4761514</code></p>
+<p><code>arm</code>程序传参方式：</p>
+<p><strong><span style="color: #F5222D">r0,r1,r2,r3,在调用函数时，用来存放前4个函数参数和返回值，r4-r11,r14,在调用函数时必须保存这些寄存器到堆栈当中。</span>如果函数的参数多于4个，则多余参数存放在堆栈当中，即sp,sp+4,sp+8,…依次类推。如果函数并没有用到那么多的寄存器，则没有必要把所有的寄存器入栈。如果函数要调用子函数，则r0,r1,r2,r3,r12,r14这些寄存器里面值将被改变，必须小心处理这些寄存器，一种可行的方法是，修改被调用子函数的入栈出栈代码</strong></p>
+<hr>
+<p>因此我们设置<code>r0</code>为输入的地址（也就是保存这个参数，因为有state.memory.store(concrete_addr, code, endness&#x3D;’Iend_BE’，将变量已经存入了concrete_addr)）：<code>state.regs.r0 = concrete_addr</code></p>
+<p>完整代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/python</span></span><br><span class="line"></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"><span class="string">Quick-and-dirty solution for the (un-obfuscated) Android License Check crackme from the Obfuscation Metrics Project.</span></span><br><span class="line"><span class="string">The full how-to can be found in the &#x27;Android&#x27; section of the OWASP Mobile Security Testing Guide:</span></span><br><span class="line"><span class="string">https://github.com/OWASP/owasp-mstg/blob/master/Document/0x06a-Reverse-Engineering-and-Tampering-Android.md</span></span><br><span class="line"><span class="string">&#x27;&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    load_options = &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Android NDK library path:</span></span><br><span class="line">    <span class="comment"># load_options[&#x27;ld_path&#x27;] = [&#x27;/Users/berndt/Tools/android-ndk-r10e/platforms/android-21/arch-arm/usr/lib&#x27;]</span></span><br><span class="line"></span><br><span class="line">    b = angr.Project(<span class="string">&quot;./validate&quot;</span>, load_options = load_options)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># The key validation function starts at 0x401760, so that&#x27;s where we create the initial state.</span></span><br><span class="line">    <span class="comment"># This speeds things up a lot because we&#x27;re bypassing the Base32-encoder.</span></span><br><span class="line"></span><br><span class="line">    state = b.factory.blank_state(addr=<span class="number">0x401760</span>)</span><br><span class="line"></span><br><span class="line">    concrete_addr = <span class="number">0xffe00000</span></span><br><span class="line">    code = claripy.BVS(<span class="string">&#x27;code&#x27;</span>, <span class="number">10</span>*<span class="number">8</span>)</span><br><span class="line">    state.memory.store(concrete_addr, code, endness=<span class="string">&#x27;Iend_BE&#x27;</span>)</span><br><span class="line">    state.regs.r0 = concrete_addr</span><br><span class="line"></span><br><span class="line">    sm = b.factory.simulation_manager(state)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 0x401840 = Product activation passed</span></span><br><span class="line">    <span class="comment"># 0x401854 = Incorrect serial</span></span><br><span class="line"></span><br><span class="line">    sm.explore(find=<span class="number">0x401840</span>, avoid=<span class="number">0x401854</span>)</span><br><span class="line">    found = sm.found[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Get the solution string from *(R11 - 0x20).</span></span><br><span class="line"></span><br><span class="line">    solution = found.solver.<span class="built_in">eval</span>(code, cast_to=<span class="built_in">bytes</span>)</span><br><span class="line">	<span class="built_in">print</span>(solution)</span><br><span class="line">    <span class="built_in">print</span>(base64.b32encode(solution))</span><br><span class="line">    </span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+<p>print(base64.b32encode(solution))是因为程序对输入进行了base32加密</p>
+<h3 id="windows-dll"><a href="#windows-dll" class="headerlink" title="windows dll"></a>windows dll</h3><p>这里以<code>mma_howtouse</code>为例</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/angr/angr-doc/tree/master/examples/mma_howtouse">https://github.com/angr/angr-doc/tree/master/examples/mma_howtouse</a></p>
+<p>程序是windows的dll，如果采用正常的方式解题，那么搭建动态调试的环境势必要花费一番功夫。</p>
+<p>IDA载入，<span style="color: #F5222D">首先我们应该注意的是</span><span style="color: #F5222D">dll</span><span style="color: #F5222D">程序的基址是</span><span style="color: #F5222D">0x10000000</span><span style="color: #F5222D">，而不是</span><span style="color: #F5222D">0x400000</span><span style="color: #F5222D">。</span></p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593227307861-96dd204d-a255-4960-b4d1-9461e842cf80.png" alt="TIM截图20200627102616.png"></p>
+<p><strong><span style="color: #F5222D">通过导出表，我们可以定位到</span><span style="color: #F5222D">fnhowtouse</span><span style="color: #F5222D">函数，进行了</span><span style="color: #F5222D">handler</span><span style="color: #F5222D">的绑定，然后通过</span><span style="color: #F5222D">(*(&amp;v2 + a1))();</span><span style="color: #F5222D">进行函数调用。</span></strong></p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593227352247-2886cc2f-35b7-492c-9975-39dc17e78252.png" alt="TIM截图20200627110906.png"></p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593227536066-cc0ef0bb-ad7d-4aef-91ea-5b45a78d52ec.png" alt="TIM截图20200627111159.png"></p>
+<p><span style="color: #F5222D">为了调用</span><span style="color: #F5222D">fnhowtouse</span><span style="color: #F5222D">函数,可以使用</span><span style="color: #F5222D">callable</span><span style="color: #F5222D">方法</span></p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321479-022ce93f-f94c-477b-9c3c-605dfeb5c92d.png"></p>
+<p>首先加载<code>howtouse.dll</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">p = angr.Project(&#x27;howtouse.dll&#x27;, load_options=&#123;&#x27;main_opts&#x27;: &#123;&#x27;base_addr&#x27;: 0x10000000&#125;&#125;)</span><br><span class="line">howtouse = p.factory.callable(0x10001130)</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #F5222D">通过</span><span style="color: #F5222D">callable</span><span style="color: #F5222D">方法将</span><span style="color: #F5222D">fnhowtouse</span><span style="color: #F5222D">转化为python可以调用的函数</span></p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321480-f9d209d1-632e-4cce-930c-6afcd414b8b2.png"></p>
+<p>然后我们便可以通过<code>howtouse(i)</code>进行函数调用，而无需依赖环境。通过题目，我们可以知道<code>howtouse(i)</code>结果就是flag，因此我们可以通过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">claripy.backends.concrete.convert(howtouse(i))</span><br></pre></td></tr></table></figure>
+
+<p>将结果转换为<code>BVV</code>类型，并通过<code>.value</code>将值取出。</p>
+<p>因此代码可以如下进行组织：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">getch = lambda i: chr(claripy.backends.concrete.convert(howtouse(i)).value)</span><br><span class="line">    # Let&#x27;s call this 45 times, and that&#x27;s the result!</span><br><span class="line">    return &#x27;&#x27;.join(getch(i) for i in range(45))</span><br></pre></td></tr></table></figure>
+
+<p>完整代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># This binary, from the MMA CTF, was a simple reversing challenge. THe biggest</span></span><br><span class="line"><span class="comment"># challenge was actually *running* this library in Windows. Luckily, with angr,</span></span><br><span class="line"><span class="comment"># we can avoid having to do this!</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># The approach here is to use angr as a concrete execution engine to call the</span></span><br><span class="line"><span class="comment"># `howtouse` function 45 times, as the array of function pointers in that</span></span><br><span class="line"><span class="comment"># function has 45 entries. The result turned out to be the flag.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> claripy</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    <span class="comment"># Load the binary. Base addresses are weird when loading binaries directly, so</span></span><br><span class="line">    <span class="comment"># we specify it explicitly.</span></span><br><span class="line">    p = angr.Project(<span class="string">&#x27;howtouse.dll&#x27;</span>, load_options=&#123;<span class="string">&#x27;main_opts&#x27;</span>: &#123;<span class="string">&#x27;base_addr&#x27;</span>: <span class="number">0x10000000</span>&#125;&#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># A &quot;Callable&quot; is angr&#x27;s FFI-equivalent. It allows you to call binary functions</span></span><br><span class="line">    <span class="comment"># from Python. Here, we use it to call the `howtouse` function.</span></span><br><span class="line">    howtouse = p.factory.<span class="built_in">callable</span>(<span class="number">0x10001130</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># In this binary, the result is a concrete char, so we don&#x27;t need a symbolic</span></span><br><span class="line">    <span class="comment"># state or a solver to get its value.</span></span><br><span class="line">    getch = <span class="keyword">lambda</span> i: <span class="built_in">chr</span>(claripy.backends.concrete.convert(howtouse(i)).value)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Let&#x27;s call this 45 times, and that&#x27;s the result!</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;&#x27;</span>.join(getch(i) <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">45</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>():</span><br><span class="line">    <span class="keyword">assert</span> main() == <span class="string">&#x27;MMA&#123;fc7d90ca001fc8712497d88d9ee7efa9e9b32ed8&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="built_in">print</span>(main())</span><br></pre></td></tr></table></figure>
+
+<h3 id="windows驱动"><a href="#windows驱动" class="headerlink" title="windows驱动"></a>windows驱动</h3><p>这里以<code>flareon2015_10</code>为例</p>
+<p>程序是windows驱动，2.5M还是蛮大的，IDA载入分析,来到sub_29C1A0。</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321465-19f32ea0-9264-4c25-bff0-972f1662c93d.png"></p>
+<p>What！这次又是个什么鬼图形，感觉出题人都要玩出花了。当然啦，angr最喜欢解决这种线性的题目了。</p>
+<p>首先程序的入口。</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593228483086-4b51f359-d3ed-42b0-b8d5-8528a8b2c6d1.png" alt="TIM截图20200627112756.png"></p>
+<p>可以知道<code>sub_29cd20</code>是有用的函数</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321373-2b525e22-578e-4423-8308-b7fdf1f4bea6.png"></p>
+<p>好吧。</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321501-f762cd18-fb51-41ac-92bf-e35e0ed94e2d.png"></p>
+<p>挨个查看一下，发现一个可疑的<code>case</code></p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321709-63ca911d-1676-48f1-b7a2-cda8d4084e21.png"></p>
+<p>话说这程序导致我的IDA都有点不正常了。</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321613-252e2c0e-bb86-4c93-af7d-18b591c1d1fa.png"></p>
+<p>接下来查看<code>sub_2D2E0</code>函数</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321656-cc938c38-d93b-4d2e-8e06-450ea6580626.png"></p>
+<p>真漂亮，还好不是在比赛的时候遇到这种题目。。</p>
+<p>我仔细盘了一下代码。还真有趣。</p>
+<p>看到<code>sub_13590</code>函数</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321753-7b17ce89-7962-4dbd-bec3-026d28df489f.png"></p>
+<p>一百多行代码，F5之后就两行。</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321742-a94c3df1-df76-47f2-bcc3-20aec1824fc3.png"></p>
+<p><code>sub_2D2E0</code>函数的前半部分都在为<code>0x29F210</code>地址的数据赋值</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321660-c4794c52-dd60-45b2-8f52-a403e6c4770d.png"></p>
+<p>只有在最后几行，调用了<code>sub_110F0</code>函数，并传入了<code>byte_29F210</code>和<code>edx</code>，<code>ecx</code>作为参数</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321636-27203481-bbfb-4abe-896b-78e3f8611c15.png"></p>
+<p>查一下<code>edx</code>对应<code>[ebp+var_3C]</code>的交叉引用，可以知道长度为40</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321656-8240e161-93e1-425e-b362-54636f597078.png"></p>
+<p>查一下<code>edx</code>对应<code>[ebp+var_30]</code>的交叉引用可以知道<code>key</code></p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321608-a524366e-63fb-4f11-b923-5b3a9185da28.png"></p>
+<p>具体查看<code>sub_110F0</code>函数，这回比较正常</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321641-9fb95f2b-672e-4adc-93c9-048f3c828ea1.png"></p>
+<p>查看<code>sub_11010</code>函数</p>
+<p><img src="/assets/posts/angr-3-13-angr-1fxbegn/assets/1593223321747-5430c5fc-5dbb-455b-8cf9-eba800f1c686.png"></p>
+<p>很明显是一个不太标准的<code>Tea</code>解密函数。</p>
+<p>在查<code>sub_110F0</code>的交叉引用时，发现还有其他几个地方引用了该函数，不过我仔细查看了一下，这三个地方引用<code>sub_110F0</code>函数都是对相同的数据进行解密，只是数据存放的位置不同罢了。所以也就先不去关心了。</p>
+<p>所以把数据<code>dump</code>下来，解密就可以了。</p>
+<p>代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">void decrypt (uint32_t* v, uint32_t* k) &#123;</span><br><span class="line">    uint32_t v0=v[0], v1=v[1], sum=0xC6EF3720, i;  /* set up */</span><br><span class="line">    uint32_t delta=0x61C88647;          /* a key schedule constant */</span><br><span class="line">    uint32_t k0=k[0], k1=k[1], k2=k[2], k3=k[3];   /* cache key */</span><br><span class="line">    for (i=0; i&lt;32; i++) &#123;                         /* basic cycle start */</span><br><span class="line">        v1 -= ((v0&lt;&lt;4) + k2) ^ (v0 + sum) ^ ((v0&gt;&gt;5) + k3);</span><br><span class="line">        v0 -= ((v1&lt;&lt;4) + k0) ^ (v1 + sum) ^ ((v1&gt;&gt;5) + k1);</span><br><span class="line">        sum += delta;</span><br><span class="line">    &#125;                                              /* end cycle */</span><br><span class="line">    v[0]=v0; v[1]=v1;</span><br><span class="line">&#125;</span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    uint32_t k[4]=&#123;858927408,926299444,1111570744,1178944579&#125;;</span><br><span class="line">    uint32_t v0[] = &#123;0xfadc7f56,0xc49927aa&#125;;</span><br><span class="line">    uint32_t v1[] = &#123;0x92cf7c6c,0x1a476161&#125;;</span><br><span class="line">    uint32_t v2[] = &#123;0xfd63b919,0x20b6f20c&#125;;</span><br><span class="line">    uint32_t v3[] = &#123;0xfd5c2dc0,0x965471d9&#125;;</span><br><span class="line">    uint32_t v4[] = &#123;0xfff7434f,0x315d4cbb&#125;;</span><br><span class="line">    // v为要加密的数据是两个32位无符号整数</span><br><span class="line">    // k为加密解密密钥，为4个32位无符号整数，即密钥长度为128位</span><br><span class="line">    setbuf(stdin,0);</span><br><span class="line">    setbuf(stdout,0);</span><br><span class="line">    setbuf(stderr,0);</span><br><span class="line">    decrypt(v0,k);</span><br><span class="line">    decrypt(v1,k);</span><br><span class="line">    decrypt(v2,k);</span><br><span class="line">    decrypt(v3,k);</span><br><span class="line">    decrypt(v4,k);</span><br><span class="line">    char *flag;</span><br><span class="line">    sprintf(flag,&quot;%x%x%x%x%x%x%x%x%x%x&quot;,v0[0],v0[1],v1[0],v1[1],v2[0],v2[1],v3[0],v3[1],v4[0],v4[1]);</span><br><span class="line">    printf(&quot;%s&quot;,flag);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后的结果需要转换一下。</p>
+<p>再让我们看看如何使用angr的hook来完成解密工作。</p>
+<p>大致思路，就是在程序调用解密函数前，将对应的数据存放到相应的位置即可。</p>
+<p>因此我们的Hook函数可以这么写</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">def before_tea_decrypt(state):</span><br><span class="line">    # Here we want to set the value of the byte array starting from 0x29f210</span><br><span class="line">    # I got those bytes by using cross-reference in IDA</span><br><span class="line">    all_bytes = bytes([0x56, 0x7f, 0xdc, 0xfa, 0xaa, 0x27, 0x99, 0xc4, 0x6c, 0x7c,</span><br><span class="line">             0xfc, 0x92, 0x61, 0x61, 0x47, 0x1a, 0x19, 0xb9, 0x63, 0xfd,</span><br><span class="line">             0xc, 0xf2, 0xb6, 0x20, 0xc0, 0x2d, 0x5c, 0xfd, 0xd9, 0x71,</span><br><span class="line">             0x54, 0x96, 0x4f, 0x43, 0xf7, 0xff, 0xbb, 0x4c, 0x5d, 0x31])</span><br><span class="line">    state.memory.store(ARRAY_ADDRESS, all_bytes)</span><br></pre></td></tr></table></figure>
+
+<p>这时hook的长度应该为0</p>
+<p><code>p.hook(0xadc31, before_tea_decrypt, length=0)</code>,有点类似于插桩</p>
+<p>我们不会运行该程序，而是选取有用的部分运行。</p>
+<p>我们只需要运行<code>2D2E0</code>函数即可。</p>
+<p>这时需要用到<code>callable</code>方法：</p>
+<p>它是将程序的二进制函数，变成像python本地的函数一样调用。</p>
+<p>如下初始化</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proc_big_68 = p.factory.callable(0x2D2E0, cc=p.factory.cc(func_ty=prototype), toc=None, concrete_only=True)</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>prototype</code>是函数原型的申明</p>
+<p>可以像这样声明：</p>
+<p><code>prototype = SimTypeFunction((SimTypeInt(False),), SimTypeInt(False))</code></p>
+<p>因此完整的<code>callable</code>调用如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># Declare the prototype of the target function</span><br><span class="line">    prototype = SimTypeFunction((SimTypeInt(False),), SimTypeInt(False))</span><br><span class="line">    # Initialize the function instance</span><br><span class="line">    proc_big_68 = p.factory.callable(BIG_PROC, cc=p.factory.cc(func_ty=prototype), toc=None, concrete_only=True)</span><br><span class="line">    # Call the function and get the final state</span><br><span class="line">    proc_big_68.perform_call(0)</span><br><span class="line">    state = proc_big_68.result_state</span><br></pre></td></tr></table></figure>
+
+<p>最后我们可以通过<code>state.solver.eval(state.memory.load(ARRAY_ADDRESS, 40), cast_to=bytes)</code>获取flag</p>
+<blockquote>
+<p>如果学会了，是不是非常简单呢</p>
+</blockquote>
+<p>完整代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> logging</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">from</span> angr.sim_type <span class="keyword">import</span> SimTypeFunction, SimTypeInt</span><br><span class="line"><span class="keyword">from</span> angr.procedures.stubs.UserHook <span class="keyword">import</span> UserHook</span><br><span class="line"></span><br><span class="line"><span class="comment"># This is literally how I solved this challenge during the game. Now I know it&#x27;s easier</span></span><br><span class="line"><span class="comment"># to just call tea_decrypt with those bytes (and the correct key), but I don&#x27;t want to</span></span><br><span class="line"><span class="comment"># change this script anymore.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># You are strongly recommended to use pypy to run this script in order to get a better</span></span><br><span class="line"><span class="comment"># performance.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># I would like to thank my girlfriend for allowing me to work on FlareOn challenges</span></span><br><span class="line"><span class="comment"># during several nights we spent together.</span></span><br><span class="line"></span><br><span class="line">ARRAY_ADDRESS = <span class="number">0x29f210</span></span><br><span class="line">BIG_PROC = <span class="number">0x2d2e0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">before_tea_decrypt</span>(<span class="params">state</span>):</span><br><span class="line">    <span class="comment"># Here we want to set the value of the byte array starting from 0x29f210</span></span><br><span class="line">    <span class="comment"># I got those bytes by using cross-reference in IDA</span></span><br><span class="line">    all_bytes = <span class="built_in">bytes</span>([<span class="number">0x56</span>, <span class="number">0x7f</span>, <span class="number">0xdc</span>, <span class="number">0xfa</span>, <span class="number">0xaa</span>, <span class="number">0x27</span>, <span class="number">0x99</span>, <span class="number">0xc4</span>, <span class="number">0x6c</span>, <span class="number">0x7c</span>,</span><br><span class="line">             <span class="number">0xfc</span>, <span class="number">0x92</span>, <span class="number">0x61</span>, <span class="number">0x61</span>, <span class="number">0x47</span>, <span class="number">0x1a</span>, <span class="number">0x19</span>, <span class="number">0xb9</span>, <span class="number">0x63</span>, <span class="number">0xfd</span>,</span><br><span class="line">             <span class="number">0xc</span>, <span class="number">0xf2</span>, <span class="number">0xb6</span>, <span class="number">0x20</span>, <span class="number">0xc0</span>, <span class="number">0x2d</span>, <span class="number">0x5c</span>, <span class="number">0xfd</span>, <span class="number">0xd9</span>, <span class="number">0x71</span>,</span><br><span class="line">             <span class="number">0x54</span>, <span class="number">0x96</span>, <span class="number">0x4f</span>, <span class="number">0x43</span>, <span class="number">0xf7</span>, <span class="number">0xff</span>, <span class="number">0xbb</span>, <span class="number">0x4c</span>, <span class="number">0x5d</span>, <span class="number">0x31</span>])</span><br><span class="line">    state.memory.store(ARRAY_ADDRESS, all_bytes)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    p = angr.Project(<span class="string">&#x27;challenge-7.sys&#x27;</span>, load_options=&#123;<span class="string">&#x27;auto_load_libs&#x27;</span>: <span class="literal">False</span>&#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Set a zero-length hook, so our function got executed before calling the</span></span><br><span class="line">    <span class="comment"># function tea_decrypt(0x100f0), and then we can keep executing the original</span></span><br><span class="line">    <span class="comment"># code. Thanks to this awesome design by @rhelmot!</span></span><br><span class="line">    p.hook(<span class="number">0xadc31</span>, before_tea_decrypt, length=<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Declare the prototype of the target function</span></span><br><span class="line">    prototype = SimTypeFunction((SimTypeInt(<span class="literal">False</span>),), SimTypeInt(<span class="literal">False</span>))</span><br><span class="line">    <span class="comment"># Initialize the function instance</span></span><br><span class="line">    proc_big_68 = p.factory.<span class="built_in">callable</span>(BIG_PROC, cc=p.factory.cc(func_ty=prototype), toc=<span class="literal">None</span>, concrete_only=<span class="literal">True</span>)</span><br><span class="line">    <span class="comment"># Call the function and get the final state</span></span><br><span class="line">    proc_big_68.perform_call(<span class="number">0</span>)</span><br><span class="line">    state = proc_big_68.result_state</span><br><span class="line">    <span class="comment"># Load the string from memory</span></span><br><span class="line">    <span class="keyword">return</span> state.solver.<span class="built_in">eval</span>(state.memory.load(ARRAY_ADDRESS, <span class="number">40</span>), cast_to=<span class="built_in">bytes</span>).strip(<span class="string">b&#x27;\0&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>():</span><br><span class="line">    <span class="keyword">assert</span> main() == <span class="string">b&quot;unconditional_conditions@flare-on.com&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    <span class="comment"># Turn on logging so we know what&#x27;s going on...</span></span><br><span class="line">    <span class="comment"># It&#x27;s up to you to set up a logging handler beforehand</span></span><br><span class="line">    logging.getLogger(<span class="string">&#x27;angr.manager&#x27;</span>).setLevel(logging.DEBUG)</span><br><span class="line">    <span class="built_in">print</span>(main())</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>对于跨平台的程序，最重要的了解该平台调用约定，需要对程序的运行有所了解。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%8813%EF%BC%89--%E8%B7%A8%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8angr%E8%A7%A3%E9%A2%98/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%8813%EF%BC%89--%E8%B7%A8%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8angr%E8%A7%A3%E9%A2%98/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-04/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%8814%EF%BC%89--%E5%BF%AB%E9%80%9F%E7%9A%84%E5%AF%BB%E6%89%BEavoid/" title="angr学习（3）：开始实战（14）--快速的寻找avoid"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">angr学习（3）：开始实战（14）--快速的寻找avoid</div></div><div class="info-2"><div class="info-item-1">angr学习（3）：开始实战（14）–快速的寻找avoid前言就我感觉angr比较适合用来解决混淆的题目，面对混淆题去混淆感觉自己能力不够，直接动态调试，又觉得非常浪费时间，那么这时angr可以成为非常好的帮手。 如何快速的寻找find和avoid在解题时我们时常会遇到带有强混淆的程序，这类程序要找出所有的find和avoid是一件耗时耗力的事情，那么我们可以采取何种高效的办法进行寻找呢？ 这里以hackcon2016_angry-reverser为例。 https://github.com/angr/angr-doc/tree/master/examples/hackcon2016_angry-reverser IDA载入  很明显的混淆，如果自己分析一遍，然后去除混淆也是需要费点时间的，不过如果你掌握了angr，那么只需要几分钟就可以解决此题，根本不要关心其使用了何种加密方式。 此题中，正确的路径只有一条find=0x405a6e,需要避免的路径则有很多，我们可以通过如下代码，得到所有需要avoid的地址。 1234567891011e = open(&#x27;./yolo...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020%E7%AC%AC%E4%BA%94%E7%A9%BA%E9%97%B4/%E7%AC%AC%E4%BA%94%E7%A9%BA%E9%97%B4--%E5%8F%82%E8%80%83wp/" title="第五空间--参考wp"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第五空间--参考wp</div></div><div class="info-2"><div class="info-item-1">第五空间–参考wphttps://shimo.im/docs/25q5MZyOZwf4oRqD http://taqini.space/2020/06/25/2020-5space-GXY-writeup/#nop https://blog.csdn.net/qq_43116977&#x2F;article&#x2F;details&#x2F;106954518?%3E第五空间智能安全大赛 Writeup - Nu1L.pdf </div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%8813%EF%BC%89%E2%80%93%E8%B7%A8%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8angr%E8%A7%A3%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">angr学习（3）：开始实战（13）–跨平台使用angr解题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.1.</span> <span class="toc-text">前言</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E8%B7%A8%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8angr%E8%A7%A3%E9%A2%98"><span class="toc-number">1.1.1.</span> <span class="toc-text">如何跨平台使用angr解题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ARM%E7%A8%8B%E5%BA%8F"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">ARM程序</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#windows-dll"><span class="toc-number">1.1.2.</span> <span class="toc-text">windows dll</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#windows%E9%A9%B1%E5%8A%A8"><span class="toc-number">1.1.3.</span> <span class="toc-text">windows驱动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.2.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>_int_malloc（3）-与smallbin相关的分配机制 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="_int_malloc（3）-与smallbin相关的分配机制关键词 smallbin分配内存 smallbin chunk移入tcachebin中 单线程  快速回顾假如说在上一小节中你继续向后调试的话会发现放入unsortedbin中的free chunk之后会移动到smallbin中，但是如果想要完全研究smallbin的分配过程，那个例子并不合适，因为它只会执行到部分代码，如下所示： 12">
+<meta property="og:type" content="article">
+<meta property="og:title" content="_int_malloc（3）-与smallbin相关的分配机制">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%883%EF%BC%89-%E4%B8%8Esmallbin%E7%9B%B8%E5%85%B3%E7%9A%84%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="_int_malloc（3）-与smallbin相关的分配机制关键词 smallbin分配内存 smallbin chunk移入tcachebin中 单线程  快速回顾假如说在上一小节中你继续向后调试的话会发现放入unsortedbin中的free chunk之后会移动到smallbin中，但是如果想要完全研究smallbin的分配过程，那个例子并不合适，因为它只会执行到部分代码，如下所示： 12">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-01/800/450">
+<meta property="article:published_time" content="2021-03-17T02:27:16.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:16.574Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-01/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "_int_malloc（3）-与smallbin相关的分配机制",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%883%EF%BC%89-%E4%B8%8Esmallbin%E7%9B%B8%E5%85%B3%E7%9A%84%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6/",
+  "image": "https://picsum.photos/seed/blog-cover-01/800/450",
+  "datePublished": "2021-03-17T02:27:16.000Z",
+  "dateModified": "2026-07-03T14:46:16.574Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%883%EF%BC%89-%E4%B8%8Esmallbin%E7%9B%B8%E5%85%B3%E7%9A%84%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '_int_malloc（3）-与smallbin相关的分配机制',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-01/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">_int_malloc（3）-与smallbin相关的分配机制</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">_int_malloc（3）-与smallbin相关的分配机制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-03-17T02:27:16.000Z" title="发表于 2021-03-17 10:27:16">2021-03-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:16.574Z" title="更新于 2026-07-03 22:46:16">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="int-malloc（3）-与smallbin相关的分配机制"><a href="#int-malloc（3）-与smallbin相关的分配机制" class="headerlink" title="_int_malloc（3）-与smallbin相关的分配机制"></a>_int_malloc（3）-与smallbin相关的分配机制</h1><h2 id="关键词"><a href="#关键词" class="headerlink" title="关键词"></a>关键词</h2><ul>
+<li>smallbin分配内存</li>
+<li>smallbin chunk移入tcachebin中</li>
+<li>单线程</li>
+</ul>
+<h2 id="快速回顾"><a href="#快速回顾" class="headerlink" title="快速回顾"></a>快速回顾</h2><p>假如说在上一小节中你继续向后调试的话会发现放入unsortedbin中的free chunk之后会移动到smallbin中，但是如果想要完全研究smallbin的分配过程，那个例子并不合适，因为它只会执行到部分代码，如下所示：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (in_smallbin_range (nb)) <span class="comment">//判断要申请的chunk是否在smallbin的范围内</span></span><br><span class="line">    &#123;	<span class="comment">//在此范围内</span></span><br><span class="line">      idx = smallbin_index (nb);   <span class="comment">//执行</span></span><br><span class="line">      bin = bin_at (av, idx); 	   <span class="comment">//执行</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> ((victim = last (bin)) != bin)  <span class="comment">//进入</span></span><br><span class="line">        &#123;</span><br><span class="line">          bck = victim-&gt;bk;			<span class="comment">//执行</span></span><br><span class="line">	  <span class="keyword">if</span> (__glibc_unlikely (bck-&gt;fd != victim))</span><br><span class="line">	    malloc_printerr (<span class="string">&quot;malloc(): smallbin double linked list corrupted&quot;</span>);</span><br><span class="line">          set_inuse_bit_at_offset (victim, nb);</span><br><span class="line">          bin-&gt;bk = bck;			<span class="comment">//执行</span></span><br><span class="line">          bck-&gt;fd = bin;			<span class="comment">//执行</span></span><br><span class="line"></span><br><span class="line">          <span class="keyword">if</span> (av != &amp;main_arena)	<span class="comment">//不进入</span></span><br><span class="line">	    set_non_main_arena (victim);</span><br><span class="line">          check_malloced_chunk (av, victim, nb);	<span class="comment">//执行</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> USE_TCACHE</span></span><br><span class="line">	  <span class="comment">/* While we&#x27;re here, if we see other chunks of the same size,</span></span><br><span class="line"><span class="comment">	     stash them in the tcache.  */</span></span><br><span class="line">       <span class="comment">//翻译：当程序执行到此处时，如果在相同大小的bin中仍然有相同size的smallbin chunk</span></span><br><span class="line">       <span class="comment">//我们将把这些chunk放入到tcache中</span></span><br><span class="line">	  <span class="type">size_t</span> tc_idx = csize2tidx (nb);</span><br><span class="line">	  <span class="keyword">if</span> (tcache &amp;&amp; tc_idx &lt; mp_.tcache_bins)	<span class="comment">//进入</span></span><br><span class="line">	    &#123;</span><br><span class="line">	      mchunkptr tc_victim;</span><br><span class="line"></span><br><span class="line">	      <span class="comment">/* While bin not empty and tcache not full, copy chunks over.  */</span></span><br><span class="line">          <span class="comment">//smallbin不为空且tcache对应的链上未满，对smallbin chunk拷贝到tcache中</span></span><br><span class="line">	      <span class="keyword">while</span> (tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count	<span class="comment">//无法进入！！！</span></span><br><span class="line">		     &amp;&amp; (tc_victim = last (bin)) != bin)</span><br><span class="line">		&#123;</span><br><span class="line">		  <span class="keyword">if</span> (tc_victim != <span class="number">0</span>)</span><br><span class="line">		    &#123; </span><br><span class="line">		      bck = tc_victim-&gt;bk;</span><br><span class="line">		      set_inuse_bit_at_offset (tc_victim, nb);</span><br><span class="line">		      <span class="keyword">if</span> (av != &amp;main_arena)</span><br><span class="line">			set_non_main_arena (tc_victim);</span><br><span class="line">		      bin-&gt;bk = bck;</span><br><span class="line">		      bck-&gt;fd = bin;</span><br><span class="line"></span><br><span class="line">		      tcache_put (tc_victim, tc_idx); <span class="comment">//我们想让代码执行到此处！！！</span></span><br><span class="line">	            &#125;</span><br><span class="line">		&#125;</span><br><span class="line">	    &#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">          <span class="type">void</span> *p = chunk2mem (victim);		<span class="comment">//执行</span></span><br><span class="line">          alloc_perturb (p, bytes);		<span class="comment">//执行</span></span><br><span class="line">          <span class="keyword">return</span> p;		<span class="comment">//执行</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>整合到unsortedbin结果如下：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615969795505-6447eeb4-f39f-410f-bc91-a595297b51e2.png" alt="截屏2021-03-17 16.29.51.png"></p>
+<p>接下来的代码会将放入unsortedbin的chunk移入到smallbin或largebin中，这里是移入到了smallbin中：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615969857533-5e372666-b2b1-41e8-82af-c6f60f91d652.png" alt="截屏2021-03-17 16.30.53.png"></p>
+<p>这里我们先不管移入smallbin的详细代码，当进行下一次malloc时，调试一下：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615970386513-ab54fe47-629c-41da-b624-295751c7b89a.png" alt="image.png"></p>
+<p>如上图所示，无法进入到此源码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">     <span class="keyword">while</span> (tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count	<span class="comment">//无法进入！！！</span></span><br><span class="line">     &amp;&amp; (tc_victim = last (bin)) != bin)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (tc_victim != <span class="number">0</span>)</span><br><span class="line">    &#123; </span><br><span class="line">      bck = tc_victim-&gt;bk;</span><br><span class="line">      set_inuse_bit_at_offset (tc_victim, nb);</span><br><span class="line">      <span class="keyword">if</span> (av != &amp;main_arena)</span><br><span class="line">	set_non_main_arena (tc_victim);</span><br><span class="line">      bin-&gt;bk = bck;</span><br><span class="line">      bck-&gt;fd = bin;</span><br><span class="line"></span><br><span class="line">      tcache_put (tc_victim, tc_idx); <span class="comment">//我们想让代码执行到此处！！！</span></span><br><span class="line">           &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上述代码是将smallbin的free chunk移入到tcachebin中，为了直观的了解代码，我们得重新写一个例子，有一些条件需要我们做到：</p>
+<ul>
+<li>要申请的chunk在smallbin的大小范围内</li>
+<li>申请时对应的smallbin链表不能为空</li>
+<li>在向smallbin申请chunk之后，smallbin中仍然有相同大小的free chunk</li>
+<li>此时对应大小的tcache链中未满</li>
+</ul>
+<h2 id="程序源码"><a href="#程序源码" class="headerlink" title="程序源码"></a>程序源码</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//例子改动于：how2heap:Tcache Stashing Unlink Attack</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> stack_var[<span class="number">0x10</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> *chunk_lis[<span class="number">0x10</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> *p,*pp;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; <span class="number">9</span>;i++)&#123;</span><br><span class="line">        chunk_lis[i] = (<span class="type">unsigned</span> <span class="type">long</span>*)<span class="built_in">malloc</span>(<span class="number">0x90</span>);  <span class="comment">//首先申请9个大小为0x90的chunk</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">3</span>;i &lt; <span class="number">9</span>;i++)&#123;</span><br><span class="line">        <span class="built_in">free</span>(chunk_lis[i]);     <span class="comment">//释放6个chunk，这些会到tcache中</span></span><br><span class="line">        chunk_lis[i]=<span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">free</span>(chunk_lis[<span class="number">1</span>]);     <span class="comment">//放到tcache:chunk1</span></span><br><span class="line">    <span class="built_in">free</span>(chunk_lis[<span class="number">0</span>]);     <span class="comment">//放到unsortedbin:chunk0</span></span><br><span class="line">    <span class="built_in">free</span>(chunk_lis[<span class="number">2</span>]);     <span class="comment">//放到unsortedbin:chunk2</span></span><br><span class="line">    </span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0xa0</span>);           <span class="comment">//申请一个0xa0的chunk，chunk0和chunk2都会被整理到smallbin中</span></span><br><span class="line">    </span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x90</span>);           <span class="comment">//从tcache中申请两个0x90的chunk</span></span><br><span class="line">    <span class="built_in">malloc</span>(<span class="number">0x90</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//现在calloc申请一个0x90大小的 chunk，他会把一个 smallbin 里的 chunk0 返回给我们，</span></span><br><span class="line">    <span class="comment">//另一个 smallbin 的 chunk2 将会与 tcache 相连.</span></span><br><span class="line">    pp = <span class="built_in">calloc</span>(<span class="number">1</span>,<span class="number">0x90</span>);    <span class="comment">//calloc不会从tcachebin中申请chunk</span></span><br><span class="line">    p = <span class="built_in">malloc</span>(<span class="number">0x90</span>);  </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>编译命令：gcc -g in_smallbin_range.c -o in_smallbin_range</p>
+</blockquote>
+<h2 id="开始调试"><a href="#开始调试" class="headerlink" title="开始调试"></a>开始调试</h2><blockquote>
+<p>调试之前请先关闭系统的ALSR</p>
+</blockquote>
+<p>注意现在我们的目标是上述in_smallbin_range源码，因此在调试的时请忽视其他代码。</p>
+<p>现在直接对程序代码第25行下断点，然后看一下结果：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615972259769-c90750ee-9b89-4272-8318-df606624e758.png" alt="截屏2021-03-17 17.10.56.png"></p>
+<p>图上很清楚，smallbin中有两个大小为0xa0的free chunk，为了让smallbin chunk移入到tcachebin中，现在需要对tcache进行free chunk申请：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">malloc</span>(<span class="number">0x90</span>);           <span class="comment">//从tcache中申请两个0x90的chunk</span></span><br><span class="line"><span class="built_in">malloc</span>(<span class="number">0x90</span>);</span><br></pre></td></tr></table></figure>
+
+<p>单步步过这两个malloc之后结果如下：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615972724286-2c89f4b4-5042-4bf3-bb7f-691b6d652072.png" alt="截屏2021-03-17 17.18.25.png"></p>
+<p>单步步入calloc：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pp = <span class="built_in">calloc</span>(<span class="number">1</span>,<span class="number">0x90</span>);</span><br></pre></td></tr></table></figure>
+
+<p>在这里要注意calloc不会向tcachebin申请chunk，可以将calloc认为是未加入tcache机制的malloc。</p>
+<p>这是为什么呢？我们来对比一下__libc_calloc和__libc_malloc的源码：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615974725825-c516a580-9761-41aa-8500-34de1842664f.png" alt="QQ20210317-175141.png"></p>
+<p>calloc和malloc的本质都是调用_int_malloc进行分配内存，而在调用此函数之前：</p>
+<p>calloc会先调用__libc_calloc；malloc会先调用__libc_malloc</p>
+<p>我们在__libc_calloc并未发现向tcachebin中申请内存的代码，也就是说申请tcache是在调用_int_malloc之前申请的。</p>
+<p>知道这些后我们回过头来继续调试，进入_int_malloc函数，再经过一些判断之后会来到：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615976510280-0b330130-19c2-47e9-9b04-32ade06cf00b.png" alt="截屏2021-03-17 18.21.46.png"></p>
+<p>要申请的大小nb为160（0xa0）小于0x3ff，会进入到if中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">idx = smallbin_index (nb);  <span class="comment">//获取nb在smallbin的index</span></span><br><span class="line">bin = bin_at (av, idx);	  <span class="comment">//获取index在main_arena中的地址</span></span><br></pre></td></tr></table></figure>
+
+<p>结果如下</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615976832361-588d93cc-828a-45c9-b64d-90f57c436ee4.png" alt="截屏2021-03-17 18.27.08.png"></p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615977049621-3e077f3e-85cd-49df-b14f-8ef58d83ce93.png" alt="截屏2021-03-17 18.30.46.png"></p>
+<p>然后进入下一个if语句的判断：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((victim = last (bin)) != bin)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615977224171-41e5de0c-413a-46ec-83bb-4c424e8c3a79.png" alt="截屏2021-03-17 18.33.41.png"></p>
+<p>其中last函数的定义如下</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615977268192-f3f8e9fc-e0e9-4e01-9c72-67a62d7088d0.png" alt="截屏2021-03-17 18.34.24.png"></p>
+<p>我们可以这样理解：将传入的参数指针bin当作一个chunk，然后获取其的bk指针返回给victim：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x7ffff7dcdd30</span> &lt;main_arena+<span class="number">240</span>&gt;:	<span class="number">0x00007ffff7dcdd20</span>	<span class="number">0x00007ffff7dcdd20</span> <span class="meta">#chunk</span></span><br><span class="line"><span class="number">0x7ffff7dcdd40</span> &lt;main_arena+<span class="number">256</span>&gt;:	<span class="number">0x0000555555756390</span>	<span class="number">0x0000555555756250</span></span><br><span class="line">    								<span class="meta">#fd					#bk</span></span><br><span class="line"><span class="number">0x7ffff7dcdd50</span> &lt;main_arena+<span class="number">272</span>&gt;:	<span class="number">0x00007ffff7dcdd40</span>	<span class="number">0x00007ffff7dcdd40</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615977809945-6f5ddf7b-65fa-4549-a854-4568a57ca03e.png" alt="截屏2021-03-17 18.43.24.png"></p>
+<blockquote>
+<p><strong><span style="color: #F5222D">smallbin采用的是FIFO(先入先出)算法：将新释放的chunk添加到链表的头部，分配操作从链表的尾部中获取</span></strong></p>
+</blockquote>
+<p>放到这个程序来说，现在将要申请“最先进入”smallbin的free chunk（0x0000555555756250）。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ((victim = last (bin)) != bin)</span><br><span class="line">    <span class="comment">//获取smallbin中最先进入的chunk的地址</span></span><br><span class="line">    <span class="comment">//换句话说这条语句的意思是判断smallbin中是否有空闲的smallbin chunk</span></span><br></pre></td></tr></table></figure>
+
+<p>对应大小的smallbin链表并不为空，进入if语句后执行如下代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bck = victim-&gt;bk;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; p victim-&gt;bk</span><br><span class="line">$<span class="number">15</span> = (<span class="keyword">struct</span> malloc_chunk *) <span class="number">0x555555756390</span></span><br><span class="line">pwndbg&gt; x/<span class="number">16</span>gx  victim</span><br><span class="line"><span class="number">0x555555756250</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x00000000000000a1</span></span><br><span class="line"><span class="number">0x555555756260</span>:	<span class="number">0x00007ffff7dcdd30</span>	<span class="number">0x0000555555756390</span></span><br><span class="line"><span class="number">0x555555756270</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x555555756280</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x555555756290</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x5555557562a0</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x5555557562b0</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x5555557562c0</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line">pwndbg&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这条语句的作用是获取victim的bk指针，也就是获得倒数第二个smallbin chunk的地址：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615978439871-bc4fcf20-ff7a-41b5-9908-af490086d36d.png" alt="截屏2021-03-17 18.53.54.png"></p>
+<p>然后检查双向链表的完整性：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (__glibc_unlikely (bck-&gt;fd != victim))</span><br><span class="line">  malloc_printerr (<span class="string">&quot;malloc(): smallbin double linked list corrupted&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615978526634-8c258a88-37db-42a3-b41c-34b4159dc68d.png" alt="截屏2021-03-17 18.55.21.png"></p>
+<p>接下来执行：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set_inuse_bit_at_offset (victim, nb);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615978636467-0cb6cb2b-7853-46a6-ba46-472e617d1430.png" alt="截屏2021-03-17 18.57.13.png"></p>
+<p>这个语句的作用是设置next chunk的mchunk_prev_size域，直接来看一下效果：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615978884504-67dea06f-99b0-4350-a648-2dd875f2d263.png" alt="QQ20210317-190111.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin-&gt;bk = bck;</span><br></pre></td></tr></table></figure>
+
+<p>执行此语句后main_arena情况：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615979275952-fcf07490-5a14-4273-bcbb-8115e18fc895.png" alt="QQ20210317-190744.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bck-&gt;fd = bin;</span><br></pre></td></tr></table></figure>
+
+<p>效果如下：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615979418793-4783ec98-0c2a-46ea-a476-1e128991e507.png" alt="QQ20210317-191006.png"></p>
+<p>victim堆块已经从smallbin中摘除，现在smallbin链中已经剩下一个free chunk：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615985700656-1fb842fe-c297-4086-9009-a65d44c94986.png" alt="截屏2021-03-17 20.54.58.png"></p>
+<p>接下来又是一个if：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">     <span class="keyword">if</span> (av != &amp;main_arena)</span><br><span class="line">set_non_main_arena (victim);</span><br><span class="line">     check_malloced_chunk (av, victim, nb);  <span class="comment">//检查</span></span><br></pre></td></tr></table></figure>
+
+<p>set_non_main_arena函数定义如下：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615986146096-9162f86e-db20-40db-8fcf-4e615a2f4196.png" alt="截屏2021-03-17 21.02.23.png"></p>
+<p>其作用是对某一个chunk进行标志位NON_MAIN_ARENA设置，这个标志位用来标记chunk不是由main_arena（主分配区）申请的。</p>
+<p>接下来就到了我们的重点–将剩余的smallbin free chunk放入tcachebin中：</p>
+<blockquote>
+<p>从smallbin中取出的victim chunk用于返回。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">if</span> USE_TCACHE</span></span><br><span class="line">	  <span class="comment">/* While we&#x27;re here, if we see other chunks of the same size,</span></span><br><span class="line"><span class="comment">	     stash them in the tcache.  */</span></span><br><span class="line">	  <span class="type">size_t</span> tc_idx = csize2tidx (nb);</span><br><span class="line">	  <span class="keyword">if</span> (tcache &amp;&amp; tc_idx &lt; mp_.tcache_bins)</span><br><span class="line">	    &#123;</span><br><span class="line">	      mchunkptr tc_victim;</span><br><span class="line"></span><br><span class="line">	      <span class="comment">/* While bin not empty and tcache not full, copy chunks over.  */</span></span><br><span class="line">	      <span class="keyword">while</span> (tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count</span><br><span class="line">		     &amp;&amp; (tc_victim = last (bin)) != bin)</span><br><span class="line">		&#123;</span><br><span class="line">		  <span class="keyword">if</span> (tc_victim != <span class="number">0</span>)</span><br><span class="line">		    &#123;</span><br><span class="line">		      bck = tc_victim-&gt;bk;</span><br><span class="line">		      set_inuse_bit_at_offset (tc_victim, nb);</span><br><span class="line">		      <span class="keyword">if</span> (av != &amp;main_arena)</span><br><span class="line">			set_non_main_arena (tc_victim);</span><br><span class="line">		      bin-&gt;bk = bck;</span><br><span class="line">		      bck-&gt;fd = bin;</span><br><span class="line"></span><br><span class="line">		      tcache_put (tc_victim, tc_idx);</span><br><span class="line">	            &#125;</span><br><span class="line">		&#125;</span><br><span class="line">	    &#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<p>老样子，通过nb来获取chunk在tcachebin中的index：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> tc_idx = csize2tidx (nb);  <span class="comment">//tc_idx==8</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (tcache &amp;&amp; tc_idx &lt; mp_.tcache_bins) <span class="comment">//tcache实际上指的是tcache_perthread_struct</span></span><br></pre></td></tr></table></figure>
+
+<p>然后判断tcache是否初始化并且通过判断victim的idx从而判断victim的大小是否在tcachebin的范围内：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615987296475-e7e4023e-06a9-46e4-81f1-42927383ca0b.png" alt="截屏2021-03-17 21.21.31.png"></p>
+<p>和之前“fastbin free chunk脱链”过程差不多，但是略有区别。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">	      <span class="comment">/* While bin not empty and tcache not full, copy chunks over.  */</span></span><br><span class="line">	      <span class="keyword">while</span> (tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count <span class="comment">//mp_.tcache_count==7</span></span><br><span class="line">		     &amp;&amp; (tc_victim = last (bin)) != bin)</span><br><span class="line"><span class="comment">//执行后：tc_victim==0x555555756390 bin==0x7ffff7dcdd30</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count：检查对应大小的tcachebin链上是否已满</li>
+<li>tc_victim &#x3D; last (bin)) !&#x3D; bin：检查smallbin是否为空</li>
+</ul>
+<p>如果tc_victim&#x3D;&#x3D;bin说明smallbin已空，会跳出while循环。现在继续向下调试：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1615989394707-289e5a75-459a-4b28-a689-cdf162eb8a7b.png" alt="截屏2021-03-17 21.56.28.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (tc_victim != <span class="number">0</span>) <span class="comment">//判断指针tc_victim是否为NULL</span></span><br><span class="line">    <span class="comment">//换句话说判断除victim之外在相同大小的链表上是否还有其他的small chunk</span></span><br></pre></td></tr></table></figure>
+
+<p>判断后开始对smallbin中的tc_victim free chunk进行解链：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bck = tc_victim-&gt;bk;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>执行前：</p>
+</blockquote>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616026255181-f7245abd-a4b6-4b53-aca3-4e604a4e61f5.png" alt="截屏2021-03-18 08.10.21.png"></p>
+<blockquote>
+<p>执行后：</p>
+</blockquote>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616026311909-2cf5471b-8542-48c0-8e0d-185a5463bdc1.png" alt="截屏2021-03-18 08.11.37.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set_inuse_bit_at_offset (tc_victim, nb); <span class="comment">//设置tc_victim下一个chunk的mchunk_prev_size域</span></span><br></pre></td></tr></table></figure>
+
+<p>因为我们要将tc_victim放入到tcachebin中，因此需要设置tc_victim的mchunk_size域。执行前后效果如下：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616051988449-8e21c633-97b9-4a59-9993-939ec25c2e6e.png" alt="image.png"></p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616026782582-c6864a0e-49ad-41dd-ae95-d4a20d1bb4dc.png" alt="QQ20210318-081809@2x.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">     <span class="keyword">if</span> (av != &amp;main_arena)  <span class="comment">//判断av是否为main_arena（主分配区）</span></span><br><span class="line">set_non_main_arena (tc_victim);		<span class="comment">//设置tc_victim的NON_MAIN_ARENA</span></span><br><span class="line">     bin-&gt;bk = bck;  <span class="comment">//解链过程1</span></span><br><span class="line">     bck-&gt;fd = bin;  <span class="comment">//解链过程2</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>我不知道之前说过没有，这里在强调一下：指针av在单线程的情况下始终指向main_arena</p>
+</blockquote>
+<p>首先来看一下执行解链过程1后的情况：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616027048837-a2cfe6f0-b20a-4b0d-a84b-240fc795c3f2.png" alt="截屏2021-03-18 08.24.03.png"></p>
+<blockquote>
+<p>上图中的corrupted是损坏的意思。</p>
+</blockquote>
+<p>下图是执行解链过程2后的情况：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616027086880-462f5ac3-21ff-4a0f-bf9c-9e94eabd1e23.png" alt="截屏2021-03-18 08.24.43.png"></p>
+<p>现在tc_victim已经被解链，接下来就是要链入到tcache中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tcache_put (tc_victim, tc_idx);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616027266561-b0a6ba3b-0c06-4fde-9082-671d07e33c39.png" alt="截屏2021-03-18 08.26.45.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> __always_inline <span class="type">void</span></span><br><span class="line"><span class="title function_">tcache_put</span> <span class="params">(mchunkptr chunk, <span class="type">size_t</span> tc_idx)</span></span><br><span class="line">&#123;</span><br><span class="line">  tcache_entry *e = (tcache_entry *) chunk2mem (chunk);  <span class="comment">//获取chunk的chunk data起始地址</span></span><br><span class="line">  assert (tc_idx &lt; TCACHE_MAX_BINS);   <span class="comment">//判断tc_idx是否在tcache范围内</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Mark this chunk as &quot;in the tcache&quot; so the test in _int_free will</span></span><br><span class="line"><span class="comment">     detect a double free.  */</span></span><br><span class="line">  e-&gt;key = tcache;	<span class="comment">//设置chunk的key标志位</span></span><br><span class="line"></span><br><span class="line">  e-&gt;next = tcache-&gt;entries[tc_idx];  <span class="comment">//设置next标志位</span></span><br><span class="line">  tcache-&gt;entries[tc_idx] = e;	<span class="comment">//设置tcache_perthread_struct的entries</span></span><br><span class="line">  ++(tcache-&gt;counts[tc_idx]);	<span class="comment">//设置tcache_perthread_struct的counts</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的过程就不再说了（之前说过，不明白的可以下载文章最后的PPT），最终结果如下：</p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616027817583-e2d3f9ce-42fe-49e4-9589-8384b4bda26d.png" alt="截屏2021-03-18 08.36.53.png"></p>
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616027854457-f92bb4bc-76b3-4438-9c1b-25c0dad866dc.png" alt="截屏2021-03-18 08.37.31.png"></p>
+<p>然后再次检查：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* While bin not empty and tcache not full, copy chunks over.  */</span></span><br><span class="line"><span class="keyword">while</span> (tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count  <span class="comment">//检查对应大小的tcachebin链上是否已满</span></span><br><span class="line">&amp;&amp; (tc_victim = last (bin)) != bin) <span class="comment">//检查对应大小的smallbin链是否为空</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1616028173119-e1867300-eb8b-418a-92f0-4415f0829073.png" alt="image.png">不符合条件，退出循环，最终将申请到的victim chunk返回给用户。</p>
+<p><a href="/assets/posts/int-malloc-3-smallbin-ggjc1r/assets/1617701702891-146ba1ca-8d95-4c76-a906-61e6ff6be211.pptx">in_smallbin_range.pptx</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%883%EF%BC%89-%E4%B8%8Esmallbin%E7%9B%B8%E5%85%B3%E7%9A%84%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%883%EF%BC%89-%E4%B8%8Esmallbin%E7%9B%B8%E5%85%B3%E7%9A%84%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-01/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%884-1%EF%BC%89-unsortedbin%E7%9A%84%E7%A7%BB%E5%87%BA%E3%80%81smallbin%E7%9A%84%E5%86%8D%E5%88%86%E9%85%8D%E3%80%81largebin%E7%9A%84%E7%A7%BB%E5%85%A5/" title="_int_malloc（4-1）-unsortedbin的移出、smallbin的再分配、largebin的移入"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">_int_malloc（4-1）-unsortedbin的移出、smallbin的再分配、largebin的移入</div></div><div class="info-2"><div class="info-item-1">_int_malloc（4-1）-unsortedbin的移出、smallbin的再分配、largebin的移入前言到这里，我们已经研究了一半的_int_malloc源码，但是后半部分的源码更重要也更复杂，所以还是按照之前的调试方法一步一步的进行调试，然后再画图进行分析理解。 关键词unsortedbin的移出、smallbin的再分配、largebin的移入 研究对象后半部分的_int_malloc源码中的while循环 一个例子 注意：以下例子只能覆盖到大部分源码，但仍有一些源码没有牵扯到，这部分源码会在之后的篇幅中进行讲解。  12345678910111213141516171819202122232425#include &lt;stdio.h&gt;#include &lt;stdlib.h&gt;#include &lt;string.h&gt;int main()&#123;     void *p1 = malloc(0x420);    void *q1 = malloc(0x20);    void *p2 = malloc(0x500);    void ...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/1-%E6%BA%90%E7%A0%81%E8%A7%A3%E8%AF%BB/int_malloc%EF%BC%882-2%EF%BC%89-malloc_consolidate%E4%B8%AD%E7%9A%84unsortedbin%20unlink/" title="_int_malloc（2-2）-malloc_consolidate中的unsortedbin unlink"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">_int_malloc（2-2）-malloc_consolidate中的unsortedbin unlink</div></div><div class="info-2"><div class="info-item-1">_int_malloc（2-2）-malloc_consolidate中的unsortedbin unlink调试第二次内循环接上一小节，我们来看unlink源码：   先来看一下传入unlink的四个参数：  av：指针，指向main_arena（AV） nextchunk：指针，指向p chunk的下一个chunk（P） bck：已定义但其值未初始化（BK） fwd：已定义但其值未初始化（FD）  函数上来就是一个安全性的检查： 12if (__builtin_expect (chunksize(P) != prev_size (next_chunk(P)), 0))      \  malloc_printerr (&quot;corrupted size vs. prev_size&quot;);  chunksize获取了**除了三个标志位之外的大小**，next_chunk函数定义如下：   由于现在nextchunk（P）已经在双向链表中（unsortedbin），所以有两个地方记录其大小，所以检查一下其大小是否一致(size检查)  1234567891011pw...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#int-malloc%EF%BC%883%EF%BC%89-%E4%B8%8Esmallbin%E7%9B%B8%E5%85%B3%E7%9A%84%E5%88%86%E9%85%8D%E6%9C%BA%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">_int_malloc（3）-与smallbin相关的分配机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E8%AF%8D"><span class="toc-number">1.1.</span> <span class="toc-text">关键词</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BF%AB%E9%80%9F%E5%9B%9E%E9%A1%BE"><span class="toc-number">1.2.</span> <span class="toc-text">快速回顾</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A8%8B%E5%BA%8F%E6%BA%90%E7%A0%81"><span class="toc-number">1.3.</span> <span class="toc-text">程序源码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%A7%8B%E8%B0%83%E8%AF%95"><span class="toc-number">1.4.</span> <span class="toc-text">开始调试</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

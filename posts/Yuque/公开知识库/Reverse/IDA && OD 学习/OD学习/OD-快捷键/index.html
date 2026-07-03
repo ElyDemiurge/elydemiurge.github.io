@@ -1,0 +1,752 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>OD-快捷键 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="OD-快捷键参考资料：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;YiShen&#x2F;p&#x2F;9742872.html OllyDbg窗口通用快捷键    快捷键 功能    Ctrl+F2 重启程序，即重新启动被调试程序。如果当前没有调试的程序，OllyDbg会运行历史列表［historylist］中的第一个程序。程序重启后，将会删除所有内存断点和硬件断点。译者注：从实际使用效果看，硬件断点在程序重启">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OD-快捷键">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&&%20OD%20%E5%AD%A6%E4%B9%A0/OD%E5%AD%A6%E4%B9%A0/OD-%E5%BF%AB%E6%8D%B7%E9%94%AE/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="OD-快捷键参考资料：https:&#x2F;&#x2F;www.cnblogs.com&#x2F;YiShen&#x2F;p&#x2F;9742872.html OllyDbg窗口通用快捷键    快捷键 功能    Ctrl+F2 重启程序，即重新启动被调试程序。如果当前没有调试的程序，OllyDbg会运行历史列表［historylist］中的第一个程序。程序重启后，将会删除所有内存断点和硬件断点。译者注：从实际使用效果看，硬件断点在程序重启">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-05/800/450">
+<meta property="article:published_time" content="2019-12-02T12:03:11.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.011Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-05/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OD-快捷键",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&&%20OD%20%E5%AD%A6%E4%B9%A0/OD%E5%AD%A6%E4%B9%A0/OD-%E5%BF%AB%E6%8D%B7%E9%94%AE/",
+  "image": "https://picsum.photos/seed/blog-cover-05/800/450",
+  "datePublished": "2019-12-02T12:03:11.000Z",
+  "dateModified": "2026-07-03T14:46:17.011Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/OD%E5%AD%A6%E4%B9%A0/OD-%E5%BF%AB%E6%8D%B7%E9%94%AE/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'OD-快捷键',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-05/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">OD-快捷键</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">OD-快捷键</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-12-02T12:03:11.000Z" title="发表于 2019-12-02 20:03:11">2019-12-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.011Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="OD-快捷键"><a href="#OD-快捷键" class="headerlink" title="OD-快捷键"></a>OD-快捷键</h1><p>参考资料：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/YiShen/p/9742872.html">https://www.cnblogs.com/YiShen/p/9742872.html</a></p>
+<p>OllyDbg窗口通用快捷键</p>
+<table>
+<thead>
+<tr>
+<th>快捷键</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ctrl+F2</td>
+<td>重启程序，即重新启动被调试程序。如果当前没有调试的程序，OllyDbg会运行历史列表［historylist］中的第一个程序。程序重启后，将会删除所有内存断点和硬件断点。译者注：从实际使用效果看，硬件断点在程序重启后并没有移除。</td>
+</tr>
+<tr>
+<td>Alt+F2</td>
+<td>关闭，即关闭被调试程序。如果程序仍在运行，会弹出一个提示信息，询问您是否要关闭程序。</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>弹出“打开32位.EXE文件”对话框［Open 32-bit .EXE file］，您可以选择可执行文件，并可以输入运行参数。</td>
+</tr>
+<tr>
+<td>Alt+F5</td>
+<td>让OllyDbg总在最前面。如果被调试程序在某个断点处发生中断，而这时调试程序弹出一个总在最前面的窗口（一般为模式消息或模式对话框［modal message or dialog］），它可能会遮住OllyDbg的一部分，但是我们又不能移动最小化这个窗口。激活OllyDbg（比如按任务栏上的标签）并按Alt+F5，OllyDbg将设置成总在最前面，会反过来遮住刚才那个窗口。如果您再按一下Alt+F5，OllyDbg会恢复到正常状态。OllyDbg是否处于总在最前面状态，将会保存，在下一次调试时依然有效。当前是否处于总在最前面状态，会显示在状态栏中。</td>
+</tr>
+<tr>
+<td>F7</td>
+<td>单步步入到下一条命令，如果当前命令是一个函数［Call］，则会停在这个函数体的第一条命令上。如果当前命令是是含有REP前缀，则只执行一次重复操作。</td>
+</tr>
+<tr>
+<td>Shift+F7</td>
+<td>与F7相同，但是如果被调试程序发生异常而中止，调试器会首先尝试步入被调试程序指定的异常处理（请参考忽略Kernel32中的内存非法访问）。</td>
+</tr>
+<tr>
+<td>Ctrl+F7</td>
+<td>自动步入，在所有的函数调用中一条一条地执行命令（就像您按住F7键不放一样，只是更快一些）。当您执行其他一些单步命令，或者程序到达断点，或者发生异常时，自动步入过程都会停止。每次单步步入，OllyDbg都会更新所有的窗口。所以为了提高自动步入的速度，请您关闭不必要成窗口，对于保留的窗口最好尽量的小。按Esc键，可以停止自动步入。</td>
+</tr>
+<tr>
+<td>F8</td>
+<td>单步步过到下一条命令。如果当前命令是一个函数，则一次执行完这个函数（除非这个函数内部包含断点，或发生了异常）。如果当前命令是含有REP前缀，则会执行完重复操作，并停在下一条命令上。</td>
+</tr>
+<tr>
+<td>Shift+F8</td>
+<td>与F8相同，但是如果被调试程序发生异常而中止，调试器会首先尝试步过被调试程序指定的异常处理（请参考忽略Kernel32中的内存非法访问）。</td>
+</tr>
+<tr>
+<td>Ctrl+F8</td>
+<td>自动步过，一条一条的执行命令，但并不进入函数调用内部（就像您按住F8键不放一样，只是更快一些）。当您执行其他一些单步命令，或者程序到达断点，或者发生异常时，自动步过过程都会停止。每次单步步过，OllyDbg都会更新所有的窗口。所以为了提高自动步过的速度，请您关闭不必要成窗口，对于保留的窗口最好尽量的小。按Esc键，可以停止自动步过。</td>
+</tr>
+<tr>
+<td>F9</td>
+<td>让程序继续执行。</td>
+</tr>
+<tr>
+<td>Shift+F9</td>
+<td>与F9相同，但是如果被调试程序发生异常而中止，调试器会首先尝试执行被调试程序指定的异常处理（请参考忽略Kernel32中的内存非法访问）。</td>
+</tr>
+<tr>
+<td>Ctrl+F9</td>
+<td>执行直到返回，跟踪程序直到遇到返回，在此期间不进入子函数也不更新CPU数据。因为程序是一条一条命令执行的，所以速度可能会慢一些。按Esc键，可以停止跟踪。</td>
+</tr>
+<tr>
+<td>Alt+F9</td>
+<td>执行直到返回到用户代码段，跟踪程序直到指令所属于的模块不在系统目录中，在此期间不进入子函数也不更新CPU数据。因为程序是一条一条执行的，所以速度可能会慢一些。按Esc键，可以停止跟踪。</td>
+</tr>
+<tr>
+<td>Ctrl+F11</td>
+<td>Run跟踪步入，一条一条执行命令，进入每个子函数调用，并把寄存器的信息加入到Run跟踪的存储数据中。Run跟踪不会同步更新CPU窗口。</td>
+</tr>
+<tr>
+<td>F12</td>
+<td>停止程序执行，同时暂停被调试程序的所有线程。请不要手动恢复线程运行，最好使用继续执行快捷键或菜单选项（像 F9）。</td>
+</tr>
+<tr>
+<td>Ctrl+F12</td>
+<td>Run跟踪。步过，一条一条执行命令，但是不进入子函数调用，并把寄存器的信息加入到Run跟踪的存储数据中。Run跟踪不会同步更新CPU窗口。</td>
+</tr>
+<tr>
+<td>Esc</td>
+<td>如果当前处于自动运行或跟踪状态，则停止自动运行或跟踪。如果CPU显示的是跟踪数据，则显示真实数据。</td>
+</tr>
+<tr>
+<td>Alt+B</td>
+<td>显示断点窗口。在这个窗口中，您可以编辑、删除、或跟进到断点处。</td>
+</tr>
+<tr>
+<td>Alt+C</td>
+<td>显示CPU窗口。</td>
+</tr>
+<tr>
+<td>Alt+E</td>
+<td>显示模块列表［list of modules］。</td>
+</tr>
+<tr>
+<td>Alt+K</td>
+<td>显示调用栈［Call stack］窗口。</td>
+</tr>
+<tr>
+<td>Alt+L</td>
+<td>显示日志窗口。</td>
+</tr>
+<tr>
+<td>Alt+M</td>
+<td>显示内存窗口。</td>
+</tr>
+<tr>
+<td>Alt+O</td>
+<td>显示选项对话框［Options dialog］</td>
+</tr>
+<tr>
+<td>Ctrl+P</td>
+<td>显示补丁窗口。</td>
+</tr>
+<tr>
+<td>Ctrl+T</td>
+<td>打开 暂停 Run跟踪 对话框</td>
+</tr>
+<tr>
+<td>Alt+X</td>
+<td>关闭 OllyDbg。</td>
+</tr>
+<tr>
+<td>Alt+F3</td>
+<td>关闭当前窗口。</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>最大化当前窗口或将当前窗口大小改为正常化。</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>切换到下一个窗口。</td>
+</tr>
+<tr>
+<td>Shift+F6</td>
+<td>切换到前一个窗口。</td>
+</tr>
+<tr>
+<td>F10</td>
+<td>打开与当前窗口或面板相关的快捷菜单。</td>
+</tr>
+<tr>
+<td>左方向键</td>
+<td>显示窗口左方一个字节宽度的内容。</td>
+</tr>
+<tr>
+<td>Ctrl+左方向键</td>
+<td>显示窗口左方一栏的内容。</td>
+</tr>
+<tr>
+<td>右方向键</td>
+<td>显示窗口右方一个字节宽度的内容</td>
+</tr>
+<tr>
+<td>Ctrl+右方向键</td>
+<td>显示窗口右方一栏的内容</td>
+</tr>
+</tbody></table>
+<p>反汇编窗口中的快捷键［Disassembler shortcuts］</p>
+<p>当CPU窗口中的反汇编面板［Disassembler pane］处于激活状态时，您可以使用以下快捷键：</p>
+<table>
+<thead>
+<tr>
+<th>快捷键</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>回车键</td>
+<td>将选中的命令添加到命令历史［command history］中，如果当前命令是一个跳转、函数或者是转换表的一个部分，则进入到目的地址。</td>
+</tr>
+<tr>
+<td>退格键</td>
+<td>移除选中部分的自动分析信息。如果分析器将代码误识别为数据，这个快捷键就非常有用。</td>
+</tr>
+<tr>
+<td>Alt+退格键</td>
+<td>撤消所选部分的修改，以备份数据的相应内容替换所选部分。仅当备份数据存在且与所选部分不同时可用。</td>
+</tr>
+<tr>
+<td>Ctrl+F1</td>
+<td>如果API帮助文件已经选择，将打开与首个选择行内的符号名相关联的帮助主题。</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>在首个选择的命令上开关INT3 断点［Breakpoint］，也可以双击该行第二列。</td>
+</tr>
+<tr>
+<td>Shift+F2</td>
+<td>在首个选择命令设置条件断点，参见忽略Kernel32中内存访问异常［Ignore memory access violationsin Kernel32］。</td>
+</tr>
+<tr>
+<td>F4</td>
+<td>执行到所选行，在首个选择的命令上设置一次性断点，然后继续执行调试程序，直到OllyDbg捕获到异常或者停止在该断点上。在程序执行到该命令之前，该一次性断点一直有效。如有必要，可在断点窗口［Breakpoints window］中删除它。</td>
+</tr>
+<tr>
+<td>Shift+F4</td>
+<td>设置记录断点（一种条件断点，当条件满足时一些表达式的值会记录下来）， 详情参见断点［Breakpoint］。</td>
+</tr>
+<tr>
+<td>Ctrl+F5</td>
+<td>打开与首个选择的命令相对应的源文件。</td>
+</tr>
+<tr>
+<td>Alt+F7</td>
+<td>转到上一个找到的参考。</td>
+</tr>
+<tr>
+<td>Alt+F8</td>
+<td>转到下一个找到参考。</td>
+</tr>
+<tr>
+<td>Ctrl+A</td>
+<td>分析当前模块的代码段。</td>
+</tr>
+<tr>
+<td>Ctrl+B</td>
+<td>开始二进制搜索。</td>
+</tr>
+<tr>
+<td>Ctrl+C</td>
+<td>复制所选内容到剪贴板。复制时会简单地按列宽截断不可见内容，如果希望排除不需要的列，可把这些列的宽度调整到最小。</td>
+</tr>
+<tr>
+<td>Ctrl+E</td>
+<td>以二进制（十六进制）格式编辑所选内容。</td>
+</tr>
+<tr>
+<td>Ctrl+F</td>
+<td>开始命令搜索。</td>
+</tr>
+<tr>
+<td>Ctrl+G</td>
+<td>转到某地址。该命令将弹出输入地址或表达式的窗口。该命令不会修改 EIP。</td>
+</tr>
+<tr>
+<td>Ctrl+J</td>
+<td>列出所有的涉及到该位置的调用和跳转，在您用这个功能之前，您必须使用分析代码功能。</td>
+</tr>
+<tr>
+<td>Ctrl+K</td>
+<td>查看与当前函数相关的调用树［Call tree］。在您用这个功能之前，您必须使用分析代码功能。</td>
+</tr>
+<tr>
+<td>Ctrl+L</td>
+<td>搜索下一个，重复上一次的搜索内容。</td>
+</tr>
+<tr>
+<td>Ctrl+N</td>
+<td>打开当前模块的名称（标签）列表。</td>
+</tr>
+<tr>
+<td>Ctrl+O</td>
+<td>扫描object文件。扫描Object文件。该命令会显示扫描Object文件对话框，您可以在该对话框中选择Object文件或者lib文件，并扫描这个文件，试图找到在实际代码段中用到的目标模块。</td>
+</tr>
+<tr>
+<td>Ctrl+R</td>
+<td>搜索所选命令的参考。该命令扫描激活模块的全部可执行代码，以找到涉及到首个选中的命令的全部相关参考（包括：常量、跳转及调用），您可以在参考中使用快捷键Alt+F7 和 Alt+F8来浏览这些参考。为便于您使用，被参考的命令也包含在该列表中。</td>
+</tr>
+<tr>
+<td>Ctrl+S</td>
+<td>命令搜索。该命令显示命令查找［Find command］对话框供您输入汇编命令，并从当前命令开始搜索。</td>
+</tr>
+<tr>
+<td>星号(*)</td>
+<td>转到原始位置（激活线程的EIP处）。</td>
+</tr>
+<tr>
+<td>Ctrl+星号(*)</td>
+<td>指定新的起始位置，设置当前所选线程的EIP为首个选择字节的地址。您可以在选择EIP并撤消该操作。</td>
+</tr>
+<tr>
+<td>加号(+)</td>
+<td>如果run跟踪［run trace］ 没有激活，则根据命令历史［command history］跳到下一条运行过命令的地方；否则跳到Run跟踪的下一个记录。</td>
+</tr>
+<tr>
+<td>Ctrl+加号</td>
+<td>跳到前一个函数开始处。（注意只是跳到，并不执行）</td>
+</tr>
+<tr>
+<td>减号(-)</td>
+<td>如果run跟踪［run trace］ 没有激活，则根据命令历史［command history］跳到前一条运行过命令的地方；否则跳到Run跟踪的前一个记录。</td>
+</tr>
+<tr>
+<td>Ctrl+减号</td>
+<td>跳到下一个函数开始处。（注意只是跳到，并不执行）</td>
+</tr>
+<tr>
+<td>空格</td>
+<td>修改命令。您可在显示对话框中以汇编语言修改实际指令或输入新指令，这些指令将替换实际代码，您也可以在想要修改的指令处双击鼠标。</td>
+</tr>
+<tr>
+<td>冒号(:)</td>
+<td>添加标签。显示添加标签窗口［Add label］或修改标签窗口［Changelabel］，您可在此输入与首个选择的命令中的第一个字节相关联的标签（符号名）。注意，在多种编程语言中，冒号可以是标签的一部分。</td>
+</tr>
+<tr>
+<td>分号(;)</td>
+<td>添加注释［comment］。显示添加注释窗口［Add label］或修改注释窗口［Changelabel］，您可在此输入与首条所选命令的第一个字节相关联的注释（注释串会显示在最后一列中）。注意，多种汇编语言使用分号作为注释开始。您也可以在注释列双击需要注释的命令行。</td>
+</tr>
+</tbody></table>
+<p>命令行插件支持的命令</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CALC</td>
+<td>判断表达式</td>
+</tr>
+<tr>
+<td>WATCH</td>
+<td>添加监视表达式</td>
+</tr>
+<tr>
+<td>AT</td>
+<td>在指定地址进行反汇编</td>
+</tr>
+<tr>
+<td>FOLLOW</td>
+<td>跟随命令</td>
+</tr>
+<tr>
+<td>ORIG</td>
+<td>反汇编于 EIP</td>
+</tr>
+<tr>
+<td>DUMP</td>
+<td>在指定地址进行转存</td>
+</tr>
+<tr>
+<td>DA</td>
+<td>转存为反汇编代码</td>
+</tr>
+<tr>
+<td>DB</td>
+<td>使用十六进制字节格式转存</td>
+</tr>
+<tr>
+<td>DC</td>
+<td>使用 ASCII 格式转存</td>
+</tr>
+<tr>
+<td>DD</td>
+<td>转存在堆栈格式</td>
+</tr>
+<tr>
+<td>DU</td>
+<td>转存在 UNICODE 格式</td>
+</tr>
+<tr>
+<td>DW</td>
+<td>使用十六进制字词格式转存</td>
+</tr>
+<tr>
+<td>STK</td>
+<td>前往堆栈中的地址</td>
+</tr>
+<tr>
+<td>AS</td>
+<td>（AS + 地址 + 字符串）在指定地址进行汇编</td>
+</tr>
+<tr>
+<td>BP</td>
+<td>进行条件中断（有条件的断点）</td>
+</tr>
+<tr>
+<td>BPX</td>
+<td>中断在全部调用 （Call）</td>
+</tr>
+<tr>
+<td>BPD</td>
+<td>清除全部调用中的断点</td>
+</tr>
+<tr>
+<td>BC</td>
+<td>清除断点</td>
+</tr>
+<tr>
+<td>MR</td>
+<td>内存断点于访问时</td>
+</tr>
+<tr>
+<td>MW</td>
+<td>内存断点于写入时</td>
+</tr>
+<tr>
+<td>MD</td>
+<td>清除内存断点</td>
+</tr>
+<tr>
+<td>HR</td>
+<td>访问时进行硬件中断</td>
+</tr>
+<tr>
+<td>HW</td>
+<td>写入时进行硬件中断</td>
+</tr>
+<tr>
+<td>HE</td>
+<td>执行时进行硬件中断</td>
+</tr>
+<tr>
+<td>HD</td>
+<td>清除硬件断点</td>
+</tr>
+<tr>
+<td>STOP</td>
+<td>停止运行程序调试</td>
+</tr>
+<tr>
+<td>PAUSE</td>
+<td>暂停执行程序调试</td>
+</tr>
+<tr>
+<td>RUN</td>
+<td>运行程序进行调试</td>
+</tr>
+<tr>
+<td>GE</td>
+<td>运行和通过例外</td>
+</tr>
+<tr>
+<td>SI</td>
+<td>单步进入 Call 中</td>
+</tr>
+<tr>
+<td>SO</td>
+<td>步过 Call</td>
+</tr>
+<tr>
+<td>TI</td>
+<td>跟踪进入直到地址</td>
+</tr>
+<tr>
+<td>TO</td>
+<td>跟踪步过直到地址</td>
+</tr>
+<tr>
+<td>TC</td>
+<td>跟踪进入直到满足条件</td>
+</tr>
+<tr>
+<td>TOC</td>
+<td>跟踪步过直到满足条件</td>
+</tr>
+<tr>
+<td>TR</td>
+<td>运行直到返回</td>
+</tr>
+<tr>
+<td>TU</td>
+<td>运行直到用户代码</td>
+</tr>
+<tr>
+<td>LOG</td>
+<td>查看记录窗口</td>
+</tr>
+<tr>
+<td>MOD</td>
+<td>查看模块窗口</td>
+</tr>
+<tr>
+<td>MEM</td>
+<td>查看内存窗口</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>查看 CPU 窗口</td>
+</tr>
+<tr>
+<td>CS</td>
+<td>查看 Call 堆栈</td>
+</tr>
+<tr>
+<td>BRK</td>
+<td>查看断点窗口</td>
+</tr>
+<tr>
+<td>OPT</td>
+<td>打开选项设置窗口</td>
+</tr>
+<tr>
+<td>EXIT</td>
+<td>退出 OllyDbg</td>
+</tr>
+<tr>
+<td>QUIT</td>
+<td>退出 OllyDbg</td>
+</tr>
+<tr>
+<td>OPEN</td>
+<td>打开一个可执行文件</td>
+</tr>
+<tr>
+<td>CLOSE</td>
+<td>关闭可执行文件</td>
+</tr>
+<tr>
+<td>RST</td>
+<td>重新运行当前程序</td>
+</tr>
+<tr>
+<td>HELP</td>
+<td>查看 API 函数的帮助</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/OD%E5%AD%A6%E4%B9%A0/OD-%E5%BF%AB%E6%8D%B7%E9%94%AE/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/OD%E5%AD%A6%E4%B9%A0/OD-%E5%BF%AB%E6%8D%B7%E9%94%AE/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-05/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2019NCTF/%EF%BC%88%E5%BE%85%E6%95%B4%E7%90%86%EF%BC%89%E9%80%86%E5%90%91-re%EF%BC%88pyc%E5%8F%8D%E7%BC%96%E8%AF%91%EF%BC%89/" title="（待整理）逆向-re（pyc反编译）"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">（待整理）逆向-re（pyc反编译）</div></div><div class="info-2"><div class="info-item-1">（待整理）逆向-re（pyc反编译）pyc反编译需要用到网站：https://tool.lu/pyc/ 将文件上传到网站上会自动反编译 将反编译得到的代码整理我们可以得到： print ‘Welcome to Re World!’ print ‘Your input1 is your flag~’ l &#x3D; len(input1) for i in range(l): num &#x3D; ((input1[i] + i) % 128 + 128) % 128 code +&#x3D; num for i in range(l - 1): code[i] &#x3D; code[i] ^ code[i + 1] print code code &#x3D; [ ‘\x1f’, ‘\x12’, ‘\x1d’, ‘(‘, ‘0’, ‘4’, ‘\x01’, ‘\x06’, ‘\x14’, ‘4’, ‘,’, ‘\x1b’, ‘U’, ‘?’, ‘o’, ‘6’, ‘*’, ‘:’, ‘\x01’, ‘D’, ‘;’, ‘%’, ‘\x13’] 接下来，我们对代码进行注释： p...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/OD%E5%AD%A6%E4%B9%A0/OD-%E6%96%AD%E7%82%B9%E7%9A%84%E5%88%86%E7%B1%BB/" title="OD-断点的分类"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">OD-断点的分类</div></div><div class="info-2"><div class="info-item-1">OD-断点的分类参考资料：https://blog.csdn.net/u012640985/article/details/25628863 接下来我们认识OD的两种断点： OllyDBG从原理上来区分，有两种不同的断点：软件断点和硬件断点。 也许会有朋友说那不是还有内存断点吗？内存断点严格来说是属于一种特殊的软件断点。 内存断点： 内存断点每次只能设置一个，假如你设置了另一个内存断点，则上一个会被自动删除。 设置一个内存断点，会改变整块（4KB）内存的属性，哪怕你只设置一个字节的内存断点。 另外还需要提一下的是，内存断点会明显降低OD的性能，因为OD经常会校对内存。 软件断点： 当我们按下F2设置的断点就是软件断点。 设置该断点的原理是在断点处重写代码，插入一个int3中断指令，当CPU执行到int3指令的时候，OD就可以获          得控制权。 硬件断点： 这个原理跟软件断点不同，硬件断点的可行性依赖于CPU的物理支持。 传说中，有这么一些寄存器，它们只用于调试，我们称为调试寄存器：Dr0~Dr7 其中Dr0Dr3四个寄存器用来存放中断地址，Dr4、Dr5保留不使用，...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#OD-%E5%BF%AB%E6%8D%B7%E9%94%AE"><span class="toc-number">1.</span> <span class="toc-text">OD-快捷键</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

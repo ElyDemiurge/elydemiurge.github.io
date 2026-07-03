@@ -1,0 +1,328 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第16章 基址重定位表 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第16章 基址重定位表PE文件在重定位过程中会用到基址重定位表（Base Relocation Table)，本章将学习其结构及操作原理。 16.1 PE重定位向进程的虚拟内存加载PE文件（EXE&#x2F;DLL&#x2F;SYS）时，文件会被加载到PE头的ImageBase所指的地址处。若加载的是DLL（SYS）文件，且在ImageBase位置处已经加载了其他DLL（SYS)文件，那么PE装载">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第16章 基址重定位表">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC16%E7%AB%A0%20%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第16章 基址重定位表PE文件在重定位过程中会用到基址重定位表（Base Relocation Table)，本章将学习其结构及操作原理。 16.1 PE重定位向进程的虚拟内存加载PE文件（EXE&#x2F;DLL&#x2F;SYS）时，文件会被加载到PE头的ImageBase所指的地址处。若加载的是DLL（SYS）文件，且在ImageBase位置处已经加载了其他DLL（SYS)文件，那么PE装载">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-05/800/450">
+<meta property="article:published_time" content="2020-02-10T04:56:32.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.275Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-05/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第16章 基址重定位表",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC16%E7%AB%A0%20%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8/",
+  "image": "https://picsum.photos/seed/blog-cover-05/800/450",
+  "datePublished": "2020-02-10T04:56:32.000Z",
+  "dateModified": "2026-07-03T14:46:17.275Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC16%E7%AB%A0%20%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第16章 基址重定位表',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-05/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第16章 基址重定位表</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第16章 基址重定位表</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-10T04:56:32.000Z" title="发表于 2020-02-10 12:56:32">2020-02-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.275Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>8分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第16章-基址重定位表"><a href="#第16章-基址重定位表" class="headerlink" title="第16章 基址重定位表"></a>第16章 基址重定位表</h1><p>PE文件在重定位过程中会用到<strong>基址重定位表（Base Relocation Table)</strong>，本章将学习其结构及操作原理。</p>
+<h2 id="16-1-PE重定位"><a href="#16-1-PE重定位" class="headerlink" title="16.1 PE重定位"></a>16.1 PE重定位</h2><p><strong>向进程的虚拟内存加载PE文件（EXE&#x2F;DLL&#x2F;SYS）时，文件会被加载到PE头的</strong><span style="color: #F5222D">ImageBase</span><strong>所指的地址处</strong>。若加载的是DLL（SYS）文件，且在ImageBase位置处已经加载了其他DLL（SYS)文件，那么PE装载器就会将其加载到其他未被占用的空间。这就涉及PE文件重定位的问题，<strong>PE重定位是指PE文件无法加载到ImageBase所指位置，而是被加载到其他地址时发生的一系列的处理行为。</strong></p>
+<p>提示——————————————————————————————————————</p>
+<p>使用SDK（Software DevelopmentKit,软件开发工具包）或VisualC++创建PE文件时，EXE默认的ImageBase为00400000，DLL默认的ImageBase为10000000。此外， 使用DDK（Driver Development Kit,驱动开发工具包创建的SYS文件默认的ImageBase 为10000。</p>
+<hr>
+<h3 id="16-1-1-DLL-SYS"><a href="#16-1-1-DLL-SYS" class="headerlink" title="16.1.1 DLL&#x2F;SYS"></a>16.1.1 DLL&#x2F;SYS</h3><p>请看图16-1，A.DLL被加载到TEST.EXE进程的10000000地址处。此后，B.DLL试图加载到相同地址（10000000）时，PE装载器将B.DLL加载到另一个尚未被占用的地址（3C000000）处。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581310823199-8aacff11-4bff-4dc9-b2dd-244b7b90f3c8.png" alt="QQ截图20200210130015.png"></p>
+<h3 id="16-1-2-EXE"><a href="#16-1-2-EXE" class="headerlink" title="16.1.2 EXE"></a>16.1.2 EXE</h3><p><strong>创建好进程后，EXE文件会首先加载到内存，所以</strong><span style="color: #F5222D">在EXE中无须考虑重定位的问题</span><strong>。<strong>但是Windows Vista之后的版本引入了</strong><span style="color: #F5222D">ASLR安全机制</span></strong>，每次运行EXE文件都会被加载到随机地址，这样大大增强了系统安全性。</p>
+<p>图16-2是分别运行3次notepad.exe时的截图，可以明显发现，每次运行时程序都被加载到不同地址。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581310919257-ba9a6d68-4bcb-4498-9030-c3fd8f9bdb42.png" alt="QQ截图20200210130152.png"></p>
+<p>提示——————————————————————————————————————</p>
+<p><strong>ASLR机制也适用于DLL&#x2F;SYS文件。对于各OS的主要系统DLL，微软会根据不同版本分别赋予不同的ImageBase地址。同一系统的kernel32.dll、user32.dll等会被加载到自身固有的ImageBase，所以，系统的DLL实际不会发生重定位问题。</strong></p>
+<hr>
+<p><strong>Windows Vista&#x2F;7的系统DLL虽然也拥有自身固有的ImageBase，但是ASLR机制使每次启动时加载的地址都不尽相同。关于ASLR的详细内容请参考第41章。</strong></p>
+<h2 id="16-2-PE重定位时执行的操作"><a href="#16-2-PE重定位时执行的操作" class="headerlink" title="16.2 PE重定位时执行的操作"></a>16.2 PE重定位时执行的操作</h2><p>下面以Windows7的notepad.exe程序为例，看看PE重定位时都发生了什么。如图16-3所示，notepad.exe的ImageBase为01000000。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581311242533-3b6fb251-b12e-4339-8f55-c7d43a1e27d1.png" alt="QQ截图20200210130712.png"></p>
+<p>图16-3 notepad.exe的ImageBase</p>
+<p>接下来，使用OllyDbg运行notepad.exe程序。</p>
+<p>图16-4是Windows7中notepad.exe的EP代码部分。在Windows7的ASLR机制作用下，程序被加载到0028000地址处。从图中指令可以看到，<strong>方框中进程的内存地址以</strong><span style="color: #F5222D">硬编码</span><strong>形式存在</strong>。地址2810FC、281100是.text节区（代码节区）的IAT（导入地址表）区域，地址28C0A4是.data（数据）节区的全局变量。每当在OllyDbg中重启notepad.exe（Restart(Ctrl+F2))，地址值就随加载地址的不同而改变。像这样，<strong>使硬编码在程序中的内存地址随当前加载地址变化而改变的处理过程就是</strong><span style="color: #F5222D">PE重定位</span><strong>。</strong></p>
+<hr>
+<p>Q：什么是硬编码？</p>
+<p><span style="color: #333333">A：硬编码就是在程序中将代码写死，如果以后变动，就必须重新改动代码，比较麻烦。特别是对一些可配置的信息，不能使用硬编码。</span></p>
+<p><span style="color: #333333">———————————————————————————————————</span></p>
+<p><img src="/assets/posts/16-18f9555/assets/1581311366368-ebc390f6-00c2-4961-b099-60beab2b9772.png" alt="QQ截图20200210130919.png"></p>
+<p>无法加载到ImageBase地址时，若未进行过PE重定位处理，应用程序就不能正常运行（因发生“内存地址引用错误”程序异常终止）。</p>
+<p>提示——————————————————————————————————————</p>
+<p>在Notepad.exe文件中查找图16-4中显示的EP区域。</p>
+<p>比较图16-4与图16-5中显示的硬编码地址，归纳整理如下表16-1所示。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581311572817-a9975f99-b1d6-4dbd-8996-1c969660d88a.png" alt="QQ截图20200210131244.png"></p>
+<p>图16-5中<strong>硬编码的地址(VA)以ImageBase</strong>（01000000）<strong>为基准</strong>。生成（构建）notepad.exe文件时，由于无法预测程序被实际加载到哪个地址，<strong>所以记录硬编码地址时以ImageBase为基准</strong>。<strong><span style="color: #F5222D">但在运行的瞬间，经过PE重定位后，这些地址全部以加载地址为基准变换，最后程序得以正常执行而不发生错误。</span></strong></p>
+<p><img src="/assets/posts/16-18f9555/assets/1581311696117-215bef81-e90f-49b1-8f50-0bc88ba69093.png" alt="QQ截图20200210131448.png"></p>
+<hr>
+<p>接下来了解一下PE文件的重定位操作原理。</p>
+<h2 id="16-3-PE重定位操作原理"><a href="#16-3-PE重定位操作原理" class="headerlink" title="16.3 PE重定位操作原理"></a>16.3 PE重定位操作原理</h2><p>Windows的PE装载器进行PE重定位处理时，基本的操作原理很简单。</p>
+<p><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<p><strong><span style="color: #F5222D">PE重定位的基本操作原理：</span></strong></p>
+<ul>
+<li><strong><span style="color: #F5222D">在应用程序中查找硬编码的地址位置</span></strong></li>
+<li><strong><span style="color: #F5222D">读取值后，减去ImageBase（VA-&gt;RVA）</span></strong></li>
+<li><strong><span style="color: #F5222D">加上实际加载地址（RVA-&gt;VA）</span></strong></li>
+</ul>
+<p><strong><span style="color: #F5222D"></span></strong><span style="color: #F5222D">———————————————————————————————————————-</span></p>
+<p>其中最关键的是查找硬编码地址的位置。查找过程中会用到PE文件内部的<strong>Relocation Table（重定位表）</strong>，它是记录**硬编码地址偏移（位置）**的列表（重定位表是在PE文件构建过程（编译&#x2F;链接）中提供的）。通过重定位表查找，其实就是指根据PE头的“基址重定位表”项进行的查找。</p>
+<h3 id="16-3-1基址重定位表"><a href="#16-3-1基址重定位表" class="headerlink" title="16.3.1基址重定位表"></a>16.3.1基址重定位表</h3><p><span style="color: #F5222D">基址重定位表（</span><span style="color: #F5222D">BASE</span><span style="color: #F5222D"> </span><span style="color: #F5222D">Relocation Table</span><span style="color: #F5222D">）</span><strong>地址位于PE头的DataDirectory数组的第六个元素（数组索引为5）</strong>，如图16-6所示。</p>
+<p>IMAGE_NT_HEADERS\IMAGE_ OPTION_HEADER\IMAGE_DATA_DIRECTORY[5]</p>
+<p>在PEView中查看notepad.exe的基址重定位表地址。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581319973083-51efd78e-a687-4f69-baaa-2c16abddf850.png" alt="QQ截图20200210153246.png"></p>
+<p>图16-6 基址重定位表地址</p>
+<p>图16-6中基址重定位表的地址为RVA 2F000。使用PEView查看该地址，如图16-7所示。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581320442625-0b8f92f9-0992-454a-a63a-5ef29ec02cf0.png" alt="QQ截图20200210154034.png"></p>
+<p>图16-7 基址重定位表</p>
+<h3 id="16-3-2-IMAGE-BASE-RELOCATION结构体"><a href="#16-3-2-IMAGE-BASE-RELOCATION结构体" class="headerlink" title="16.3.2 IMAGE_BASE_RELOCATION结构体"></a>16.3.2 IMAGE_BASE_RELOCATION结构体</h3><p>图16-7的基址重定位表中罗列了<strong>硬编码地址的偏移（位置）</strong>。读取这张表就能获得准确的硬编码地址偏移（位置）。<strong>基址重定位表是IMAGE_BASE_RELOCATION结构体数组。</strong></p>
+<p>IMAGE_BASE_RELOCATION结构体的定义如下。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581320548492-a6f42c7a-c59e-4295-a1f0-7d0b0085c24f.png" alt="QQ截图20200210154218.png"></p>
+<p>IMAGE_BASE_RELOCATION结构体的第一个成员为<strong>VirtualAddress，它是一个基准地址（BaseAddress)，实际是</strong><span style="color: #F5222D">RVA</span><strong>值。<strong>第二个成员为</strong>SizeOfBlock</strong>，指<strong>重定位块</strong>的大小。最后一项<strong>Type**<strong>Offset数组</strong></strong><span style="color: #F5222D">不是</span>**<strong>结构体成员，而是以注释形式存在的，表示在该结构体之下会出现WORD类型的数组，并且</strong><span style="color: #F5222D">该数组元素的值就是硬编码在程序中的地址偏移。</span></p>
+<h3 id="16-3-3基址重定位表的分析方法"><a href="#16-3-3基址重定位表的分析方法" class="headerlink" title="16.3.3基址重定位表的分析方法"></a>16.3.3基址重定位表的分析方法</h3><p>表16-2列出了图16-7中基址重定位表的部分内容。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581320743517-05db1834-02a6-4c18-a6df-ae7ee8ef1789.png" alt="QQ截图20200210154535.png"></p>
+<p>由IMAGE_BASE_RELOCATION结构体的定义可知，VirtualAddress成员（基准地址）的值为1000，SizeOfBlock成员的值为150。也就是说，表16-2中显示的TypeOffset数组的基准地址（起始地址）为RVA 1000，块的总大小为150（这些块按照基准地址分类，以数组形式存在）。块的末端显示为0。TypeOffset值为2个字节（16位）大小，是由4位的Type与12位的Offset合成的。比如，TypeOffset值为3420，解析如表16-3所示。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581320922564-d0f96fb5-d9bd-44e2-bca4-d182275ef52a.png" alt="QQ截图20200210154835.png"></p>
+<p>高4位用作Type，<strong>PE文件中常见的值为3(IMAGE_REL_BASED_HIGHLOW)，64位的PE+文件中常见值为A（IMAGE</strong>**_<strong><strong>REL</strong></strong><em><strong><strong>BASED</strong></strong></em>**<strong>DIR64)</strong>。</p>
+<p>提示——————————————————————————————————————</p>
+<p>在恶意代码中正常修改文件代码后，有时要修改指向相应区域的重定位表（为了略去PE装载器的重定位过程，常常把Type值修改为0(IMAGE_REL_BASED_ABSOLUTE))。</p>
+<hr>
+<p><strong>TypeOffset的低12位是真正的位移，该位移值基于Virtual Address的偏移。所以程序中硬编码地址的偏移使用下面等式换算。</strong></p>
+<p><strong>VirtualSize(1000)+Offset(420)&#x3D;1420(RVA)</strong></p>
+<p><span style="color: #F5222D">VirtualSize+Offset&#x3D;RVA</span></p>
+<p>下面看一下RVA 1420处是否实际存在要执行PE重定位操作的硬编码地址，如图16-8所示。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581321346683-e2725c2a-281d-4a2e-a502-707b78c05855.png" alt="QQ截图20200210155537.png"></p>
+<p>图16-8中notepad.exe被加载到AF0000地址处。故RVA 1420即为VA AF1420，该地址处存储着IAT地址（VA，AF10C4）。并且该值经过PE重定位而发生了变化。使用相同原理，AF142D、AF1436地址的内容也都是硬编码到程序中的地址值，该偏移可以在表16-2中求得。</p>
+<p>提示——————————————————————————————————————</p>
+<p>TypeOffset项中指向位移的低12位拥有的最大地址值为1000。为了表示更大的地址，要添加1个与其对应的块，由于这些块以数组形式罗列，故称为重定位表。</p>
+<hr>
+<h3 id="16-3-4练习"><a href="#16-3-4练习" class="headerlink" title="16.3.4练习"></a>16.3.4练习</h3><p>本小节将通过简单练习进一步加深大家对PE重定位操作原理的理解。练习过程将参照本节开始内容中列出的步骤进行。运行Notepad.exe时，假设它被加载到00AF0000，而不是ImageBase地址（01000000)中。那此时PE重定位是如何进行的呢?</p>
+<p><strong>#1.查找程序中硬编码地址的位置</strong></p>
+<p>程序中使用的硬编码地址的偏移（位置）可以通过基址重定位表查找到（此处使用上面求得的RVA 1420）。使用PEView查看RVA 1420地址中的内容，如图16-9所示。</p>
+<p><img src="/assets/posts/16-18f9555/assets/1581324501041-8247fc68-f54c-4f14-8a24-2b5fe1079ec4.png" alt="QQ截图20200210164756.png"></p>
+<p>图16-9 RVA1420地址的内容</p>
+<p>从图中可以看到，RVA1420地址中存在着程序的硬编码地址值010010C4（请将该值与图16-8中的值（00AF10C4)比较）。</p>
+<p><strong>#2.读取值后，减去lmageBase值（VA-&gt;RVA）</strong></p>
+<p>010010C4-01000000&#x3D;000010C4</p>
+<p><strong>#3.加上实际加载地址（RVA→VA）</strong></p>
+<p>00010C4+00AF0000&#x3D;00AF10C4</p>
+<p>对于程序内硬编码的地址（010010C4），PE装载器都做如上处理，根据实际加载的内存地址修正后，将得到的值（00AF10C4）覆盖到同一位置。对一个IMAGE BASE RELOCATION结构体的所有TypeOffset都重复上述过程，且对与RVA1000~2000地址区域对应的所有硬编码地址都要进行PE重定位处理（参考图16-7）。若TypeOffset值为0，则表明一个IMAGE_BASE_RELOCATION结构体结束。</p>
+<p>对重定位表中出现的所有IMAGE_BASE_RELOCATION结构体都重复上述处理后，就完成了对进程内存区域相应的所有硬编码地址的PE重定位。重定位表以NULL结构体结束（即IMAGE BASE RELOCATION结构体成员的值全部为NULL）。</p>
+<p>以上就是PE重定位的操作原理与重定位表结构体的相关内容。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC16%E7%AB%A0%20%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC16%E7%AB%A0%20%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-05/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC17%E7%AB%A0%20%E4%BB%8E%E5%8F%AF%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6%E4%B8%AD%E5%88%A0%E9%99%A4.reloc%E8%8A%82%E5%8C%BA/" title="第17章 从可执行文件中删除.reloc节区"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第17章 从可执行文件中删除.reloc节区</div></div><div class="info-2"><div class="info-item-1">第17章 从可执行文件中删除.reloc节区本章将通过练习使大家了解从PE文件中手动删除.reloc节区的方法，这将大大加深各位对PE文件格式的理解，同时进一步熟悉Hex Editor等工具的使用。 17.1.reloc节区EXE形式的PE文件中，“基址重定位表”项对运行没什么影响。实际上，将其删除后程序仍然正常运行（基址重定位表对DLL&#x2F;SYS形式的文件来说几乎是必需的）。 VC++中生成的PE文件的重定位节区名为.reloc**，**删除该节区后文件照常运行，且文件大小将缩减（实际上存在这种实用小程序）。.reloc节区一般位于所有节区的最后，删除这最后一个（不使用的）节区不像想得那么难。只使用PEView与Hex Editor（手动删除）就足够了。 17.2 reloc.exe若想准确删除位于文件末尾的.reloc节区，需要按照以下4个步骤操作。 操作步骤————————————————————————————————————– 步骤1-整理.reloc节区头； 步骤2-删除.reloc节区； 步骤3-修改IMAGE_FILE_HEADER； 步骤4-修改IMAG...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC15%E7%AB%A0%20%E8%B0%83%E8%AF%95UPX%E5%8E%8B%E7%BC%A9%E7%9A%84notepad%E7%A8%8B%E5%BA%8F/" title="第15章 调试UPX压缩的notepad程序"><img class="cover" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第15章 调试UPX压缩的notepad程序</div></div><div class="info-2"><div class="info-item-1">第15章 调试UPX压缩的notepad程序本章将调试UPX压缩的notepad_upx.exe程序，进一步了解运行时压缩的相关概念。我们的目标是通过调试一点点地跟踪代码，最终找出原notepad.exe程序代码。最后再简单讲解一下经过UPX压缩的文件如何通过调试器。 提示—————————————————————————————————————— 本章示例使用的是WindowsXPSP3中的notepad.exe程序。  15.1 notepad.exe的EP代码首先看一下原notepad.exe程序的EP代码，如图15-1所示。  图15-1 notepad.exe的EP代码 在010073B2地址处调用了GetModuleHandleA()API，获取notepad.exe程序的ImageBase（基准位置）。然后在010073B4与010073C0地址处比较MZ与PE签名。希望各位熟记原notepad.exe的EP代码。 15.2 notepad_upx.exe的EP代码使用olyDbg打开notepad_upx.exe时，弹出图15-2所示的警告消息框。  图15-2O...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC16%E7%AB%A0-%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8"><span class="toc-number">1.</span> <span class="toc-text">第16章 基址重定位表</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#16-1-PE%E9%87%8D%E5%AE%9A%E4%BD%8D"><span class="toc-number">1.1.</span> <span class="toc-text">16.1 PE重定位</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#16-1-1-DLL-SYS"><span class="toc-number">1.1.1.</span> <span class="toc-text">16.1.1 DLL&#x2F;SYS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#16-1-2-EXE"><span class="toc-number">1.1.2.</span> <span class="toc-text">16.1.2 EXE</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#16-2-PE%E9%87%8D%E5%AE%9A%E4%BD%8D%E6%97%B6%E6%89%A7%E8%A1%8C%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="toc-number">1.2.</span> <span class="toc-text">16.2 PE重定位时执行的操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#16-3-PE%E9%87%8D%E5%AE%9A%E4%BD%8D%E6%93%8D%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">1.3.</span> <span class="toc-text">16.3 PE重定位操作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#16-3-1%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8"><span class="toc-number">1.3.1.</span> <span class="toc-text">16.3.1基址重定位表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#16-3-2-IMAGE-BASE-RELOCATION%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.3.2.</span> <span class="toc-text">16.3.2 IMAGE_BASE_RELOCATION结构体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#16-3-3%E5%9F%BA%E5%9D%80%E9%87%8D%E5%AE%9A%E4%BD%8D%E8%A1%A8%E7%9A%84%E5%88%86%E6%9E%90%E6%96%B9%E6%B3%95"><span class="toc-number">1.3.3.</span> <span class="toc-text">16.3.3基址重定位表的分析方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#16-3-4%E7%BB%83%E4%B9%A0"><span class="toc-number">1.3.4.</span> <span class="toc-text">16.3.4练习</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

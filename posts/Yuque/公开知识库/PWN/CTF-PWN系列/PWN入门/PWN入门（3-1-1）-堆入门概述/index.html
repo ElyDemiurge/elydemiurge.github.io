@@ -1,0 +1,497 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（3-1-1）-堆入门概述 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（3-1-1）-堆入门概述 参考资料：https:&#x2F;&#x2F;www.anquanke.com&#x2F;post&#x2F;id&#x2F;163971https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41988448&#x2F;article&#x2F;details&#x2F;103685794https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;484926468136https:&#x2F;&#x2F;www.freebuf.com&#x2F;v">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（3-1-1）-堆入门概述">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%883-1-1%EF%BC%89-%E5%A0%86%E5%85%A5%E9%97%A8%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（3-1-1）-堆入门概述 参考资料：https:&#x2F;&#x2F;www.anquanke.com&#x2F;post&#x2F;id&#x2F;163971https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41988448&#x2F;article&#x2F;details&#x2F;103685794https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;484926468136https:&#x2F;&#x2F;www.freebuf.com&#x2F;v">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-02/800/450">
+<meta property="article:published_time" content="2020-09-02T10:21:24.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.810Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-02/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（3-1-1）-堆入门概述",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%883-1-1%EF%BC%89-%E5%A0%86%E5%85%A5%E9%97%A8%E6%A6%82%E8%BF%B0/",
+  "image": "https://picsum.photos/seed/blog-cover-02/800/450",
+  "datePublished": "2020-09-02T10:21:24.000Z",
+  "dateModified": "2026-07-03T14:46:15.810Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%883-1-1%EF%BC%89-%E5%A0%86%E5%85%A5%E9%97%A8%E6%A6%82%E8%BF%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（3-1-1）-堆入门概述',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-02/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（3-1-1）-堆入门概述</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（3-1-1）-堆入门概述</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-02T10:21:24.000Z" title="发表于 2020-09-02 18:21:24">2020-09-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.810Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>19分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（3-1-1）-堆入门概述"><a href="#PWN入门（3-1-1）-堆入门概述" class="headerlink" title="PWN入门（3-1-1）-堆入门概述"></a>PWN入门（3-1-1）-堆入门概述</h1><blockquote>
+<p>参考资料：<br><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/163971">https://www.anquanke.com/post/id/163971</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41988448/article/details/103685794">https://blog.csdn.net/qq_41988448&#x2F;article&#x2F;details&#x2F;103685794</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/484926468136">https://www.jianshu.com/p/484926468136</a><br><a target="_blank" rel="noopener" href="https://www.freebuf.com/vuls/98404.html">https://www.freebuf.com/vuls/98404.html</a><br><a target="_blank" rel="noopener" href="https://wiki.x10sec.org/pwn/heap/heap_structure/">https://wiki.x10sec.org/pwn/heap/heap_structure&#x2F;</a></p>
+</blockquote>
+<h2 id="什么是堆？"><a href="#什么是堆？" class="headerlink" title="什么是堆？"></a>什么是堆？</h2><p>首先先明确一下堆的概念，堆不同于栈，堆是（由操作系统内核或者堆管理器）动态分配的，<span style="color: #F5222D">只有在程序中需要时才会分配</span>。在 CTF 的 pwn 程序中，栈是程序加载进内存后就会出现，而堆是由 malloc、alloc、realloc 函数分配内存后才会出现。</p>
+<p>windows 和 linux 下的堆分配、管理方式都不同，<strong>这里主要讲到的是 CTF 中常出现的 linux 下的堆分配知识</strong></p>
+<p>先看看堆在虚拟内存中的位置</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599042244857-50522209-16c2-42c6-a125-6e5cd9fa4822.png" alt="tJh93VO.png"></p>
+<p><span style="color: #F5222D">堆的生长方向是从低地址向高地址生长的，而栈是从高地址向低地址生长的。</span></p>
+<p><strong>实际上堆可以申请到的内存空间比栈要大很多，在 linux 的 4G 的虚拟内存空间里最高可以达到 2.9 G 的空间</strong></p>
+<blockquote>
+<p><strong><span style="color: #F5222D">对堆操作的是由堆管理器（ptmalloc2）来实现的，而不是操作系统内核</span><span style="color: #F5222D">。因为程序每次申请或者释放堆时都需要进行系统调用，系统调用的开销巨大，当频繁进行堆操作时，就会严重影响程序的性能</span></strong></p>
+</blockquote>
+<p>下面的分析都是以<strong>glibc 库下的 ptmalloc2</strong> 堆管理器来讲解的。</p>
+<h2 id="堆的基本结构"><a href="#堆的基本结构" class="headerlink" title="堆的基本结构"></a>堆的基本结构</h2><blockquote>
+<p><span style="color: #F5222D">pre size（prev size）和size头统称为chunk头（chunk header）</span><br>每次 malloc 申请得到的内存指针，其实指向 <code>user data</code> 的起始处。</p>
+</blockquote>
+<p>堆的大致图解如下：</p>
+<p><span style="color: #F5222D"></span></p>
+<h3 id=""><a href="#" class="headerlink" title=""></a><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599303198197-3da2e450-f854-42c1-a020-2c887c193800.png" alt="RlseGG7.png"></h3><h3 id="堆的结构"><a href="#堆的结构" class="headerlink" title="堆的结构"></a>堆的结构</h3><p>首先来看一下malloc_chunk的结构</p>
+<h4 id="malloc-chunk结构"><a href="#malloc-chunk结构" class="headerlink" title="malloc_chunk结构"></a>malloc_chunk结构</h4><p>每个程序分配的内存（这里指的是malloc函数）在内部被一个叫做”<strong>堆块</strong>”的所替代。*<em>一</em>***个堆块是由元数据和程序返回的内存组成的（实际上内存是malloc的返回值）。**所有的这些堆块都是保存在堆上，这块内存区域在申请新的内存时会不断的扩大。同样，当一定数量的内存释放时，堆可以收缩。在glibc源码中定义的堆块如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">  This struct declaration is misleading (but accurate and necessary).</span></span><br><span class="line"><span class="comment">  It declares a &quot;view&quot; into memory allowing access to necessary</span></span><br><span class="line"><span class="comment">  fields at known offsets from a given base. See explanation below.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span> &#123;</span></span><br><span class="line"></span><br><span class="line">  INTERNAL_SIZE_T      prev_size;  <span class="comment">/* Size of previous chunk (if free).  */</span></span><br><span class="line">  INTERNAL_SIZE_T      size;       <span class="comment">/* Size in bytes, including overhead. */</span></span><br><span class="line">  <span class="comment">//一般来说，size_t 在 64 位中是 64 位无符号整数，32 位中是 32 位无符号整数。 </span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd</span>;</span>         <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Only used for large blocks: pointer to next larger size.  */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">fd_nextsize</span>;</span> <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">malloc_chunk</span>* <span class="title">bk_nextsize</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>假设内存中没有堆块释放，新分配的内存区域紧随之前申请的堆块后。因此如果一个程序依次调用malloc(256),malloc(512),以及malloc(1024)，内存布局如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Meta-data of chunk created by <span class="title function_">malloc</span><span class="params">(<span class="number">256</span>)</span></span><br><span class="line">The 256 bytes of memory <span class="keyword">return</span> by <span class="built_in">malloc</span></span><br><span class="line">-----------------------------------------</span><br><span class="line">Meta-data of chunk created by <span class="title function_">malloc</span><span class="params">(<span class="number">512</span>)</span></span><br><span class="line">The 512 bytes of memory <span class="keyword">return</span> by <span class="built_in">malloc</span></span><br><span class="line">-----------------------------------------</span><br><span class="line">Meta-data of chunk created by <span class="title function_">malloc</span><span class="params">(<span class="number">1024</span>)</span></span><br><span class="line">The 1024 bytes of memory <span class="keyword">return</span> by <span class="built_in">malloc</span></span><br><span class="line">-----------------------------------------</span><br><span class="line">Meta-data of the top chunk</span><br><span class="line"></span><br><span class="line">#堆的生长方向是从低地址向高地址生长的</span><br></pre></td></tr></table></figure>
+
+<p>在堆块之间的”—”是虚拟的边界，实际当中他们是彼此相邻的。你可能会问，为何我要在布局当中包含一个”顶块”元数据（top chunk）。<span style="color: #F5222D">顶级块表示堆中可利用的内存，而且是唯一的可以大小可以生长的堆块。</span>当申请新的内存时，顶块分成两个部分：第一个部分变成所申请的堆块，第二个部分变为新的顶块（因此顶块大小可以收缩）。如果顶块不能够满足申请的内存区域大小，程序就会要求操作系统扩大顶块（让堆继续生长）。被释放的 chunk 被记录在链表中（可能是循环双向链表，也可能是单向链表）。具体结构如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">chunk-&gt; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             Size of previous chunk, <span class="keyword">if</span> <span class="title function_">unallocated</span> <span class="params">(P clear)</span>  |</span><br><span class="line">        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">`head:&#x27; |             Size of chunk, in bytes                     |A|0|P|</span><br><span class="line">  mem-&gt; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             Forward pointer to next chunk in <span class="built_in">list</span>             |</span><br><span class="line">        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             Back pointer to previous chunk in <span class="built_in">list</span>            |</span><br><span class="line">        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             Unused <span class="title function_">space</span> <span class="params">(may be <span class="number">0</span> bytes <span class="type">long</span>)</span>                .</span><br><span class="line">        .                                                               .</span><br><span class="line"> next   .                                                               |</span><br><span class="line">chunk-&gt; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">`foot:&#x27; |             Size of chunk, in bytes                           |</span><br><span class="line">        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             Size of next chunk, in bytes                |A|0|0|</span><br><span class="line">        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<p>一般情况下，<strong>物理相邻的两个空闲 chunk 会被合并为一个 chunk</strong>。堆管理器会通过 prev_size 字段以及 size 字段合并两个物理相邻的空闲 chunk 块。</p>
+<h4 id="1-pre-size-字段"><a href="#1-pre-size-字段" class="headerlink" title="1.pre size 字段"></a>1.pre size 字段</h4><blockquote>
+<p>pre size（prev size）全称为previous size</p>
+</blockquote>
+<ul>
+<li><code>pre_size</code> , 如果该 chunk 的物理相邻的前一地址 chunk（两个指针的地址差值为前一chunk 大小）是 <strong><span style="color: #F5222D">空闲</span></strong> 的话， <strong>那该字段记录的是前一个 chunk 的</strong> <strong>大小</strong> <strong>(包括 chunk 头)</strong> 。否则，该字段 <strong>可以用来存储物理相邻的前一个 chunk 的</strong> <strong>数据</strong> 。这里的前一chunk 指的是较低地址的 chunk 。 <strong><span style="color: #F5222D">前面一个堆块在使用时并且pre_size为储存前面chunk的数据时，他的值始终为 0</span></strong></li>
+</ul>
+<blockquote>
+<p>堆的生长方向为：低地址向高地址生长。</p>
+</blockquote>
+<h4 id="2-size-字段"><a href="#2-size-字段" class="headerlink" title="2.size 字段"></a>2.size 字段</h4><p><span style="color: #F5222D">size</span><span style="color: #F5222D"> ，</span><span style="color: #F5222D">这个是用来指示当前堆块的大小的（头部（pre size+size）加上 user data 的大小）</span>。大小必须是 2 * SIZE_SZ 的整数倍。如果申请的内存大小不是 2 * SIZE_SZ 的整数倍，会被转换满足大小的最小的 2 * SIZE_SZ 的倍数。</p>
+<p><strong>32 位系统中，SIZE_SZ 是 4；64 位系统中，SIZE_SZ 是 8</strong>。<u>该字段的低三个比特位对 chunk 的大小没有影响</u>，字段的最后<strong>三位</strong>相当于三个 flag ，这三位的作用分别是：</p>
+<p><code>A（NON_MAIN_ARENA）</code>：为0表示该chunk属于<strong>主分配区（主线程）</strong>，为1表示该chunk属于<strong>非主分配区（非主线程）</strong><br><code>M（IS_MAPPED）</code>：表示当前chunk是从哪个内存区域获得的虚拟内存。为1表示该chunk是从<strong>mmap</strong>映射区域分配的，否则是从<strong>heap</strong>区域分配的<br><code>P（PREV_INUSE）</code>：记录前一个 chunk 块是否被分配。一般来说，堆中第一个被分配的内存块的 size 字段的 P 位都会被设置为 1，以便于防止访问前面的非法内存。当一个 chunk 的 size 的 P 位为 0 时，我们能通过 prev_size 字段来获取上一个 chunk 的大小以及地址。这也方便进行空闲 chunk 之间的合并。</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599042679373-a4438ff3-2f52-45c7-a36e-f1013367ce0b.png" alt="VejSHfX.png"></p>
+<blockquote>
+<p>所以前一个堆块的释放与否都和这两个字段（pre_size、size-&gt;prev_inuse）的值有关，这是因为便于内存的释放操作（free）</p>
+</blockquote>
+<h4 id="3-user-data"><a href="#3-user-data" class="headerlink" title="3.user data"></a>3.user data</h4><p>顾名思义就是用来存放用户数据的。</p>
+<p>使用 malloc 函数分配到的内存的返回值指针是<span style="color: #F5222D">指向 user data （用户数据区）</span>，在后面的例子中也会讲到这个问题。</p>
+<p><strong>例如在 64 位程序中：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">malloc</span>(<span class="number">8</span>)</span><br></pre></td></tr></table></figure>
+
+<p>申请到的堆块总大小为 16 + 8 + 8 + 1 &#x3D; 0x21（byte）</p>
+<p>1.第一个 16 字节是<strong>系统最小分配的内存</strong>，也就是说你如果想要申请的内存小于系统最小分配的内存的话，就会按照最小的内存来分配。</p>
+<ul>
+<li>在 64 位系统中这个值是 16 个字节，在 32 位系统中是 8 个字节</li>
+<li>例如，如果代码中是 malloc(0) 的话， <strong>堆管理器也会分配最小内存空间给你</strong></li>
+</ul>
+<p>2.第二个 8 字节是 pre size 字段的大小（32 位的为 4 字节）</p>
+<p>3.第三个 8 字节为 size 字段的大小（32 位的为 4 字节）</p>
+<p>4.最后一个 1 字节是 <strong>PREV_INUSE 的值，只有 0 或 1两个值</strong></p>
+<blockquote>
+<p><strong>整理一下：堆的基本结构包括pre_size、size、userdata</strong><br><strong>size字段包括：头部（pre size+size）加上 user data 的大小</strong><br><strong>malloc出最小大小为：系统最小分配内存+pre_size字段+size字段+prev_inuse（</strong><span style="color: #F5222D">此处存疑</span><strong>）</strong></p>
+</blockquote>
+<h3 id="结构图"><a href="#结构图" class="headerlink" title="结构图"></a>结构图</h3><h4 id="使用中（分配后）"><a href="#使用中（分配后）" class="headerlink" title="使用中（分配后）"></a>使用中（分配后）</h4><p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599299513017-b38c7227-1492-4407-a21f-05596091a5e9.png"></p>
+<h4 id="空闲中（使用后）"><a href="#空闲中（使用后）" class="headerlink" title="空闲中（使用后）"></a>空闲中（使用后）</h4><ol>
+<li>空闲中的chunk不存在M状态，只有A|P状态</li>
+<li><strong><span style="color: #F5222D">user data头部被分配</span></strong> 出两个成员，fd和bk<br><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599300845878-ff3e7074-0ca2-48d4-a058-e03e8324ffb7.png"></li>
+</ol>
+<ul>
+<li><p><code>fd</code> ， <code>bk</code> 。 chunk 处于分配状态时，从 fd 字段开始是用户的数据。chunk 空闲时，会被添加到对应的空闲管理链表中，其字段的含义如下</p>
+</li>
+<li><p><code>fd</code> 指向前一个（ <strong>非物理相邻</strong> ）空闲 chunk的起始地址， 32位占4字节，64位占8字节</p>
+<ul>
+<li><code>bk</code> 指向后一个（ <strong>非物理相邻</strong> ）空闲 chunk的起始地址， 32位占4字节，64位占8字节</li>
+<li>通过 fd 和 bk 可以将空闲的 chunk 块加入到空闲的 chunk 块链表进行统一管理</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>注意：事实上，<span style="color: #F5222D">释放后的large block</span>中还存在另外两个成员：fd_nextsize和bk_nextsize，上图并未画出，其简介如下：</p>
+</blockquote>
+<ul>
+<li><p><code>fd_nextsize</code> ， <code>bk_nextsize</code> ，是只有 chunk <strong><span style="color: #F5222D">空闲</span></strong> 的时候才使用，不过其用于较大的 chunk（large chunk）。</p>
+</li>
+<li><p><strong>fd_nextsize</strong> 指向前一个与当前 chunk 大小不同的第一个空闲块， <strong>不包含 bin 的头指针</strong> 。</p>
+<ul>
+<li><strong>bk_nextsize</strong> 指向后一个与当前 chunk 大小不同的第一个空闲块， <strong>不包含 bin 的头指针</strong> 。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>一般空闲的 large chunk按照由大到小的顺序排列，在 fd 的遍历时，可以避免在寻找合适 chunk 时对所有chunk进行遍历。</p>
+</blockquote>
+<h3 id="堆块大小"><a href="#堆块大小" class="headerlink" title="堆块大小"></a>堆块大小</h3><p><strong>32位操作系统：</strong></p>
+<ol>
+<li>用户分配到的最小堆块大小为 <code>17B</code> ： <strong>prev_size</strong> (4B) + <strong>size</strong> (4B) + <strong>fd</strong> (4B) + <strong>bk</strong> (4B) + <strong>next_chunk-&gt;p(1B)</strong></li>
+<li>若用户申请的大小超过最小堆块大小，会与 <strong>8B</strong> 进行对齐</li>
+</ol>
+<p><strong>64位操作系统：</strong></p>
+<ol>
+<li>用户分配到的最小堆块大小为 <code>33B</code> ： <strong>prev_size</strong> (8B) + <strong>size</strong> (8B) + <strong>fd</strong> (8B) + <strong>bk</strong> (8B) + <strong>next_chunk-&gt;p(1B)</strong></li>
+<li>若用户申请的大小超过最小堆块大小，会与 <strong>16B</strong> 进行对齐</li>
+</ol>
+<h3 id="空间复用"><a href="#空间复用" class="headerlink" title="空间复用"></a>空间复用</h3><p><strong>描述：当一个 chunk 处于使用状态时，它的下一个 chunk 的 prev_size 无效。所以下一个 chunk 的 prev_size 也可以被当前 chunk 使用，这就是 chunk 的空间复用</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">chunk-&gt; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             Size of previous chunk, <span class="keyword">if</span> <span class="title function_">unallocated</span> <span class="params">(P clear)</span>  |</span><br><span class="line">        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             Size of chunk, in bytes                     |A|M|P|</span><br><span class="line">  mem-&gt; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             User data starts here...                          .</span><br><span class="line">        .                                                               .</span><br><span class="line">        .             <span class="params">(malloc_usable_size() bytes)</span>                      .</span><br><span class="line">next    .                                                               |</span><br><span class="line">chunk-&gt; +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             <span class="params">(size of chunk, but used <span class="keyword">for</span> application data)</span>    |</span><br><span class="line">        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br><span class="line">        |             Size of next chunk, in bytes                |A|0|1|</span><br><span class="line">        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span><br></pre></td></tr></table></figure>
+
+<h2 id="指针与地址"><a href="#指针与地址" class="headerlink" title="指针与地址"></a>指针与地址</h2><p>指针这一块知识在 c 语言里学的不太好的，可以在学习堆的过程中慢慢巩固一下知识。</p>
+<ul>
+<li>熟练掌握指针的使用在堆的题目分析中还是很有帮助的。下面简单说一下堆分配中的指针会用到了地方。</li>
+</ul>
+<p>首先要明确用户在调用 malloc 函数时返回的值为<strong>一个指针，指向分配到堆空间（</strong><span style="color: #F5222D">用户数据区</span><strong>）</strong>，这个在最前面的那个图片也已经标出来了。</p>
+<p>有时候题目是以更复杂的情况，用指针来表示某个数据结构的，例如下面的这个图中的例子：</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599096423681-bc5b8b24-b4c0-418b-932e-c10541b79ce2.png" alt="lpMMPHl.png"></p>
+<p>first chunk（second chunk）表示第一和第二个结构，<strong>每个结构中都有一个 point_heap 指针来指向存储用户数据的堆块（chunk）。</strong></p>
+<p><strong>左边的这个本身就是一个堆块，用来存放一些全局信息。比如 max_size 存储了能够存储的最大结构数量；exist_num 表示已经存储的结构的数量。</strong></p>
+<h3 id="IDA-中常见的指针表示形式"><a href="#IDA-中常见的指针表示形式" class="headerlink" title="IDA 中常见的指针表示形式"></a>IDA 中常见的指针表示形式</h3><p>在 IDA 伪代码中的指针形式形如下面的情况：</p>
+<blockquote>
+<p>*(qword_6020A8 + 8)</p>
+</blockquote>
+<p><strong>表示取到 qword_6020A8 这个地址加 8 偏移的那个地址存储的值</strong></p>
+<p>汇编代码等同于：</p>
+<blockquote>
+<p>.text:0000000000400F85                 mov     rax, cs:qword_6020A8<br>.text:0000000000400F8C                 mov     rax, [rax+8]</p>
+</blockquote>
+<p>简单转化一下，也就是：</p>
+<p>*(addr) &#x3D; [addr]</p>
+<h3 id="链表"><a href="#链表" class="headerlink" title="链表"></a>链表</h3><p>在 pwn 的堆题目中，经常会有像一些”笔记管理系统”之类的题目，例如下面这里例子</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599120933393-a3988554-43c4-4967-b687-1e7fa0d3b994.png" alt="9mQhGPF.png"></p>
+<p>代码提供了最基本的增删查改的功能。这个”笔记”的数据结构<strong>通常就是使用链表连接起来的</strong>，记录了当前 note 的大小、属性、内容等等。</p>
+<p><strong>例如，下面这个例子就是以指针为基础来存储这个 note 结构的。这里的 i 代表 note 的索引，若这里的 i &#x3D; 0 时：</strong></p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599120962277-427b4e66-72af-48e9-8199-3620bc98179e.png" alt="n366Lzt.png"></p>
+<p>(qword_6020A8 + 16) 就*代表从 qword_6020A8 这个地址出再往后偏移 16 个字节，取到这个地址存储的值，接着把 1 赋值给这个地方（也就是把 1 存入这个地址）</p>
+<p>同样的 *(qword_6020A8 + 24) 就代表偏移 24 个字节处的值为 len</p>
+<p>依次类推就可以在不连续的内存空间中，把整个 note 的数据结构存储下来了。</p>
+<h2 id="申请堆块的本质"><a href="#申请堆块的本质" class="headerlink" title="申请堆块的本质"></a>申请堆块的本质</h2><blockquote>
+<p>堆管理器 ptmalloc2 主要是通过 malloc&#x2F;free 函数来分配和释放内存块。</p>
+</blockquote>
+<p>ptmalloc2 的作用通俗的讲就是<strong>相当于一个”中间商”</strong>，在程序想要申请向系统申请堆空间时，这里的 ptmalloc2 就会申请一块很大的空间，并根据算法从这些内存中把空间真正的分配给程序。</p>
+<p>简单点说就是下面这个图中的情况：</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599121087545-181347d6-feba-4bf9-94e2-bb5b8c6dbeaf.png" alt="OHeE6wZ.png"></p>
+<p>这里的举一个最简单的例子：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;malloc.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">	<span class="type">char</span> *p;</span><br><span class="line">	p = <span class="built_in">malloc</span>(<span class="number">10</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 gdb 中进行调试，在 call malloc 处下一个断点，在这里使用 vmmap 命令，查看内存分布。可以看到此时并没有发现堆段</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599121162332-50f043b9-174b-42c5-9a77-98b5292a4780.png" alt="AmbgBDz.png"></p>
+<p>单步 n ，vmmap 命令再次查看内存，发现出现了堆段<a target="_blank" rel="noopener" href="https://i.imgur.com/4J2yIhn.png">https://i.imgur.com/4J2yIhn.png</a><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599121189896-ab0f0193-a224-45cf-92e0-fb0b26e5a31d.png" alt="4J2yIhn.png">但是这里我们明明只是申请了 10 字节的大小，但是为什么这里的为什么给了这么大的堆段呢？</p>
+<p>0x00602000     ~    0x00623000</p>
+<p>计算一下，刚好是 132 kB</p>
+<p>(0x00623000-0x00602000)&#x2F;1024 &#x3D; 132 kB</p>
+<p>一个地址可以容纳1byte的内容</p>
+<blockquote>
+<p><span style="color: #F5222D">这132KB的堆空间叫做arena，此时因为是主线程分配的，所以这个区域叫做 main arena</span></p>
+</blockquote>
+<p>也就是说这 132 KB 是”厂家”（内核）批发给”中间商”（ptmalloc2）的货物，<strong>以便下次程序在向系统申请小内存的时候，直接去”中间商”去取就行了</strong>，他就会在这 132KB 中按照要申请”货物”的多少进行分配下去。若”中间商”缺货了话，ptmalloc2 就继续去找”厂家”（系统内核）去取货</p>
+<h3 id="查看已分配的堆内存分布"><a href="#查看已分配的堆内存分布" class="headerlink" title="查看已分配的堆内存分布"></a>查看已分配的堆内存分布</h3><p>在上面我们动态调试的时候已经执行了 malloc 函数，申请到的堆指针是保存在 eax 中的</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599121435584-9b4100f1-c085-4960-89c4-23d11aa92cdc.png" alt="YTz6loS.png"></p>
+<p>我们这里使用下面这个命令来查看内存堆块情况：</p>
+<blockquote>
+<p>x&#x2F;32gx 0x602010-0x10 &#x2F;&#x2F;32位的程序使用 x&#x2F;32xw 比较直观一点</p>
+</blockquote>
+<p>这里减去 0x10 表示从堆块的头部开始观察（包含 pre size 和 size 字段）</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599121498212-84c953ef-34b7-40db-a7c1-2c4b6b1788d3.png" alt="YTz6loS.png"></p>
+<h2 id="main-arena-与-top-chunk"><a href="#main-arena-与-top-chunk" class="headerlink" title="main_arena 与 top chunk"></a>main_arena 与 top chunk</h2><h3 id="main-arena"><a href="#main-arena" class="headerlink" title="main_arena"></a>main_arena</h3><p>这个 main_arena 其实就是 ptmalloc2 堆管理器通过与操作系统内核进行交互申请到的，也就是相当于上面所说的”批发”到的一堆货物</p>
+<blockquote>
+<p>因为是主线程分配的，所以叫做main arena，通过增加 program break location 的方式来增加 main arena 的大小。</p>
+</blockquote>
+<p>使用 brk 方式扩展内存的方式这里就不说了，感兴趣可以自己去查一下资料:</p>
+<p>参考 ctf-wiki：<a target="_blank" rel="noopener" href="https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/heap_overview-zh/">https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/heap_overview-zh&#x2F;</a></p>
+<p><strong>在 gdb 调试中，使用”x&#x2F;32gx &amp;main_arena”，可以看到 main_arena 的内存分配情况。</strong></p>
+<h3 id="top-chunk"><a href="#top-chunk" class="headerlink" title="top chunk"></a>top chunk</h3><p>顾名思义，是<strong>堆中第一个堆块。相当于一个”带头大哥”，程序以后分配到的内存到要放在他的后面。</strong></p>
+<p>在系统当前的所有 free chunk(无论那种 bin)，都无法满足用户请求的内存大小的时候，将此 chunk 当做一个应急消防员，分配给用户使用。</p>
+<p><span style="color: #F5222D">简单点说，也就是在程序在向堆管理器申请内存时，没有合适的内存空间可以分配给他，此时就会从 top chunk 上”剪切”一部分作为 chunk 分配给他</span></p>
+<h2 id="free-函数和-bins"><a href="#free-函数和-bins" class="headerlink" title="free 函数和 bins"></a>free 函数和 bins</h2><h3 id="free"><a href="#free" class="headerlink" title="free"></a>free</h3><h4 id="free-函数"><a href="#free-函数" class="headerlink" title="free 函数"></a>free 函数</h4><p>free 函数的使用是和 bins 的分配息息相关的。用一个简单的例子来理解一下 free 函数的实现原理。</p>
+<p>代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="type">char</span> *p;</span><br><span class="line">        p = <span class="built_in">malloc</span>(<span class="number">10</span>);</span><br><span class="line">        <span class="built_in">memcpy</span>(p,<span class="string">&quot;Hello&quot;</span>,<span class="number">5</span>); <span class="comment">//memcpy=memory copy 内存拷贝函数</span></span><br><span class="line">        <span class="built_in">free</span>(p);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//程序将 “Hello” 字符串复制到申请到的堆内存空间中。</span></span><br></pre></td></tr></table></figure>
+
+<p>编译后用 gdb 调试，在 call memcpy 处下一个断点，单步后将 “Hello” 复制到堆块中</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599122034078-6b2816c6-5cc0-440e-b162-0b63a6df8b4c.png" alt="YTz6loS.png"></p>
+<p>继续使用 x&#x2F;32gx 0x602010-0x10 命令查看堆块情况</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599122203779-6b715d75-353e-48c7-9542-c6d756ed5af6.png" alt="SkUxKXN.png"></p>
+<p>继续单步 n，执行 free 函数之后，查看堆块情况</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599122244843-86e27494-0d75-427d-a3cc-aaf9782ef8d4.png" alt="iifOKJV.png"></p>
+<p>这里可以看出原本堆块中存储的内容已经被清空，然后查看一下 main_arena 的值，发现其中 +0x8 的偏移处，存储了指向已经 free 了的指针（指向头部，而不是 user data）</p>
+<h4 id="free总结"><a href="#free总结" class="headerlink" title="free总结"></a>free总结</h4><p>所以调用 free 函数以后程序做了两件事：</p>
+<p><span style="color: #F5222D">1.清空此堆块的 user data2.将此堆块的指针存储到 main_arena 中了（或是 fast bin 中）</span></p>
+<h3 id="bin"><a href="#bin" class="headerlink" title="bin"></a>bin</h3><p>bins 这个概念是与<strong>内存回收</strong>相关的，也就是堆管理器会根据用户已经申请到的内存空间大小进行释放，<strong>来决定放入哪类 bins 当作去</strong>。bins 直接翻译过来就是”垃圾桶”的意思，所以在系统在决定使用哪个 bins 时可以看作为”垃圾的分类”。</p>
+<p><strong>描述：</strong></p>
+<ol>
+<li>用户free掉的内存并不是都会马上归还给系统，ptmalloc会统一管理heap和mmap映射区域中的空闲的chunk</li>
+<li>当用户进行下一次分配请求时，ptmalloc会首先试图在空闲的chunk中挑选一块给用户，这样就避免了频繁的系统调用，降低了内存分配的开销</li>
+<li><strong>ptmalloc将相似大小的chunk用双向链表链接起来，这样的一个链表被称为一个bin</strong></li>
+<li>ptmalloc一共维护了128个bin，并使用一个数组来存储这些bin</li>
+<li>堆管理器根据特点，将堆分为四种： <strong>fastbin</strong> | <strong>unsortedbin</strong> | <strong>smallbin</strong> | <strong>largebin</strong></li>
+<li>数组中 <strong>bin 1为unsorted bin</strong> ； <strong>bin 2到63为small bin</strong> ； <strong>bin 64到126为large bin</strong></li>
+</ol>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599301876778-63cc145a-dc32-4ed2-b7c0-0a7bc3e8e068.png"></p>
+<h4 id="fast-bin"><a href="#fast-bin" class="headerlink" title="fast bin"></a>fast bin</h4><p>顾名思义，就是为了<strong>快速重新分配回内存而存在的一个结构，</strong> fast bin 是使用到的最多的一类，也是其中结构最为简单的。</p>
+<blockquote>
+<p>fastbin所包含chunk的大小为16 Bytes, 24 Bytes, 32 Bytes, … , 80 Bytes。当分配一块较小的内存(mem&lt;&#x3D;64 Bytes)时，<strong>会首先检查对应大小的fastbin中是否包含未被使用的chunk，如果存在则直接将其从fastbin中移除并返回；否则通过其他方式（剪切top chunk）得到一块符合大小要求的chunk并返回。</strong></p>
+</blockquote>
+<p><strong>描述：</strong></p>
+<ol>
+<li>在32位操作系统中，当用户释放的堆块大小 <strong>小于64B</strong> 时使用fastbin进行管理，即chunk空间最大为80字节</li>
+<li>fastbin只使用了 <strong>fd</strong> 成员，是个单链表结构</li>
+<li>fastbin不会对 <strong>P位</strong> 进行操作，也就是说它不会主动进行合并；只有在某些特定情况下，堆管理器才会对fastbin进行合并</li>
+<li>fastbinY为管理fastbin的数组，每个成员分别管理不同大小的fastbin链表，且均指向了当前链表的尾节点，当尾节点被分配时，通过其fd指针指向前一个结点</li>
+<li>当用户申请chunk大小小于或等于 <strong>MAX_FAST_SIZE</strong> 时，优先从fastbins中查找相应的空闲块，且规则为 <strong>LIFO（Last in, first out, 后进先出）</strong></li>
+</ol>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599302477361-f300cd59-989a-4004-8532-c0fc27492f23.png"></p>
+<p>引用一张图：</p>
+<ul>
+<li>这里的横向排列的就是 main_arene（fast bin）的内存地址</li>
+</ul>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599122660636-572d48c5-7dc2-4487-a9b2-0086213e77c1.png" alt="r5Vjflz.png"></p>
+<p>假如此时 0x0804a000 处的堆块（实际堆块中的 size 字段要减去 PREV_INUSE 字段值 1）已经被 free 了，那么他就会被存储<strong>在表示 40 bytes 的 fast bin 的内存地址里</strong></p>
+<ul>
+<li>注意： <strong>这里把指针和地址区别开。地址存储的是指针，64 位的指针占 8 个字节</strong> 。</li>
+</ul>
+<p><strong>假设我们现在还是以 64 位下的 malloc(10) 为例子。</strong></p>
+<p>根据前面那个 free 函数的例子，查看 main_arena 地址中的指针值我们可以看出来，<strong>+0x8 偏移处才是指向 malloc(10) 的堆块的指针</strong>（因为前面有pre size和size字段，这个堆块分配后的 user data 实际大小是 16 字节）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gdb-peda$ x/2gx &amp;main_arena                           (16 bytes 的链表头)</span><br><span class="line">0x7ffff7dd3760 &lt;main_arena&gt;:    0x0000000000000000    0x0000000000602000</span><br></pre></td></tr></table></figure>
+
+<p>所以这个 16 字节的堆块的指针会被插入属于他的这个链表队列中，也就是如下的情况。</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599123046100-1692cf5c-04a9-4603-a33e-bdea4531e4ff.png" alt="yKHQ6fT.png"></p>
+<p><strong>所以这也就印证了在 main_arena 中分别表示 16 Bytes, 24 Bytes, 32 Bytes, … , 80 Bytes 的内存地址中分别存储着已经 free 的而且满足这个大小的 chunk的指针。</strong></p>
+<h4 id="fast-bin的特性"><a href="#fast-bin的特性" class="headerlink" title="fast bin的特性"></a>fast bin的特性</h4><p><strong>1.使用单链表来维护释放的堆块</strong></p>
+<p>也就是和上图一样，从main_arena 到 free 第一个块的地方是采用单链表形式进行存储的，若还有 free 掉的堆块，则这个堆块的 fk 指针域就会指针前一个堆块。</p>
+<p>如下图所示，此时就是一个单链表结构</p>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599123652606-4a1c4d4b-41db-44ed-873b-7ef7476db2ab.png" alt="KYQmNPN.png"></p>
+<p><strong>2.采用后进先出的方式维护链表（类似于栈的结构）</strong></p>
+<p>当程序需要重新 malloc 内存并且需要从fastbin 中挑选堆块时，<strong>会选择后面新加入的堆块拿来先进行内存分配</strong></p>
+<p>如上图，如果程序重新请求和上面的堆块大小一样时候（malloc），堆管理器就会直接使用 fast bin 里的堆块。</p>
+<p><strong>这里的话也就是直接使用第二次释放的这个堆块，然后将这个堆块从链表中移除，接着根据堆块的 fk 指针找到这个堆块，此时 main_arena 就指向了这里。也就是恢复到了上面第一个图中的情况。</strong></p>
+<h3 id="small-bin"><a href="#small-bin" class="headerlink" title="small bin"></a>small bin</h3><p>顾名思义，这个是一个 small chunk ，满足的内存空间比 fast bin 大一点。</p>
+<p>如果程序请求的内存范围不在 fast bin 的范围内，就会考虑small bin。简单点说就是大于 80 Bytes 小于某一个值时，就会选择他。</p>
+<p><strong>描述：</strong></p>
+<ol>
+<li>在32位操作系统中，当用户释放的堆块大小 <strong>大于64B，小于等于512B</strong> 时使用small bin进行管理</li>
+<li>small bin 为双向循环链表，且使用 <strong>FIFO（First in, first out, 先入先出）</strong> 算法</li>
+<li>当满足small bin条件的chunk被释放后，会优先被放入unosrted bin，只有在一定情况下，才会被分配到small bin中</li>
+<li>相邻的free chunk将会被合并成一个更大的free chunk，增加内存利用率</li>
+</ol>
+<p><img src="/assets/posts/pwn-3-1-1-1e18wa6/assets/1599302711432-03e90cb4-53d8-4a26-b8be-73412f5732f4.png"></p>
+<h3 id="unsorted-bin"><a href="#unsorted-bin" class="headerlink" title="unsorted bin"></a>unsorted bin</h3><blockquote>
+<p><strong>描述：</strong></p>
+<ol>
+<li>当释放较小或较大的chunk的时候，为了增加分配效率，系统会先将最近释放的chunk添加到unsorted bin中</li>
+<li>unsorted bin 为一个双向循环链表，对chunk的大小没有限制，即任何大小的chunk都可以放入unsorted bin链表中</li>
+<li>当 fast bin、small bin 中的 chunk 都不能满足用户请求 chunk 大小时，堆管理器就会考虑使用 unsorted bin 。它会在分配 large chunk 之前对堆中碎片 chunk 进行合并，以便减少堆中的碎片。</li>
+</ol>
+</blockquote>
+<ul>
+<li>unsorted bin 与 fast bin 不同，他使用 <strong>双向链表</strong> 对 chunk 进行连接</li>
+<li>unsorted 的字面意思就是”不可回收”的意思，可以看作将不可回收的垃圾（不满足能够进行内存分配的堆块）都放到这个”垃圾桶”中。</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%883-1-1%EF%BC%89-%E5%A0%86%E5%85%A5%E9%97%A8%E6%A6%82%E8%BF%B0/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%883-1-1%EF%BC%89-%E5%A0%86%E5%85%A5%E9%97%A8%E6%A6%82%E8%BF%B0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-02/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%883-1-2%EF%BC%89-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E5%A0%86/" title="PWN入门（3-1-2）-深入理解堆"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（3-1-2）-深入理解堆</div></div><div class="info-2"><div class="info-item-1">PWN入门（3-1-2）-深入理解堆 参考资料：https://wiki.x10sec.org/pwn/heap/heap_overview&#x2F;  前言 上一篇文章我们简单的介绍了堆，接下来开始深入理解堆  深入理解堆的概念在程序运行过程中，堆可以提供动态分配的内存，允许程序申请大小未知的内存。**堆其实就是程序虚拟地址空间的一块连续的线性区域，它由低地址向高地址方向增长。**我们一般称管理堆的那部分程序为堆管理器。 堆管理器处于用户程序与内核中间，主要做以下工作：  响应用户的申请内存请求，向操作系统申请内存，然后将其返回给用户程序。同时，为 了保持内存管理的高效性，内核一般都会预先分配很大的一块连续的内存，然后让堆管理器通过某种算法管理这块内存。只有当出现了堆空间不足的情况，堆管理器才会再次与操作系统进行交互。 管理用户所释放的内存。 一般来说，用户释放的内存并不是直接返还给操作系统的，而是由堆管理器进行管理。这些释放的内存可以来响应用户新申请的内存的请求。  Linux 中早期的堆分配与回收由 Doug Lea 实现，但它在并行处理多个线程时，会共享进程的堆内存空间...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%20Pro7.0%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/" title="IDA Pro7.0使用技巧总结"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">IDA Pro7.0使用技巧总结</div></div><div class="info-2"><div class="info-item-1">IDA Pro7.0使用技巧总结 转载自：https://xz.aliyun.com/t/4205  俗话说，工欲善其事，必先利其器，在二进制安全的学习中，使用工具尤为重要，而IDA又是玩二进制的神器，以前在使用IDA的时候，只是用几个比较常用的功能，对于IDA的其他功能没有去研究，于是本着学习的精神，参考着《IDA pro权威指南》(第二版)，写下这篇文章，记录自己的学习心得，下面的记录都是在Windows平台下的IDA pro7.0进行的 一些二进制工具在《IDA pro权威指南》的开篇一两章中，先是介绍了几款常用于二进制研究的工具，我这里简单的记了几个，介绍一波：  C++filt：可以用于显示出c++中复杂的重载后的函数名称 PE tools：是一组用于分析Windows系统中正在运行的进程和可执行文件的工具 string：可以用于直接搜索出elf文件中的所有字符串  参数-a 表示搜索整个文件，参数-t 可以显示出每一个字符串的偏移，参数-e 可以用于搜索更多的字符编码的字符串，如Unicode编码  strip：可用于elf去符号，去符号后仍然保持正常功能但增加了逆向...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%883-1-1%EF%BC%89-%E5%A0%86%E5%85%A5%E9%97%A8%E6%A6%82%E8%BF%B0"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（3-1-1）-堆入门概述</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%A0%86%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">什么是堆？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A0%86%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84"><span class="toc-number">1.2.</span> <span class="toc-text">堆的基本结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link"><span class="toc-number">1.2.1.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A0%86%E7%9A%84%E7%BB%93%E6%9E%84"><span class="toc-number">1.2.2.</span> <span class="toc-text">堆的结构</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#malloc-chunk%E7%BB%93%E6%9E%84"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">malloc_chunk结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-pre-size-%E5%AD%97%E6%AE%B5"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">1.pre size 字段</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-size-%E5%AD%97%E6%AE%B5"><span class="toc-number">1.2.2.3.</span> <span class="toc-text">2.size 字段</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-user-data"><span class="toc-number">1.2.2.4.</span> <span class="toc-text">3.user data</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E6%9E%84%E5%9B%BE"><span class="toc-number">1.2.3.</span> <span class="toc-text">结构图</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E4%B8%AD%EF%BC%88%E5%88%86%E9%85%8D%E5%90%8E%EF%BC%89"><span class="toc-number">1.2.3.1.</span> <span class="toc-text">使用中（分配后）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A9%BA%E9%97%B2%E4%B8%AD%EF%BC%88%E4%BD%BF%E7%94%A8%E5%90%8E%EF%BC%89"><span class="toc-number">1.2.3.2.</span> <span class="toc-text">空闲中（使用后）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A0%86%E5%9D%97%E5%A4%A7%E5%B0%8F"><span class="toc-number">1.2.4.</span> <span class="toc-text">堆块大小</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A9%BA%E9%97%B4%E5%A4%8D%E7%94%A8"><span class="toc-number">1.2.5.</span> <span class="toc-text">空间复用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%87%E9%92%88%E4%B8%8E%E5%9C%B0%E5%9D%80"><span class="toc-number">1.3.</span> <span class="toc-text">指针与地址</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#IDA-%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84%E6%8C%87%E9%92%88%E8%A1%A8%E7%A4%BA%E5%BD%A2%E5%BC%8F"><span class="toc-number">1.3.1.</span> <span class="toc-text">IDA 中常见的指针表示形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%93%BE%E8%A1%A8"><span class="toc-number">1.3.2.</span> <span class="toc-text">链表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%B3%E8%AF%B7%E5%A0%86%E5%9D%97%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="toc-number">1.4.</span> <span class="toc-text">申请堆块的本质</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%B7%B2%E5%88%86%E9%85%8D%E7%9A%84%E5%A0%86%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83"><span class="toc-number">1.4.1.</span> <span class="toc-text">查看已分配的堆内存分布</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#main-arena-%E4%B8%8E-top-chunk"><span class="toc-number">1.5.</span> <span class="toc-text">main_arena 与 top chunk</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#main-arena"><span class="toc-number">1.5.1.</span> <span class="toc-text">main_arena</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#top-chunk"><span class="toc-number">1.5.2.</span> <span class="toc-text">top chunk</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#free-%E5%87%BD%E6%95%B0%E5%92%8C-bins"><span class="toc-number">1.6.</span> <span class="toc-text">free 函数和 bins</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#free"><span class="toc-number">1.6.1.</span> <span class="toc-text">free</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#free-%E5%87%BD%E6%95%B0"><span class="toc-number">1.6.1.1.</span> <span class="toc-text">free 函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#free%E6%80%BB%E7%BB%93"><span class="toc-number">1.6.1.2.</span> <span class="toc-text">free总结</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#bin"><span class="toc-number">1.6.2.</span> <span class="toc-text">bin</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#fast-bin"><span class="toc-number">1.6.2.1.</span> <span class="toc-text">fast bin</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#fast-bin%E7%9A%84%E7%89%B9%E6%80%A7"><span class="toc-number">1.6.2.2.</span> <span class="toc-text">fast bin的特性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#small-bin"><span class="toc-number">1.6.3.</span> <span class="toc-text">small bin</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#unsorted-bin"><span class="toc-number">1.6.4.</span> <span class="toc-text">unsorted bin</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

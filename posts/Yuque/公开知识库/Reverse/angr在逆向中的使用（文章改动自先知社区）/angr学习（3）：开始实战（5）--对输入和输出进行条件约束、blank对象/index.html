@@ -1,0 +1,319 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>angr学习（3）：开始实战（5）--对输入和输出进行条件约束、blank对象 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="angr学习（3）：开始实战（5）–对输入和输出进行条件约束、blank对象对于angr来说，执行到正确的路径并不难，但对于我们来说，要想正确的打印出flag，恐怕还得废一番功夫。 这里以asisctffinals2015_fake为例。 https:&#x2F;&#x2F;github.com&#x2F;angr&#x2F;angr-doc&#x2F;tree&#x2F;master&#x2F;examples&#x2F;asisctffinals2015_fake 下载下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="angr学习（3）：开始实战（5）--对输入和输出进行条件约束、blank对象">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%885%EF%BC%89--%E5%AF%B9%E8%BE%93%E5%85%A5%E5%92%8C%E8%BE%93%E5%87%BA%E8%BF%9B%E8%A1%8C%E6%9D%A1%E4%BB%B6%E7%BA%A6%E6%9D%9F%E3%80%81blank%E5%AF%B9%E8%B1%A1/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="angr学习（3）：开始实战（5）–对输入和输出进行条件约束、blank对象对于angr来说，执行到正确的路径并不难，但对于我们来说，要想正确的打印出flag，恐怕还得废一番功夫。 这里以asisctffinals2015_fake为例。 https:&#x2F;&#x2F;github.com&#x2F;angr&#x2F;angr-doc&#x2F;tree&#x2F;master&#x2F;examples&#x2F;asisctffinals2015_fake 下载下">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-03/800/450">
+<meta property="article:published_time" content="2020-06-16T09:30:17.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.160Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-03/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "angr学习（3）：开始实战（5）--对输入和输出进行条件约束、blank对象",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%885%EF%BC%89--%E5%AF%B9%E8%BE%93%E5%85%A5%E5%92%8C%E8%BE%93%E5%87%BA%E8%BF%9B%E8%A1%8C%E6%9D%A1%E4%BB%B6%E7%BA%A6%E6%9D%9F%E3%80%81blank%E5%AF%B9%E8%B1%A1/",
+  "image": "https://picsum.photos/seed/blog-cover-03/800/450",
+  "datePublished": "2020-06-16T09:30:17.000Z",
+  "dateModified": "2026-07-03T14:46:17.160Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%885%EF%BC%89--%E5%AF%B9%E8%BE%93%E5%85%A5%E5%92%8C%E8%BE%93%E5%87%BA%E8%BF%9B%E8%A1%8C%E6%9D%A1%E4%BB%B6%E7%BA%A6%E6%9D%9F%E3%80%81blank%E5%AF%B9%E8%B1%A1/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'angr学习（3）：开始实战（5）--对输入和输出进行条件约束、blank对象',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-03/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">angr学习（3）：开始实战（5）--对输入和输出进行条件约束、blank对象</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">angr学习（3）：开始实战（5）--对输入和输出进行条件约束、blank对象</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-06-16T09:30:17.000Z" title="发表于 2020-06-16 17:30:17">2020-06-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.160Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="angr学习（3）：开始实战（5）–对输入和输出进行条件约束、blank对象"><a href="#angr学习（3）：开始实战（5）–对输入和输出进行条件约束、blank对象" class="headerlink" title="angr学习（3）：开始实战（5）–对输入和输出进行条件约束、blank对象"></a>angr学习（3）：开始实战（5）–对输入和输出进行条件约束、blank对象</h1><p>对于angr来说，执行到正确的路径并不难，但对于我们来说，要想正确的打印出flag，恐怕还得废一番功夫。</p>
+<p>这里以<code>asisctffinals2015_fake</code>为例。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/angr/angr-doc/tree/master/examples/asisctffinals2015_fake">https://github.com/angr/angr-doc/tree/master/examples/asisctffinals2015_fake</a></p>
+<p>下载下来，将文件载入到IDA中，来到main函数，查看伪代码：</p>
+<p><img src="/assets/posts/angr-3-5-blank-199ek8z/assets/1592300333607-f92b3994-e1f3-4b57-b4d6-0aee5de52680.png" alt="TIM截图20200616173842.png"></p>
+<p>这是什么玩意儿。。。</p>
+<p>从题目来看，其大概逻辑是通过输入正确的值，经过计算，最后会输出由<code>v5 v6 v7 v8 v9</code>所组成的字符串，也就是flag。</p>
+<p>可以看看程序运行的过程:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop/angr$ ./fake 123</span><br><span class="line">��3</span><br><span class="line">ubuntu@ubuntu:~/Desktop/angr$ ./fake 1234567890</span><br><span class="line">BٜLx�r�c����^��l�#��-Y�dh��I��|�</span><br></pre></td></tr></table></figure>
+
+<p>就此题而言，仅仅设置BVS和find是远远不够的(对输入进行约束)，因为我们也不知道输出的flag究竟是什么，因此需要对结果进行条件约束，从而打印出正确的flag。</p>
+<p>我们跳过前面的命令行输入部分，直接从<code>0x4004AC</code>开始，因为<span style="color: #F5222D">strtol</span><span style="color: #F5222D">用于将字符串转化为整数</span>，而**<span style="color: #F5222D">我们通过claripy.BVS构造的符号变量是一个bit向量</span>**，无法使用<code>strtol</code>转换。当然如果你不闲麻烦，可以将<code>strtol</code>nop掉，然后使用之前所说的命令行传参的方法，这里就不nop了</p>
+<p>初始化状态如下设置：</p>
+<blockquote>
+<p>state &#x3D; p.factory.blank_state(addr&#x3D;0x4004AC)</p>
+</blockquote>
+<p><span style="color: #1A1A1A">这会创建一个 blank_state 对象，这个对象里面很多东西都是未初始化的，当程序访问未初始化的数据时，会返回一个不受约束的符号量</span></p>
+<blockquote>
+<p><strong>使用人话来说，因为在初始化BVS之前输入是空白的状态，并且跳过了strtol函数，因此要使用p.factory.blank_state(addr&#x3D;0x4004AC)</strong></p>
+</blockquote>
+<p><strong>blank-&gt;形容词，空白的</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">state = p.factory.blank_state(addr=<span class="number">0x4004AC</span>)</span><br><span class="line">inp = state.solver.BVS(<span class="string">&#x27;inp&#x27;</span>, <span class="number">8</span>*<span class="number">8</span>)</span><br><span class="line">state.regs.rax = inp</span><br><span class="line"></span><br><span class="line">simgr= p.factory.simulation_manager(state)</span><br><span class="line">simgr.explore(find=<span class="number">0x400684</span>)</span><br><span class="line">found = simgr.found[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+
+<p>接下来创建了一个名称为 <code>inp</code>，长度为 8*8bit &#x3D; 8bytes 的位向量符号，并将其值赋值给 <code>rax</code>，<span style="color: #F5222D">因为调用</span><span style="color: #F5222D">函数(</span><strong>strtol</strong><span style="color: #F5222D">)</span><span style="color: #F5222D">后的返回值是依赖 </span><span style="color: #F5222D">rax</span><span style="color: #F5222D"> 返回的，</span><span style="color: #000000">要保证寄存器不会错乱，如下图所示：</span></p>
+<p><span style="color: #F5222D"></span></p>
+<p>在我们设置好 explore 和 found 之后，它会停在 0x400684。</p>
+<p><img src="/assets/posts/angr-3-5-blank-199ek8z/assets/1592300863842-f9209360-ea89-4308-a191-fe971f54b016.png"></p>
+<p>此时的状态是<code>0x400684</code>时，<code>put</code>将要打印<code>edi</code>寄存器的值.</p>
+<p><img src="/assets/posts/angr-3-5-blank-199ek8z/assets/1592302350339-fdb3ae66-4f66-472c-a33b-5b15e8d994fd.png" alt="TIM截图20200616181222.png"></p>
+<p>为了对结果设置条件约束，我们需要如下设置：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flag_addr = found.regs.rdi</span><br><span class="line">found.add_constraints(found.memory.load(flag_addr, <span class="number">5</span>) == <span class="built_in">int</span>(binascii.hexlify(<span class="string">b&quot;ASIS&#123;&quot;</span>), <span class="number">16</span>))</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>constraints 名词-&gt;限定，约束<br>binascii.hexlify作用是返回的二进制数据的十六进制表示。每个字节的数据转换成相应的 2 位十六进制表示。因此产生的字符串是原数据的**<span style="color: #F5222D">两倍长度</span>**</p>
+</blockquote>
+<p>这里添加的约束是从 flag_addr 载入的 5bytes 大小的地址中的内容是否和 ASIS{ 一致。</p>
+<p>根据题目条件可以知道flag的长度应该为38(5+32+1)字节，并且的前5个字节是<code>ASIS{</code>,最后一个字节是<code>}</code>其余也都应该是可打印字符,这时可以进行如下约束：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">flag = found.memory.load(flag_addr, <span class="number">40</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>, <span class="number">5</span>+<span class="number">32</span>):</span><br><span class="line">        cond_0 = flag.get_byte(i) &gt;= <span class="built_in">ord</span>(<span class="string">&#x27;0&#x27;</span>)</span><br><span class="line">        cond_1 = flag.get_byte(i) &lt;= <span class="built_in">ord</span>(<span class="string">&#x27;9&#x27;</span>)</span><br><span class="line">        cond_2 = flag.get_byte(i) &gt;= <span class="built_in">ord</span>(<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">        cond_3 = flag.get_byte(i) &lt;= <span class="built_in">ord</span>(<span class="string">&#x27;f&#x27;</span>)</span><br><span class="line">        cond_4 = found.solver.And(cond_0, cond_1)</span><br><span class="line">        cond_5 = found.solver.And(cond_2, cond_3)</span><br><span class="line">        found.add_constraints(found.solver.Or(cond_4, cond_5))</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong><span style="color: #F5222D">可以使用found.memory.load方法来提取内存中的字符串</span></strong></p>
+</blockquote>
+<p>这里就是添加约束了，看起来还蛮好理解的。分别是限制为数字和字母。接下来我们再添加最后一个限制，以 <code>}</code> 结尾：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">found.add_constraints(flag.get_byte(<span class="number">32</span>+<span class="number">5</span>) == <span class="built_in">ord</span>(<span class="string">&#x27;&#125;&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>最后将结果通过<code>eval</code>输出即可.</p>
+<p><code>flag_str = found.solver.eval(flag, cast_to=bytes)</code></p>
+<blockquote>
+<p>实际上，放置较少的约束（例如，仅约束前几个字符）足以获取最终的flag，并且如果约束较少，则 z3 的运行速度更快。我添加了所有约束，只是为了安全起见。</p>
+</blockquote>
+<p>接下来我们用 <code>eval</code> 方法找到 flag 并输出：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flag_str = found.solver.<span class="built_in">eval</span>(flag, cast_to=<span class="built_in">bytes</span>)</span><br><span class="line"><span class="built_in">print</span>(flag_str.rstrip(<span class="string">b&#x27;\0&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<h3 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h3><p>Python rstrip() 删除 string 字符串末尾的指定字符（默认为空格）.</p>
+<h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><p>rstrip()方法语法：</p>
+</blockquote>
+<blockquote>
+<p><span style="color: #000000">str</span><span style="color: #666600">.</span><span style="color: #000000">rstrip</span><span style="color: #666600">([</span><span style="color: #000000">chars</span><span style="color: #666600">])</span></p>
+</blockquote>
+<blockquote>
+<h3 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h3></blockquote>
+<blockquote>
+<ul>
+<li>chars – 指定删除的字符（默认为空格）</li>
+</ul>
+</blockquote>
+<blockquote>
+<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3></blockquote>
+<blockquote>
+<p>返回删除 string 字符串末尾的指定字符后生成的新字符串。</p>
+</blockquote>
+<p>即可得到输出值:</p>
+<p>b’ASIS{f5f7af556bd6973bd6f2687280a243d9}’</p>
+<p>完整脚本如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> angr</span><br><span class="line"><span class="keyword">import</span> binascii</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    p = angr.Project(<span class="string">&quot;fake&quot;</span>, auto_load_libs=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">    state = p.factory.blank_state(addr=<span class="number">0x4004AC</span>)</span><br><span class="line">    inp = state.solver.BVS(<span class="string">&#x27;inp&#x27;</span>, <span class="number">8</span>*<span class="number">8</span>)</span><br><span class="line">    state.regs.rax = inp</span><br><span class="line"></span><br><span class="line">    simgr= p.factory.simulation_manager(state)</span><br><span class="line">    simgr.explore(find=<span class="number">0x400684</span>)</span><br><span class="line">    found = simgr.found[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="comment"># We know the flag starts with &quot;ASIS&#123;&quot;</span></span><br><span class="line">    flag_addr = found.regs.rdi</span><br><span class="line">    found.add_constraints(found.memory.load(flag_addr, <span class="number">5</span>) == <span class="built_in">int</span>(binascii.hexlify(<span class="string">b&quot;ASIS&#123;&quot;</span>), <span class="number">16</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># More constraints: the whole flag should be printable</span></span><br><span class="line">    flag = found.memory.load(flag_addr, <span class="number">40</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>, <span class="number">5</span>+<span class="number">32</span>):</span><br><span class="line">        cond_0 = flag.get_byte(i) &gt;= <span class="built_in">ord</span>(<span class="string">&#x27;0&#x27;</span>)</span><br><span class="line">        cond_1 = flag.get_byte(i) &lt;= <span class="built_in">ord</span>(<span class="string">&#x27;9&#x27;</span>)</span><br><span class="line">        cond_2 = flag.get_byte(i) &gt;= <span class="built_in">ord</span>(<span class="string">&#x27;a&#x27;</span>)</span><br><span class="line">        cond_3 = flag.get_byte(i) &lt;= <span class="built_in">ord</span>(<span class="string">&#x27;f&#x27;</span>)</span><br><span class="line">        cond_4 = found.solver.And(cond_0, cond_1)</span><br><span class="line">        cond_5 = found.solver.And(cond_2, cond_3)</span><br><span class="line">        found.add_constraints(found.solver.Or(cond_4, cond_5))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># And it ends with a &#x27;&#125;&#x27;</span></span><br><span class="line">    found.add_constraints(flag.get_byte(<span class="number">32</span>+<span class="number">5</span>) == <span class="built_in">ord</span>(<span class="string">&#x27;&#125;&#x27;</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># In fact, putting less constraints (for example, only constraining the first </span></span><br><span class="line">    <span class="comment"># several characters) is enough to get the final flag, and Z3 runs much faster </span></span><br><span class="line">    <span class="comment"># if there are less constraints. I added all constraints just to stay on the </span></span><br><span class="line">    <span class="comment"># safe side.</span></span><br><span class="line"></span><br><span class="line">    flag_str = found.solver.<span class="built_in">eval</span>(flag, cast_to=<span class="built_in">bytes</span>)</span><br><span class="line">    <span class="keyword">return</span> flag_str.rstrip(<span class="string">b&#x27;\0&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">#print(&quot;The number to input: &quot;, found.solver.eval(inp))</span></span><br><span class="line">    <span class="comment">#print(&quot;Flag:&quot;, flag)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># The number to input:  25313971399</span></span><br><span class="line">    <span class="comment"># Flag: ASIS&#123;f5f7af556bd6973bd6f2687280a243d9&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>():</span><br><span class="line">    a = main()</span><br><span class="line">    <span class="keyword">assert</span> a == <span class="string">b&#x27;ASIS&#123;f5f7af556bd6973bd6f2687280a243d9&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="keyword">import</span> logging</span><br><span class="line">    logging.getLogger(<span class="string">&#x27;angr.sim_manager&#x27;</span>).setLevel(logging.DEBUG)</span><br><span class="line">    <span class="built_in">print</span>(main())</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%885%EF%BC%89--%E5%AF%B9%E8%BE%93%E5%85%A5%E5%92%8C%E8%BE%93%E5%87%BA%E8%BF%9B%E8%A1%8C%E6%9D%A1%E4%BB%B6%E7%BA%A6%E6%9D%9F%E3%80%81blank%E5%AF%B9%E8%B1%A1/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%885%EF%BC%89--%E5%AF%B9%E8%BE%93%E5%85%A5%E5%92%8C%E8%BE%93%E5%87%BA%E8%BF%9B%E8%A1%8C%E6%9D%A1%E4%BB%B6%E7%BA%A6%E6%9D%9F%E3%80%81blank%E5%AF%B9%E8%B1%A1/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-03/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%886%EF%BC%89--%E5%AF%B9.bss%E5%9C%B0%E5%9D%80%E7%AD%89%E5%9B%BA%E5%AE%9A%E5%9C%B0%E5%9D%80%E5%86%99%E5%85%A5/" title="angr学习（3）：开始实战（6）--对.bss地址等固定地址写入"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">angr学习（3）：开始实战（6）--对.bss地址等固定地址写入</div></div><div class="info-2"><div class="info-item-1">angr学习（3）：开始实战（6）–对.bss地址等固定地址写入对于.bss段等固定地址的变量我们可以利用直接claripy地址写入，进行state初始化。 下面我通过一个例子进行简单说明。 例题来自于sym-write:https://github.com/angr/angr-doc/tree/master/examples/sym-write 将文件下载下来之后,载入IDA,来的main函数:  看一下它的伪代码吧: 12345678910111213141516171819202122int __cdecl main(int argc, const char **argv, const char **envp)&#123;  _BOOL4 v3; // eax  signed int i; // [esp+0h] [ebp-18h]  int v6; // [esp+4h] [ebp-14h]  int v7; // [esp+8h] [ebp-10h]  unsigned int v8; // [esp+Ch] [ebp-Ch]  v8 = __readgsdword(0...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/angr%E5%9C%A8%E9%80%86%E5%90%91%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8%EF%BC%88%E6%96%87%E7%AB%A0%E6%94%B9%E5%8A%A8%E8%87%AA%E5%85%88%E7%9F%A5%E7%A4%BE%E5%8C%BA%EF%BC%89/angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%884%EF%BC%89--%E5%90%91%E6%A0%87%E5%87%86%E8%BE%93%E5%85%A5%E6%B5%81%E4%B8%AD%E8%AE%BE%E7%BD%AE%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6%E3%80%81C++%E6%A0%87%E5%87%86%E5%BA%93%E3%80%81run%E6%96%B9%E6%B3%95/" title="angr学习（3）：开始实战（4）--向标准输入流中设置约束条件、C++标准库、run方法"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">angr学习（3）：开始实战（4）--向标准输入流中设置约束条件、C++标准库、run方法</div></div><div class="info-2"><div class="info-item-1">angr学习（3）：开始实战（4）–向标准输入流中设置约束条件、C++标准库、run方法 本章存疑：flag_chars &#x3D; [claripy.BVS(‘flag_%d’ % i, 8) for i in range(28)]这条语句中的’flag_%d’ % i是什么意思？for循环前可以添加语句？  欢迎回来，接下来我们使用angr的官方例题csaw_wyvern来演示： https://github.com/angr/angr-doc/tree/master/examples/csaw_wyvern 我们首先来看一下官方的解题脚本： 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849#!/usr/bin/env python# coding: utf-8import angrimport claripyimport timedef main():    # Load the binary. This is a 64-bit C++ bin...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#angr%E5%AD%A6%E4%B9%A0%EF%BC%883%EF%BC%89%EF%BC%9A%E5%BC%80%E5%A7%8B%E5%AE%9E%E6%88%98%EF%BC%885%EF%BC%89%E2%80%93%E5%AF%B9%E8%BE%93%E5%85%A5%E5%92%8C%E8%BE%93%E5%87%BA%E8%BF%9B%E8%A1%8C%E6%9D%A1%E4%BB%B6%E7%BA%A6%E6%9D%9F%E3%80%81blank%E5%AF%B9%E8%B1%A1"><span class="toc-number">1.</span> <span class="toc-text">angr学习（3）：开始实战（5）–对输入和输出进行条件约束、blank对象</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%8F%E8%BF%B0"><span class="toc-number">1.1.</span> <span class="toc-text">描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AD%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E6%95%B0"><span class="toc-number">1.3.</span> <span class="toc-text">参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="toc-number">1.4.</span> <span class="toc-text">返回值</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

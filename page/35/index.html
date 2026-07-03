@@ -1,0 +1,365 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Cyberangel 的博客">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cyberangel&#39;s Blog">
+<meta property="og:url" content="https://elydemiurge.github.io/page/35/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="Cyberangel 的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://elydemiurge.github.io/img/butterfly-icon.png">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://elydemiurge.github.io/img/butterfly-icon.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/page/35/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Cyberangel\'s Blog',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Cyberangel's Blog</h1><div id="site-subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC3%E7%AB%A0%20%E5%B0%8F%E7%AB%AF%E5%BA%8F%E6%A0%87%E8%AE%B0%E6%B3%95/" title="第3章 小端序标记法"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="第3章 小端序标记法"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC3%E7%AB%A0%20%E5%B0%8F%E7%AB%AF%E5%BA%8F%E6%A0%87%E8%AE%B0%E6%B3%95/" title="第3章 小端序标记法">第3章 小端序标记法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-07T01:46:02.000Z" title="发表于 2020-02-07 09:46:02">2020-02-07</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="content">第3章 小端序标记法计算机领域中，字节序（Byte Ordering)是多字节数据在计算机内存中存储或网络传输时各字节的存储顺序，主要分为两大类，一类是小端序（Little endian)，另一类是大端序（Big endian)。 3.1字节序如前所言，字节序是多字节数据在计算机内存中存放的字节顺序，它是学习程序调试技术必须掌握的基本概念之一。字节序主要分为小端序与大端序两大类。请先看如下一段简单的示例代码。 代码3-1： BYTE b&#x3D;0x12； WORD W&#x3D;0×1234； DWORD dw &#x3D;0×12345678； char str[]&#x3D;”abcde”; 以上代码中共有4种数据类型，它们大小不同。下面看看同一个数据根据不同字节序保存时有何不同。 表3-1 大端序与小端序的不同    TYPE（类型） Name（名称） SIZE（大小） 大端序类型 小端序类型    BYTE b 1 [12] [12]   WORD w 2 [12][34] [34][12]   DWORD dw 4 [12][34][56][78] [78][56]...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC2%E7%AB%A0%20%E9%80%86%E5%90%91%E5%88%86%E6%9E%90Hello%20World!%E7%A8%8B%E5%BA%8F/" title="第2章 逆向分析Hello World!程序"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="第2章 逆向分析Hello World!程序"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC2%E7%AB%A0%20%E9%80%86%E5%90%91%E5%88%86%E6%9E%90Hello%20World!%E7%A8%8B%E5%BA%8F/" title="第2章 逆向分析Hello World!程序">第2章 逆向分析Hello World!程序</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-06T02:18:40.000Z" title="发表于 2020-02-06 10:18:40">2020-02-06</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="content">第2章 逆向分析Hello World!程序“Hello World!”程序大概是世界上最有名的程序了，下面调试“Hello World!”程序来开始学习逆向分析技术的旅程，希望大家能从中切身体验到逆向分析的乐趣。 2.1 Hello World!程序学过编程的人编写的第一个程序大概都是“Hello World!”，如图2-1所示。这个程序非常简洁，每当看到“Hello World!”的源码，都会让人回想起初次学习编程语言的情景，以及当时成功运行时的感动与兴奋。下面，我们也将通过逆向分析“HelloWorld!”程序来开始学习，它非常简单，很适合做入门例题。  首先在Visual C++中打开HelloWorld项目，如图2-2所示。  在工具栏的“解决方案配置”中选择“Release”，在“生成”菜单中单击“生成HelloWorld”，即可创建出HelloWorld.exe可执行文件（选择“Release”模式生成可执行文件，将使程序代码更加简洁，方便调试）。 提示—————————————————————————————————————— 不熟悉VisualC++开发工具的读...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC1%E7%AB%A0%20%E5%85%B3%E4%BA%8E%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" title="第1章 关于逆向工程"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="第1章 关于逆向工程"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC1%E7%AB%A0%20%E5%85%B3%E4%BA%8E%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" title="第1章 关于逆向工程">第1章 关于逆向工程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-06T01:41:24.000Z" title="发表于 2020-02-06 09:41:24">2020-02-06</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="content">第1章 关于逆向工程1.1逆向工程逆向工程（Reverse Engineering，简称RE）一般指，通过分析物体、机械设备或系统，了解其结构、功能、行为等，掌握其中原理并改善不足之处、添加新创意的一系列过程。 1.2代码逆向工程代码逆向工程（Reverse Code Engineering，简称RCE)是逆向工程在软件领域中的应用，目前还没有准确而统一的术语，实际交流中经常出现混用的情况，常用术语有RCE、RE、逆向工程等，使用起来较为随意。 本书中将统一使用RCE、RE，或为了方便起见，直接使用逆向工程、逆向分析等表达。从个人的喜好来说，我更喜欢使用“分析”或“深入分析”这样的词语，后续内容中将大量出现，因为对软件的逆向工程实质就是对软件进行深入细致的分析。 1.2.1逆向分析法分析可执行文件时使用的方法大致分为两种：静态分析法和动态分析法。 1、静态分析法 静态分析法是在不执行代码文件的情形下，对代码进行静态分析的一种方法。静态分析时并不执行代码，而是观察代码文件的外部特征，获取文件的类型（EXE、DLI、DOC、ZIP等）、大小、PE头信息、Import&#x2F;Exp...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-advance%EF%BC%88base64%E6%8D%A2%E8%A1%A8%EF%BC%89/" title="2020HGame-Week1-advance（base64换表）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2020HGame-Week1-advance（base64换表）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-advance%EF%BC%88base64%E6%8D%A2%E8%A1%A8%EF%BC%89/" title="2020HGame-Week1-advance（base64换表）">2020HGame-Week1-advance（base64换表）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-05T03:48:32.000Z" title="发表于 2020-02-05 11:48:32">2020-02-05</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Reverse-PWN-CTFWriteUp/">Reverse &amp; PWN - CTFWriteUp</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Reverse-PWN-CTFWriteUp/Reverse/">Reverse</a></span></div><div class="content">2020HGame-Week1-advance（base64换表）参考资料： https://www.cnblogs.com/sylar-liang/p/4567792.html https://www.cnblogs.com/dyhaohaoxuexi/p/11025985.html wp说是base64换表，那就是base64换表，反正也不会。。。  python代码：（网上抄的）import**** base64 import string str1 &#x3D; “0g371wvVy9qPztz7xQ+PxNuKxQv74B&#x2F;5n&#x2F;zwuPfX”#待解密的字符串 string1 &#x3D; “abcdefghijklmnopqrstuvwxyz0123456789+&#x2F;ABCDEFGHIJKLMNOPQRSTUVWXYZ”#base64换过之后的表 string2 &#x3D; “ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+&#x2F;“#默认表，无需改动 pr...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-maze%EF%BC%88%E8%B5%B0%E8%BF%B7%E5%AE%AB%EF%BC%89/" title="2020HGame-Week1-maze（走迷宫）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2020HGame-Week1-maze（走迷宫）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week1-maze%EF%BC%88%E8%B5%B0%E8%BF%B7%E5%AE%AB%EF%BC%89/" title="2020HGame-Week1-maze（走迷宫）">2020HGame-Week1-maze（走迷宫）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-04T07:33:30.000Z" title="发表于 2020-02-04 15:33:30">2020-02-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Reverse-PWN-CTFWriteUp/">Reverse &amp; PWN - CTFWriteUp</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Reverse-PWN-CTFWriteUp/Reverse/">Reverse</a></span></div><div class="content">2020HGame-Week1-maze（走迷宫）学习资料：https://ctf-wiki.github.io/ctf-wiki/reverse/maze/maze-zh/  首先查壳：  没有壳，将文件载入到IDA中，查看main函数的伪代码：（该按的地方按下R键）  **void __fastcall __noreturn main(__int64 a1, char **a2, char a3) {   signed int v3;       &#x2F;&#x2F; eax   __int64 v4;          &#x2F;&#x2F; [rsp+0h] [rbp-80h] **  char v5;            &#x2F;&#x2F; [rsp+8h] [rbp-78h]*   char s[48];          &#x2F;&#x2F; [rsp+10h] [rbp-70h]   char v7;             &#x2F;&#x2F; [rsp+40h] [rbp-40h]   unsigned __int64 v8; &#x2F...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week3-%E4%B8%89%E9%87%8D%E9%9A%90%E5%86%99%EF%BC%88%E4%B8%89%E9%87%8D%E9%9F%B3%E9%A2%91%E9%9A%90%E5%86%99%EF%BC%89/" title="2020HGame-Week3-三重隐写（三重音频隐写）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2020HGame-Week3-三重隐写（三重音频隐写）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week3-%E4%B8%89%E9%87%8D%E9%9A%90%E5%86%99%EF%BC%88%E4%B8%89%E9%87%8D%E9%9F%B3%E9%A2%91%E9%9A%90%E5%86%99%EF%BC%89/" title="2020HGame-Week3-三重隐写（三重音频隐写）">2020HGame-Week3-三重隐写（三重音频隐写）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-04T02:36:29.000Z" title="发表于 2020-02-04 10:36:29">2020-02-04</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><div class="content">2020HGame-Week3-三重隐写（三重音频隐写） 打开压缩包，有三个音频文件、一个flag压缩包和一个可执行文件 首先先看You know LSB.wav 文件名提示“你知道LSB（隐写）吗？” 打开SilentEye，将文件载入解密得到：  Stegano key: uFSARLVNwVIewCY5 再看：上裏与手抄卷.mp3 既然上述步骤得到了Stegano key: uFSARLVNwVIewCY5，那就接下来试试MP3Stego 在MP3Stego文件夹下执行命令：Decode.exe -X -PuFSARLVNwVIewCY5上裏与手抄卷.mp3  打开上裏与手抄卷.mp3.txt得到：Zip Password: VvLvmGjpJ75GdJDP zip成功解密 执行EncryptoforWin.exe安装软件，它自动关联了压缩包内的flag.crypto  再将Unlasting.mp3图标放到最大可以得到：  扫码：https://online-barcode-reader.inliteresearch.com/  AES key: 1ZmmeaLL^Typ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-Cosmos%E7%9A%84%E5%8D%88%E9%A4%90%EF%BC%88HTTPS%E6%B5%81%E9%87%8F%E8%A7%A3%E5%AF%86%E3%80%81%E5%9B%BE%E7%89%87Outguess%E9%9A%90%E5%86%99%E3%80%81%E5%9B%BE%E7%89%87%E5%A4%87%E6%B3%A8%E8%97%8F%E4%BF%A1%E6%81%AF%E3%80%81%E5%9B%BE%E5%BD%A2%E4%BA%8C%E7%BB%B4%E7%A0%81%EF%BC%89/" title="2020HGame-Week2-Cosmos的午餐（HTTPS流量解密、图片Outguess隐写、图片备注藏信息、图形二维码）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2020HGame-Week2-Cosmos的午餐（HTTPS流量解密、图片Outguess隐写、图片备注藏信息、图形二维码）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-Cosmos%E7%9A%84%E5%8D%88%E9%A4%90%EF%BC%88HTTPS%E6%B5%81%E9%87%8F%E8%A7%A3%E5%AF%86%E3%80%81%E5%9B%BE%E7%89%87Outguess%E9%9A%90%E5%86%99%E3%80%81%E5%9B%BE%E7%89%87%E5%A4%87%E6%B3%A8%E8%97%8F%E4%BF%A1%E6%81%AF%E3%80%81%E5%9B%BE%E5%BD%A2%E4%BA%8C%E7%BB%B4%E7%A0%81%EF%BC%89/" title="2020HGame-Week2-Cosmos的午餐（HTTPS流量解密、图片Outguess隐写、图片备注藏信息、图形二维码）">2020HGame-Week2-Cosmos的午餐（HTTPS流量解密、图片Outguess隐写、图片备注藏信息、图形二维码）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-03T07:26:05.000Z" title="发表于 2020-02-03 15:26:05">2020-02-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><div class="content">2020HGame-Week2-Cosmos的午餐（HTTPS流量解密、图片Outguess隐写、图片备注藏信息、图形二维码）先送一个链接：http://www.2cto.com/article/201502/377678.html   为了满足我的好奇心，我们不使用ssl_log.log，看看会发生什么 打开文件后先按照Length排序  选中第一个-&gt;右键-&gt;追踪流-&gt;TLS流（不是TCP流）  看来是做不出来  按照wp的思路上走： 将文件解压得到Capture.pcapng和ssl_log.log，用wireshark载入文件 打开数据包，不难发现其中多数为HTTPS&#x2F;TLS协议的数据包。因此考虑到将流量解密。 wp提示是SSL流量加密。 在wireshark中：编辑-&gt;首选项-&gt;Protocols-&gt;SSL 你说找不到SSL选项？ ——————————————————————————————————————————- 资料： 用过wireshark的人都知道，抓取https的包需要配置一下sslkey.log环境变量。到编辑...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-%E7%8E%A9%E7%8E%A9%E6%9D%A1%E7%A0%81%EF%BC%88%E6%97%A5%E6%9C%AC%E9%82%AE%E6%94%BF%E6%9D%A1%E7%A0%81%EF%BC%88%E5%9F%BA%E7%A1%80%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86%EF%BC%89%E3%80%81Code128%E6%9D%A1%E7%A0%81%E3%80%81%E8%A7%86%E9%A2%91%E9%9A%90%E5%86%99%EF%BC%88MSU%20StegoVideo%EF%BC%89%EF%BC%89/" title="2020HGame-Week2-玩玩条码（日本邮政条码（基础信息搜集）、Code128条码、视频隐写（MSU StegoVideo））"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2020HGame-Week2-玩玩条码（日本邮政条码（基础信息搜集）、Code128条码、视频隐写（MSU StegoVideo））"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-%E7%8E%A9%E7%8E%A9%E6%9D%A1%E7%A0%81%EF%BC%88%E6%97%A5%E6%9C%AC%E9%82%AE%E6%94%BF%E6%9D%A1%E7%A0%81%EF%BC%88%E5%9F%BA%E7%A1%80%E4%BF%A1%E6%81%AF%E6%90%9C%E9%9B%86%EF%BC%89%E3%80%81Code128%E6%9D%A1%E7%A0%81%E3%80%81%E8%A7%86%E9%A2%91%E9%9A%90%E5%86%99%EF%BC%88MSU%20StegoVideo%EF%BC%89%EF%BC%89/" title="2020HGame-Week2-玩玩条码（日本邮政条码（基础信息搜集）、Code128条码、视频隐写（MSU StegoVideo））">2020HGame-Week2-玩玩条码（日本邮政条码（基础信息搜集）、Code128条码、视频隐写（MSU StegoVideo））</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-03T01:53:54.000Z" title="发表于 2020-02-03 09:53:54">2020-02-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><div class="content">2020HGame-Week2-玩玩条码（日本邮政条码（基础信息搜集）、Code128条码、视频隐写（MSU StegoVideo）） 【参考资料1】：http://virtualdub2.com/ 【参考资料2】：https://sourceforge.net/projects/virtualdubffmpeginputplugin/ ——————————————————————————————————————————- 打开参考资料1的网址：  不想看英语，翻译：  原来是视频编辑器 点击左上角的Documentation &amp; downloads 转到： 单击Files  点击绿色的Download Latest Version ——————————————————————————————————————————- 打开参考资料2的网址： 应该是视频编辑器的插件 二话不说直接download（下载速度太慢，直接开ssr） ——————————————————————————————————————————- 将得到的两个压缩包解压，并且将插件解压到plugins32目...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-%E5%9C%B0%E7%90%83%E4%B8%8A%E6%9C%80%E5%90%8E%E7%9A%84%E5%A4%9C%E6%99%9A%EF%BC%88wbStego%E3%80%81Word%20XML%E9%9A%90%E5%86%99%EF%BC%89/" title="2020HGame-Week2-地球上最后的夜晚（wbStego、Word XML隐写）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2020HGame-Week2-地球上最后的夜晚（wbStego、Word XML隐写）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-%E5%9C%B0%E7%90%83%E4%B8%8A%E6%9C%80%E5%90%8E%E7%9A%84%E5%A4%9C%E6%99%9A%EF%BC%88wbStego%E3%80%81Word%20XML%E9%9A%90%E5%86%99%EF%BC%89/" title="2020HGame-Week2-地球上最后的夜晚（wbStego、Word XML隐写）">2020HGame-Week2-地球上最后的夜晚（wbStego、Word XML隐写）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-03T01:31:51.000Z" title="发表于 2020-02-03 09:31:51">2020-02-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><div class="content">2020HGame-Week2-地球上最后的夜晚（wbStego、Word XML隐写） 下载得到一个未加密的压缩包：  Last Evenings on Earth.7z提示加密且无法查看内容，那么密码应该藏在No password.pdf中 一开始关注到带有颜色的数字，但是方向错了 wp上提示wbStego。。。  由于文件名为：“No password.pdf”，那应该没有密码。（文件名很重要！）  直接单击Continue 得到密码：OmR#O12#b3b%s*IW  解密得到Last Evenings on Earth.docx 打开，大致浏览一下文章，好像没有什么信息 换一种方式：将Last Evenings on Earth.docx改为Last Evenings on Earth.zip，打开它  最终发现secret.xml可疑，打开：  hgame{mkLbn8hP2g!p9ezPHqHuBu66SeDA13u1} </div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-%E6%89%80%E8%A7%81%E5%8D%B3%E4%B8%BA%E5%81%87%EF%BC%88F5%E9%9A%90%E5%86%99%EF%BC%89/" title="2020HGame-Week2-所见即为假（F5隐写）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2020HGame-Week2-所见即为假（F5隐写）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020HGame/2020HGame-Week2-%E6%89%80%E8%A7%81%E5%8D%B3%E4%B8%BA%E5%81%87%EF%BC%88F5%E9%9A%90%E5%86%99%EF%BC%89/" title="2020HGame-Week2-所见即为假（F5隐写）">2020HGame-Week2-所见即为假（F5隐写）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2020-02-03T01:21:05.000Z" title="发表于 2020-02-03 09:21:05">2020-02-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><div class="content">2020HGame-Week2-所见即为假（F5隐写） 首先下载下来的是加密的压缩包，因为没有给任何关于压缩包密码的提示，首先试试伪加密：  利用winrar的修复压缩包进行修复：  由于在压缩包内给出了：“F5 key: NllD7CQon6dBsFLr” 下载工具：git clone https://github.com/matthewgao/F5-steganography.git 将图片解压出来利用key解密： java Extract -p NllD7CQon6dBsFLr -e out.txt FLAG_IN_PICTURE.jpg 得到out.txt 526172211A0701003392B5E50A01050600050101808000B9527AEA2402030BA70004A70020CB5BDC2D80000008666C61672E7478740A03029A9D6C65DFCED5016867616D657B343038375E7A236D737733344552746E46557971704B556B32646D4C505736307D1D775...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/34/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/34/#content-inner">34</a><span class="page-number current">35</span><a class="page-number" href="/page/36/#content-inner">36</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/#content-inner">47</a><a class="extend next" rel="next" href="/page/36/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/"><span class="card-category-list-name">Misc - CTFWriteUp</span><span class="card-category-list-count">127</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%E5%88%B7%E9%A2%98/"><span class="card-category-list-name">刷题</span><span class="card-category-list-count">77</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/"><span class="card-category-list-name">比赛</span><span class="card-category-list-count">49</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%EF%BC%88%E5%AD%A6%E6%A0%A1CTF%E6%96%B0%E7%94%9F%E8%B5%9B%EF%BC%89%EF%BC%88%E7%BB%9D%E5%AF%86%E5%AF%86%E6%96%87%EF%BC%89%E8%BF%99%E4%BB%96%E5%96%B5%E7%9A%84%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%EF%BC%88ASCII%E8%A7%84%E5%BE%8B%EF%BC%89/"><span class="card-category-list-name">（学校CTF新生赛）（绝密密文）这他喵的到底是什么？（ASCII规律）</span><span class="card-category-list-count">1</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/"><span class="card-category-list-name">Reverse & PWN - CTFWriteUp</span><span class="card-category-list-count">116</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/PWN/"><span class="card-category-list-name">PWN</span><span class="card-category-list-count">8</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/Reverse/"><span class="card-category-list-name">Reverse</span><span class="card-category-list-count">108</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/"><span class="card-category-list-name">公开知识库</span><span class="card-category-list-count">224</span></a></li>
+          </ul></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/12/">
+            <span class="card-archive-list-date">
+              十二月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/11/">
+            <span class="card-archive-list-date">
+              十一月 2022
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/10/">
+            <span class="card-archive-list-date">
+              十月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/07/">
+            <span class="card-archive-list-date">
+              七月 2022
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/01/">
+            <span class="card-archive-list-date">
+              一月 2022
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2021/12/">
+            <span class="card-archive-list-date">
+              十二月 2021
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2021/11/">
+            <span class="card-archive-list-date">
+              十一月 2021
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">467</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">850.9k</div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-07-03T14:46:23.043Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"><script>window.typedJSFn = {
+  init: str => {
+    window.typed = new Typed('#subtitle', Object.assign({
+      strings: str,
+      startDelay: 300,
+      typeSpeed: 150,
+      loop: true,
+      backSpeed: 50,
+    }, null))
+  },
+  run: subtitleType => {
+    if (true) {
+      if (typeof Typed === 'function') {
+        subtitleType()
+      } else {
+        btf.getScript('https://cdn.jsdelivr.net/npm/typed.js@3.0.0/dist/typed.umd.min.js').then(subtitleType)
+      }
+    } else {
+      subtitleType()
+    }
+  },
+  processSubtitle: (content, extraContents = []) => {
+    if (true) {
+      const sub = ["Cyberangel 的博客"].slice()
+
+      if (extraContents.length > 0) {
+        sub.unshift(...extraContents)
+      }
+
+      if (typeof content === 'string') {
+        sub.unshift(content)
+      } else if (Array.isArray(content)) {
+        sub.unshift(...content)
+      }
+
+      sub.length > 0 && typedJSFn.init(sub)
+    } else {
+      document.getElementById('subtitle').textContent = typeof content === 'string' ? content :
+        (Array.isArray(content) && content.length > 0 ? content[0] : '')
+    }
+  }
+}
+btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+</script><script>function subtitleType () {
+  typedJSFn.processSubtitle(["Cyberangel 的博客"])
+}
+typedJSFn.run(subtitleType)</script></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

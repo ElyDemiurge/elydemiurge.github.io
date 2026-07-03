@@ -1,0 +1,297 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>第24章 DLL卸载 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="第24章 DLL卸载DLL卸载（DLLEjection)是将强制插入进程的DLL弹出的一种技术，其基本工作原理与使用CreateRemoteThreadAPI进行DLL注入的原理类似。 24.1DLL卸载的工作原理前面我们学习过使用CreateRemote Thread()API进行DLL注入的工作原理，概括如下：  驱使目标进程调用LoadLibrary()API  同样，DLL卸载工作原理也非">
+<meta property="og:type" content="article">
+<meta property="og:title" content="第24章 DLL卸载">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC24%E7%AB%A0%20DLL%E5%8D%B8%E8%BD%BD/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="第24章 DLL卸载DLL卸载（DLLEjection)是将强制插入进程的DLL弹出的一种技术，其基本工作原理与使用CreateRemoteThreadAPI进行DLL注入的原理类似。 24.1DLL卸载的工作原理前面我们学习过使用CreateRemote Thread()API进行DLL注入的工作原理，概括如下：  驱使目标进程调用LoadLibrary()API  同样，DLL卸载工作原理也非">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-07/800/450">
+<meta property="article:published_time" content="2020-02-19T07:12:43.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.430Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-07/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第24章 DLL卸载",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC24%E7%AB%A0%20DLL%E5%8D%B8%E8%BD%BD/",
+  "image": "https://picsum.photos/seed/blog-cover-07/800/450",
+  "datePublished": "2020-02-19T07:12:43.000Z",
+  "dateModified": "2026-07-03T14:46:17.430Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC24%E7%AB%A0%20DLL%E5%8D%B8%E8%BD%BD/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '第24章 DLL卸载',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-07/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">第24章 DLL卸载</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">第24章 DLL卸载</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-02-19T07:12:43.000Z" title="发表于 2020-02-19 15:12:43">2020-02-19</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.430Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="第24章-DLL卸载"><a href="#第24章-DLL卸载" class="headerlink" title="第24章 DLL卸载"></a>第24章 DLL卸载</h1><p>DLL卸载（DLLEjection)是将强制插入进程的DLL弹出的一种技术，其基本工作原理与使用CreateRemoteThreadAPI进行DLL注入的原理类似。</p>
+<h2 id="24-1DLL卸载的工作原理"><a href="#24-1DLL卸载的工作原理" class="headerlink" title="24.1DLL卸载的工作原理"></a>24.1DLL卸载的工作原理</h2><p>前面我们学习过使用CreateRemote Thread()API进行DLL注入的工作原理，概括如下：</p>
+<blockquote>
+<p>驱使目标进程调用LoadLibrary()API</p>
+</blockquote>
+<p>同样，DLL卸载工作原理也非常简单：</p>
+<blockquote>
+<p>驱使目标进程调用FreeLibrary()API</p>
+</blockquote>
+<p>也就是说，将FreeLibrary()API的地址传递给CreateRemote Thread()的IpStartAddress参数，并把要卸载的DLL的句柄传递给IpParameter参数。</p>
+<p>提示——————————————————————————————————————</p>
+<p>每个Windows内核对象（KernelObject)都拥有一个<strong>引用计数（Reference Count)</strong>，代表对象被使用的次数。调用10次<strong>LoadLibrary</strong>（“a.dll”），a.dll的引用计数就变为10，卸载a.dll时同样需要调用10次<strong>Freelibrary</strong>）（每调用一次LoadLibrary），引用计数会加1；而每调用一次Freelibrary()，引用计数会减1）。因此，卸载DLL时要充分考虑好“引用计数”这个因素。</p>
+<hr>
+<h2 id="24-2实现DLL卸载"><a href="#24-2实现DLL卸载" class="headerlink" title="24.2实现DLL卸载"></a>24.2实现DLL卸载</h2><p>提示——————————————————————————————————————</p>
+<p>下面介绍的源代码使用Microsoft Visual C++Express2010编写而成，并在WindowsXP&#x2F;7 32位系统中通过测试。</p>
+<hr>
+<p>首先分析一下EjectDll.exe程序，它用来从目标进程（notepad.exe)卸载指定的DLL文件（myhack.dll，已注入目标进程），程序源代码（EjectDll.cpp）如下所示。</p>
+<p><img src="/assets/posts/24-dll-10dhfnn/assets/1582096938301-12ce5cae-ac44-4411-b3c4-97c765247309.png" alt="QQ截图20200219152016.png"><img src="/assets/posts/24-dll-10dhfnn/assets/1582096939760-d3c2269b-0c27-4e5d-ada1-4da23d18ecf7.png" alt="QQ截图20200219152031.png"><img src="/assets/posts/24-dll-10dhfnn/assets/1582096943082-255faeed-cbb4-49a0-a6ff-f84ff919a735.png" alt="QQ截图20200219152059.png"><img src="/assets/posts/24-dll-10dhfnn/assets/1582096944205-d89df3c3-1938-4a84-9dcc-b92cffeefe9c.png" alt="QQ截图20200219152115.png"><img src="/assets/posts/24-dll-10dhfnn/assets/1582096945417-c2bb1bbb-3715-48b5-afae-5c44230632ff.png" alt="QQ截图20200219152139.png"><img src="/assets/posts/24-dll-10dhfnn/assets/1582096946423-54a1bc67-9aa9-4904-aab6-bd40c56e0a11.png" alt="QQ截图20200219152203.png"></p>
+<p>前面介绍过，卸载DLL的原理是驱使目标对象自己调用FreeLibrary0API，上述代码中的EjectDllO函数就是用来卸载DLL的。下面仔细分析一下EjectDll0函数。</p>
+<h3 id="24-2-1获取进程中加载的DLL信息"><a href="#24-2-1获取进程中加载的DLL信息" class="headerlink" title="24.2.1获取进程中加载的DLL信息"></a>24.2.1获取进程中加载的DLL信息</h3><blockquote>
+<p>hsnapshot&#x3D;CreateToolhelp32Snapshot(TH32CS_SNAPMODULE,dwPID);</p>
+</blockquote>
+<p>使用Create Toolhelp32Snapshot()API可以获取加载到进程的模块（DLL）信息。将获取的hSnapshot句柄传递给Module32First()&#x2F;Module32Next()函数后，即可设置与MODULEENTRY32结构体相关的模块信息。代码24-2是MODULEENTRY32结构体的定义。</p>
+<p><img src="/assets/posts/24-dll-10dhfnn/assets/1582097093937-95032a41-1f2f-482f-8d78-35c1029a5e13.png" alt="QQ截图20200219152433.png"><img src="/assets/posts/24-dll-10dhfnn/assets/1582097094974-0d7dd360-cf68-4aff-9e84-1e28eced0a42.png" alt="QQ截图20200219152441.png"></p>
+<p>szModule成员表示DLL的名称，modBaseAddr成员表示相应DLL被加载的地址（进程虚拟内存）。在EjectDll()函数的for循环中比较szModule与希望卸载的DLL文件名称，能够准确查找到相应模块的信息。</p>
+<h3 id="24-2-2获取目标进程的句柄"><a href="#24-2-2获取目标进程的句柄" class="headerlink" title="24.2.2获取目标进程的句柄"></a>24.2.2获取目标进程的句柄</h3><blockquote>
+<p>hProcess&#x3D;openProcess(PROCESS_ALL _ACCESS,FALSE,dWPID);</p>
+</blockquote>
+<p>该语句使用进程ID来获取目标进程（notepad）的进程句柄（下面用获得的进程句柄调用CreateRemote Thread()API)。</p>
+<h3 id="24-2-3获取FreeLibrary-API地址"><a href="#24-2-3获取FreeLibrary-API地址" class="headerlink" title="24.2.3获取FreeLibrary()API地址"></a>24.2.3获取FreeLibrary()API地址</h3><blockquote>
+<p>hModule&#x3D;GetModuleHandle(L”kernel32.dll”);<br>pThreadProc&#x3D;(LPTHREAD_START_ROUTINE)GetProcAddress(hModule,”FreeLibrary”);</p>
+</blockquote>
+<p>若要驱使notepad进程自己调用FreeLibrary()API，需要先得到FreeLibrary()的地址。然而上述代码获取的不是加载到notepad.exe进程中的Kernel32!FreeLibrary地址，而是加载到EjectDll.exe进程中的Kernel32!FreeLibrary地址。如果理解了前面学过的有关DLL注入的内容，那么各位应该能 猜出其中缘由——FreeLibrary地址在所有进程中都是相同的。</p>
+<h3 id="24-2-4在目标进程中运行线程"><a href="#24-2-4在目标进程中运行线程" class="headerlink" title="24.2.4在目标进程中运行线程"></a>24.2.4在目标进程中运行线程</h3><blockquote>
+<p>hThread&#x3D;CreateRemoteThread(hProcess,NULL,0,pThreadProc,me.modBaseAddr,0,NULL)；</p>
+</blockquote>
+<p>pThreadProc参数是FreeLibrary()API的地址，me.modBaseAddr参数是要卸载的DLL的加载地址。将线程函数指定为FreeLibrary函数，并把DLL加载地址传递给线程参数，这样就在目标进程中成功调用了FreeLibrary()API（CreateRemote Thread()API原意是在外部进程调用执行线程函数，只不过这里的线程函数换成了FreeLibrary()函数）。</p>
+<p><img src="/assets/posts/24-dll-10dhfnn/assets/1582097617446-1c27d418-214d-476c-9e93-7b4193516e4c.png" alt="QQ截图20200219153324.png"></p>
+<p>ThreadProc函数与FreeLibrary函数都只有1个参数，以上方法的灵感即源于此。</p>
+<h2 id="24-3DLL卸载练习"><a href="#24-3DLL卸载练习" class="headerlink" title="24.3DLL卸载练习"></a>24.3DLL卸载练习</h2><p>本节一起做个练习，先将myhack.dll注入notepad.exe进程，随后再将其卸载。</p>
+<h3 id="24-3-1复制文件及运行notepad-exe"><a href="#24-3-1复制文件及运行notepad-exe" class="headerlink" title="24.3.1复制文件及运行notepad.exe"></a>24.3.1复制文件及运行notepad.exe</h3><p>首先，复制下面3个文件到工作文件p夹（c:\work），如图24-1所示。</p>
+<p><img src="/assets/posts/24-dll-10dhfnn/assets/1582098019282-d7281ed3-55dd-43be-8a1f-65d78cdd3116.png" alt="QQ截图20200219154009.png"></p>
+<p>然后，运行notepad.exe并查看其PID，如图24-2所示。</p>
+<p><img src="/assets/posts/24-dll-10dhfnn/assets/1582098062088-56c24f3b-34a7-4974-a332-c69ca325364d.png" alt="QQ截图20200219154053.png"></p>
+<p>我的电脑环境中，notepad.exe的PID为2832。</p>
+<h3 id="24-3-2注入myhack-dll"><a href="#24-3-2注入myhack-dll" class="headerlink" title="24.3.2注入myhack.dll"></a>24.3.2注入myhack.dll</h3><p>打开命令行窗口（cmd.exe)，输入如下参数，将myhack.dll文件注入notepad.exe进程，如图24-3所示。</p>
+<p><img src="/assets/posts/24-dll-10dhfnn/assets/1582098161983-3089632c-b464-4b7b-91e5-5335dcfc477e.png" alt="QQ截图20200219154219.png"></p>
+<p>可以在Process Explorer中看到myhack.dll注入成功，如图24-4所示。</p>
+<p><img src="/assets/posts/24-dll-10dhfnn/assets/1582098222038-5d65acdb-5154-4d54-81e7-7a5f5799f29d.png" alt="QQ截图20200219154333.png"></p>
+<h3 id="24-3-3卸载myhack-dll"><a href="#24-3-3卸载myhack-dll" class="headerlink" title="24.3.3卸载myhack.dll"></a>24.3.3卸载myhack.dll</h3><p>打开命令行窗口（cmd.exe)，输入如下参数，将注入notepad.exe进程的myhack.dll文件卸载下来，如图24-5所示。</p>
+<p><img src="/assets/posts/24-dll-10dhfnn/assets/1582098280829-7de6b9d5-4a23-4480-bfb2-f2a92e8e2959.png" alt="QQ截图20200219154430.png"></p>
+<p>请使用Process Explorer查看是否成功卸载。DLL卸载的基本原理与DLL注入的原理相同，理解起来非常容易。请各位认真阅读上面的内容并亲自操作。</p>
+<h2 id="Q-A"><a href="#Q-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><p>Q.使用FreeLibrary()卸载DLL的方法好像仅适用于使用CreateRemote Thread()注入的DLL文件，有没有什么方法可以将加载的普通DLL文件卸载下来呢?</p>
+<p>A.正如您所说，使用FreeLibrary()的方法仅适用于卸载自己强制注入的DLL文件。PE文件直接导入的DLL文件是无法在进程运行过程中卸载的。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC24%E7%AB%A0%20DLL%E5%8D%B8%E8%BD%BD/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC24%E7%AB%A0%20DLL%E5%8D%B8%E8%BD%BD/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-07/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC25%E7%AB%A0%20%E9%80%9A%E8%BF%87%E4%BF%AE%E6%94%B9PE%E5%8A%A0%E8%BD%BDDLL/" title="第25章 通过修改PE加载DLL"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">第25章 通过修改PE加载DLL</div></div><div class="info-2"><div class="info-item-1">第25章 通过修改PE加载DLL除了前面讲过的DLL动态注入技术外，还可以采用“手工修改可执行文件”的方式加载用户指定的DLL文件，本章将向各位介绍这种方法。学习这种技术前，首先要掌握有关PE文件格式的知识。 前面我们学过向“运行中的进程”强制注入指定DLL文件的方法。下面我们将换用另外一种方法，通过“直接修改目标程序的可执行文件”，使其运行时强制加载指定的DLL文件。这种方法只要应用过一次后（不需要另外的注入操作），每当进程开始运行时就会自动加载指定的DLL文件。其实，这是一种破解的方法。 25.1练习文件本节将做个简单练习以帮助大家更好地理解要学习的内容。我们的目标是，直接修改TextView.exe文件，使其在运行时自动加载myhack3.dll文件（这需要各位事先掌握修改PE文件头的相关知识与技术）。 25.1.1 TextView.exeTextView.exe是一个非常简单的文本查看程序，只要用鼠标将要查看的文本文件（myhack3.cpp）拖动（Drop）到其中，即可通过它查看文本文件的内容，如图25-1所示。  各位可将任意一个文本文件拖入其中测试。接下来，使用P...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/%E3%80%8A%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E3%80%8B%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/%E7%AC%AC23%E7%AB%A0%20DLL%E6%B3%A8%E5%85%A5/" title="第23章 DLL注入"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">第23章 DLL注入</div></div><div class="info-2"><div class="info-item-1">第23章 DLL注入DLL注入（DLL Injection)是渗透其他进程的最简单有效的方法，本章将详细讲解DLL注入的有关内容。借助DLL注入技术，可以钩取API、改进程序、修复Bug等。 23.1 DLL注入DLL注入指的是向运行中的其他进程强制插入特定的DLL文件。从技术细节来说，DLL注入命令其他进程自行调用LoadLibrary）API，加载（Loading)用户指定的DLL文件。DLL注入与一般DLL加载的区别在于，加载的目标进程是其自身或其他进程。图23-1描述了DLL注入的概念。  从图23-1中可以看到，myhack.dll已被强制插入notepad进程（本来notepad并不会加载myhack.dll）。加载到notepad.exe进程中的myhack.dll与已经加载到notepad.exe进程中的DLL（kernel32.dll、user32.dll)一样，拥有访问notepad.exe进程内存的（正当的）权限，这样用户就可以做任何想做的事了（比如：向notepad添加通信功能以实现Messenger、文本网络浏览器等）。 DLL（Dynamic Link...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC24%E7%AB%A0-DLL%E5%8D%B8%E8%BD%BD"><span class="toc-number">1.</span> <span class="toc-text">第24章 DLL卸载</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#24-1DLL%E5%8D%B8%E8%BD%BD%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">24.1DLL卸载的工作原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#24-2%E5%AE%9E%E7%8E%B0DLL%E5%8D%B8%E8%BD%BD"><span class="toc-number">1.2.</span> <span class="toc-text">24.2实现DLL卸载</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#24-2-1%E8%8E%B7%E5%8F%96%E8%BF%9B%E7%A8%8B%E4%B8%AD%E5%8A%A0%E8%BD%BD%E7%9A%84DLL%E4%BF%A1%E6%81%AF"><span class="toc-number">1.2.1.</span> <span class="toc-text">24.2.1获取进程中加载的DLL信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#24-2-2%E8%8E%B7%E5%8F%96%E7%9B%AE%E6%A0%87%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%8F%A5%E6%9F%84"><span class="toc-number">1.2.2.</span> <span class="toc-text">24.2.2获取目标进程的句柄</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#24-2-3%E8%8E%B7%E5%8F%96FreeLibrary-API%E5%9C%B0%E5%9D%80"><span class="toc-number">1.2.3.</span> <span class="toc-text">24.2.3获取FreeLibrary()API地址</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#24-2-4%E5%9C%A8%E7%9B%AE%E6%A0%87%E8%BF%9B%E7%A8%8B%E4%B8%AD%E8%BF%90%E8%A1%8C%E7%BA%BF%E7%A8%8B"><span class="toc-number">1.2.4.</span> <span class="toc-text">24.2.4在目标进程中运行线程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#24-3DLL%E5%8D%B8%E8%BD%BD%E7%BB%83%E4%B9%A0"><span class="toc-number">1.3.</span> <span class="toc-text">24.3DLL卸载练习</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#24-3-1%E5%A4%8D%E5%88%B6%E6%96%87%E4%BB%B6%E5%8F%8A%E8%BF%90%E8%A1%8Cnotepad-exe"><span class="toc-number">1.3.1.</span> <span class="toc-text">24.3.1复制文件及运行notepad.exe</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#24-3-2%E6%B3%A8%E5%85%A5myhack-dll"><span class="toc-number">1.3.2.</span> <span class="toc-text">24.3.2注入myhack.dll</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#24-3-3%E5%8D%B8%E8%BD%BDmyhack-dll"><span class="toc-number">1.3.3.</span> <span class="toc-text">24.3.3卸载myhack.dll</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Q-A"><span class="toc-number">1.4.</span> <span class="toc-text">Q&amp;A</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

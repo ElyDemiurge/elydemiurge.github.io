@@ -1,0 +1,446 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证） 参考资料：https:&#x2F;&#x2F;blog.xiafeng2333.top&#x2F;ctf-30&#x2F;  写在开头说实话，刚拿到题目的时候我是一脸懵逼的，这是什么东西，一个完整的系统？？然后就放弃了 废话就不多说了，反正是不会做就对了。。。之前也没有接触过这种题目，那就开始吧 准备工作首先将文件下载下来并解压，文件解压后如下图所示：  双">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93-%E5%A5%87%E6%80%AA%E7%9A%84%E7%BB%84%E7%BB%87%EF%BC%88Windows%E7%B3%BB%E7%BB%9F%E5%8F%96%E8%AF%81%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证） 参考资料：https:&#x2F;&#x2F;blog.xiafeng2333.top&#x2F;ctf-30&#x2F;  写在开头说实话，刚拿到题目的时候我是一脸懵逼的，这是什么东西，一个完整的系统？？然后就放弃了 废话就不多说了，反正是不会做就对了。。。之前也没有接触过这种题目，那就开始吧 准备工作首先将文件下载下来并解压，文件解压后如下图所示：  双">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-04/800/450">
+<meta property="article:published_time" content="2020-04-30T02:54:26.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.097Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-04/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93-%E5%A5%87%E6%80%AA%E7%9A%84%E7%BB%84%E7%BB%87%EF%BC%88Windows%E7%B3%BB%E7%BB%9F%E5%8F%96%E8%AF%81%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-04/800/450",
+  "datePublished": "2020-04-30T02:54:26.000Z",
+  "dateModified": "2026-07-03T14:46:15.097Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93-%E5%A5%87%E6%80%AA%E7%9A%84%E7%BB%84%E7%BB%87%EF%BC%88Windows%E7%B3%BB%E7%BB%9F%E5%8F%96%E8%AF%81%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-04/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-04-30T02:54:26.000Z" title="发表于 2020-04-30 10:54:26">2020-04-30</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.097Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/">Misc - CTFWriteUp</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/">比赛</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）"><a href="#2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）" class="headerlink" title="2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）"></a>2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）</h1><blockquote>
+<p>参考资料：<a target="_blank" rel="noopener" href="https://blog.xiafeng2333.top/ctf-30/">https://blog.xiafeng2333.top/ctf-30/</a></p>
+</blockquote>
+<h2 id="写在开头"><a href="#写在开头" class="headerlink" title="写在开头"></a>写在开头</h2><p>说实话，刚拿到题目的时候我是一脸懵逼的，这是什么东西，一个完整的系统？？然后就放弃了</p>
+<p>废话就不多说了，反正是不会做就对了。。。之前也没有接触过这种题目，那就开始吧</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>首先将文件下载下来并解压，文件解压后如下图所示：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588216321612-14fa6653-14fb-4607-b04f-76eebcd82ca3.png" alt="QQ截图20200430111147.png"></p>
+<p>双击进入Program Files和Program Files（x86）文件夹，发现此系统里面安装的第三方程序有：</p>
+<p>Bandizip、Xshell 6、Firefox、phpstudy等软件。</p>
+<p>好吧，这么多软件根本无从下手，接下来祭出神器Magnet AXIOM，这是专门用于查找系统使用痕迹的工具。</p>
+<blockquote>
+<p>下载链接：链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1t5pg-ut1tPrP7-ZvDJDC4g">https://pan.baidu.com/s/1t5pg-ut1tPrP7-ZvDJDC4g</a>（破解版）<br>提取码：36eb</p>
+</blockquote>
+<p>为了和wp相照应，在这里我使用的是MAGNET.AXIOM的版本2.1.0.9727。</p>
+<p>安装并激活之后，打开MAGNET.AXIOM的组件AXIOM Process，然后单击新建案卷：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588216986983-faf2bd7d-6d90-494b-98cd-79a30d99b1ec.png" alt="QQ截图20200430112257.png"></p>
+<p>接下来填写目录，注意：两个文件路径是自动同步的（相同的），目录任选</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588217085347-68d049d1-3a8d-4c2e-9927-4c5fcead769d.png" alt="QQ截图20200430112426.png"></p>
+<p>填写好之后，单击“转至证据来源”</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588217202278-dddfe865-341a-47d3-a579-c7541105e4d7.png" alt="QQ截图20200430112608.png"></p>
+<p>如下图，在“选择证据源”中选择“计算机”-&gt;“加载证据”-&gt;“文件和文件夹”，浏览到我们刚才解压的题目路径，最终效果如下图所示：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588217403352-1e277631-cbac-4fbf-a4ba-ff94fe8b7900.png" alt="QQ截图20200430112945.png"></p>
+<p>单击“转至处理详情”-&gt;“转至认为痕迹详情”-&gt;“转至分析证据”-&gt;“分析证据”，接下来请耐心等待分析完毕。这时会自动打开一个程序，在其中可以看到分析进度：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588217608083-b856bad0-83ce-45da-b81a-f250c5b02aac.png" alt="QQ截图20200430113318.png"></p>
+<p>待分析完成后，如下图所示选择使用痕迹：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588217745676-f40690cc-51c4-47ad-9d06-dc70752e81a6.png" alt="QQ截图20200430113532.png"></p>
+<p>选择之后：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588217819884-2411da6f-e8eb-4af4-8a30-7adc29465632.png" alt="QQ截图20200430113652.png"></p>
+<h2 id="浏览器的历史记录"><a href="#浏览器的历史记录" class="headerlink" title="浏览器的历史记录"></a>浏览器的历史记录</h2><p>接下来先看看浏览器（IE）的历史记录：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588218024434-1daba528-e99b-48ae-8a46-6727943db9dd.png" alt="QQ截图20200430114014.png"></p>
+<p>如上图所示，它访问了不少的本地网页（127.0.0.1），并且使用浏览器打开了它们</p>
+<p>根据路径（URL）：“file:&#x2F;&#x2F;&#x2F;C:&#x2F;phpstudy_pro&#x2F;WWW&#x2F;dede&#x2F;a&#x2F;Blog&#x2F;2019&#x2F;1130&#x2F;3.html”的提示，在本地打开此HTML文件，相对路径为：“\Thunder\phpstudy_pro\WWW\dede\a\Blog\2019\1130”，依次打开2.HTML、3.HTML、4.HTML，当打开4.HTML时，出现：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588218354085-549654b0-e5d5-4c69-ae0d-97f30819b091.png" alt="QQ截图20200430114537.png"></p>
+<blockquote>
+<p>U2FsdGVkX1+z9Q5Yznug4MiYfkWZNHWTOt1nIUllLgNXSKQxIiF8zmWz2cdmmPxm<br>QkeQ&#x2F;uF3INEXBZlhruUFJg&#x3D;&#x3D;</p>
+</blockquote>
+<p>这是典型的AES或DES加密（以U2F开头、经过验证实际上是AES加密）</p>
+<p>当然，你也可以不使用上面的方法，使用phpstudy将它写好的网站进行挂载浏览</p>
+<p><span style="color: #313B3F">然后我们查看Firefox的历史记录，我们除了垃圾新闻外可以找到一些有意义的网站，比如下图中蓝色光标所指向的地方：（按照URL进行排序，</span><strong><span style="color: #F5222D">注意这里的dragon</span></strong><span style="color: #313B3F">）</span></p>
+<p><span style="color: #313B3F"></span></p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://mzl.la/37QeQ4v">https://mzl.la/37QeQ4v</a>（最好挂梯子）</p>
+</blockquote>
+<p>访问上述网站：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588219130266-804b285a-d368-407e-8bd5-f958b77e74c8.png" alt="QQ截图20200430115718.png"><img src="/assets/posts/2020-windows-3wm9d8/assets/1588219131068-0f8c1564-6bed-47e1-902d-a0e8b16f4bed.png" alt="QQ截图20200430115755.png"></p>
+<p>这个网站的意思是，左边是一串加密后的emoji，中间让你选择密钥，若密钥正确则右边显示答案</p>
+<p>在这里有两种方式进行解密：</p>
+<p>1、一个一个试，反正emoji也不多</p>
+<p>2、还记得Magnet AXIOM的提示吗？其中有dragon的字样，密钥大概率就是dragon</p>
+<p>使用dragon解密如下图：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588219521755-7c8b11de-bde0-4852-854f-57196294bb93.png" alt="QQ截图20200430120513.png"></p>
+<p>其实在上述步骤中，我们可以将短链接：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://mzl.la/37QeQ4v">https://mzl.la/37QeQ4v</a></p>
+</blockquote>
+<p>转化为长链接：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://codemoji.org/share.html?data=eyJtZXNzYWdlIjoi8J+amvCfjbfwn5qa8J+Nt/CfjZ4g8J+PgPCfj4fwn5iGIPCfmIbwn46hIPCfj6vwn4238J+PgCDwn4+r8J+amvCfjbfwn5SW8J+RkSIsImtleSI6IvCfkIkifQ==">https://codemoji.org/share.html?data=eyJtZXNzYWdlIjoi8J%2BamvCfjbfwn5qa8J%2BNt/CfjZ4g8J%2BPgPCfj4fwn5iGIPCfmIbwn46hIPCfj6vwn4238J%2BPgCDwn4%2Br8J%2BamvCfjbfwn5SW8J%2BRkSIsImtleSI6IvCfkIkifQ%3D%3D</a></p>
+</blockquote>
+<blockquote>
+<p>转换网站：<a target="_blank" rel="noopener" href="https://duanwangzhihuanyuan.51240.com/">https://duanwangzhihuanyuan.51240.com/</a></p>
+</blockquote>
+<p>将转换之后的网站进行URL解码</p>
+<blockquote>
+<p>解码网站：<a target="_blank" rel="noopener" href="http://ctf.ssleye.com/url.html">http://ctf.ssleye.com/url.html</a></p>
+</blockquote>
+<p>解码后得到：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://codemoji.org/share.html?data=eyJtZXNzYWdlIjoi8J+amvCfjbfwn5qa8J+Nt/CfjZ4g8J+PgPCfj4fwn5iGIPCfmIbwn46hIPCfj6vwn4238J+PgCDwn4+r8J+amvCfjbfwn5SW8J+RkSIsImtleSI6IvCfkIkifQ==">https://codemoji.org/share.html?data=eyJtZXNzYWdlIjoi8J+amvCfjbfwn5qa8J+Nt/CfjZ4g8J+PgPCfj4fwn5iGIPCfmIbwn46hIPCfj6vwn4238J+PgCDwn4+r8J+amvCfjbfwn5SW8J+RkSIsImtleSI6IvCfkIkifQ==</a></p>
+</blockquote>
+<p>发现data&#x3D;后出现base64，进行解码</p>
+<blockquote>
+<p>解码网站：<a target="_blank" rel="noopener" href="http://ctf.ssleye.com/base64.html">http://ctf.ssleye.com/base64.html</a></p>
+</blockquote>
+<p>得到：{“message”:”🚚🍷🚚🍷🍞 🏀🏇😆 😆🎡 🏫🍷🏀 🏫🚚🍷🔖👑”,”key”:”🐉”}</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588219912408-a8ef5c3f-67cc-43f7-8269-e4b4750d815a.png" alt="QQ截图20200430121139.png"></p>
+<p>到这儿我们就可以知道，<span style="color: #F5222D">短链接其实是带答案的</span>，我估计出题人都没想到这一点，所以才弄出了一个提示**<span style="color: #F5222D">dragon</span>**。</p>
+<blockquote>
+<p><em>需要注意的是，base64替换回url不能直接使用url编码，要手动把base64中的</em><code>+</code><em>换成</em><code>%2b</code></p>
+</blockquote>
+<h2 id="电子邮件的线索"><a href="#电子邮件的线索" class="headerlink" title="电子邮件的线索"></a>电子邮件的线索</h2><p>接下来我们来看看电子邮件的线索，我们可以得到几条emoji加密连接，其密钥都是dragon，还有几串表情</p>
+<p><span style="color: #000000">①🙃💵🌿🎤🚪🌏🐎🥋🚫😆😍🍎🎃🚹🐘🕹🚫🙃😊🔪🚰🐍🍌🥋👣🚪☀⌨🍌🌿😀🌪🎅🥋👉🍎🚹😆🎈💧🐘😡😇😍👌⏩🖐💧✖🚫📮😀💧✅🥋🔪🍍💧😍🍎👌🎃🚫🎃 </span></p>
+<p><span style="color: #000000"></span></p>
+<p><span style="color: #000000">②</span><a target="_blank" rel="noopener" href="https://mzl.la/2L0VD5Z">https://mzl.la/2L0VD5Z</a>：<span style="color: #FAFAFA">but this key is too weak!</span></p>
+<p><a target="_blank" rel="noopener" href="https://mzl.la/2L5ZfnD">https://mzl.la/2L5ZfnD</a>：<span style="color: #FAFAFA">yeah, maybe… let me think …</span><span style="color: #000000"></span></p>
+<p><span style="color: #000000">③🙃💵🌿🎤🚪🌏🐎🥋🚫😆🎃👉🐘🖐👉🐍☂🐅👌🍎🐍🍌☀☀⌨🎃ℹ🍎🚹👁🌿🌊📮👌👁💵🥋🎈☃🎃😍🏹✅☀🚫🍎ℹ☃🎃🙃🏎✉😀☂🚪🚫🤣🐘🙃😁👁😎🖐⏩✉🚹ℹ🐅🐅😁💵👉⌨🥋🔬⌨🚪📮ℹ🎈👣👉✉📂🎅👣😇😀🐅😂🍍🌉👉🎈🍵🐎⌨👉😇🚪🎃🌉😂😆👉🎈😁🗒 </span></p>
+<p><span style="color: #000000">在 2019&#x2F;11&#x2F;29 23:21, rjddd321 写道: </span></p>
+<p><span style="color: #000000">&gt; 🙃💵🌿🎤🚪🌏🐎🥋🚫😆✅🔪🚫👑😁🎅⏩📮😡🚨🚹🔄🎃😎🤣👁🌿🦓🙃😂✖🚹🍍🥋🔪😁🍌🛩🍴🌿🥋🎅🙃🗒 </span></p>
+<p><span style="color: #000000">&gt; </span></p>
+<p><span style="color: #000000">&gt; </span></p>
+<p><span style="color: #000000">&gt; Sent with ProtonMail Secure Email. </span></p>
+<p><span style="color: #000000">&gt; </span></p>
+<p><span style="color: #000000">&gt; ‐‐‐‐‐‐‐ Original Message ‐‐‐‐‐‐‐ </span></p>
+<p><span style="color: #000000">&gt; On 2019年11月29日FridayPM10点51分, rjdddd </span>wrote:</p>
+<blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>🙃💵🌿🎤🚪🌏🐎🥋🚫😆😍🍎🎃🚹🐘🕹🚫🙃😊🔪🚰🐍🍌🥋👣🚪☀⌨🍌🌿😀🌪🎅🥋👉🍎🚹😆🎈💧🐘😡😇😍👌⏩🖐💧✖🚫📮😀💧✅🥋🔪🍍💧😍🍎👌🎃🚫🎃</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>——————————</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>祝工作顺利</p>
+</blockquote>
+</blockquote>
+<p>⑤<a target="_blank" rel="noopener" href="https://mzl.la/2svfAf5">https://mzl.la/2svfAf5</a>：<span style="color: #FAFAFA">aha, this way is safe!Remember my real name!</span><span style="color: #F5222D">（注意这里提到的真名）</span></p>
+<p>⑥🙃💵🌿🎤🚪🌏🐎🥋🚫😆🎃🔪🚪❓🦓🍎☀😀❓❓👉🐍🍵🌊🌊😆☂☂☂🌿🙃🍌🎈🦓🕹✉📮💵🌪🍴😊🚫🍍🚰🤣⏩🍎🍴😁😇🚪📂🚨😁🏎☃🤣😎🚰📂👣💧🐘🥋☃🌊🌪🏎🥋🐅👌👑🚫🐅😍☂🎃😍☀🌿🌉☃😊☂☃😀🗒🗒</p>
+<p>⑦<span style="color: #000000">🙃💵🌿🎤🚪🌏🐎🥋🚫😆✅🚫😁🌏👑📂🥋👑🍵🐅🏎🚰🎈🌏👁🥋✅🍴🍵🐅🛩👣😍👣🎃😎✅🚫🎈🚪🌉🦓😁😊😀🥋🔬🎤😊🎈🌿⌨🍎🎅🚨🏹😍🚪🛩😊✉😀🔬👑🍌🐅🚫👣🙃🚰👑🌪🦓😍😇🍎🌉✅🚨🚨☂🚨👁🏎👁🛩🥋⌨🦓🚹🎤🌊🎅☀😂🌏🔪🥋📮☀✅☺💵🙃🍌🚪🔪🛩👣☀☺😊🍎🏎🔬🎈🚨🌿🚪🎤☃🍴🤣😂😡😇🚪🍎✉🐘☃🐅❓🐎👣🚰🙃📮🦓🔪👁🎈🎤🚹🏹🚨⏩🍵❓😀</span></p>
+<p><span style="color: #313B3F">从上面可以看出，多了很多直接显示的emoji，前面提到了codemoji是不支持直接解密emoji的（也就是emoji不能任意输入解密），而且我们发现，构造出的url也不能对这个进行解密，尝试了所有的key，都无法正确解密，所以推测这里不是codemoji加密了</span></p>
+<p><strong>codemoji爆破脚本：</strong><a target="_blank" rel="noopener" href="https://github.com/pavelvodrazka/ctf-writeups/tree/master/hackyeaster2018/challenges/egg17">https://github.com/pavelvodrazka/ctf-writeups/tree/master/hackyeaster2018/challenges/egg17</a></p>
+<p>我们还可以找到另一种关于emoji的加密方式，<code>emoji-aes</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://aghorler.github.io/emoji-aes/</span><br></pre></td></tr></table></figure>
+
+<p>但是也需要密钥，这个密钥不支持emoji输入，所以密钥肯定不是🐉了</p>
+<h2 id="手机内存当中的线索"><a href="#手机内存当中的线索" class="headerlink" title="手机内存当中的线索"></a>手机内存当中的线索</h2><p>在Windows的图片文件夹中可以发现安卓手机内存有“图片”这一项目录，其相对路径为，出现这一项十分的奇怪，我们进去看看：\Thunder\Users\bob\Pictures\Camera Roll\sdcard</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588234311244-aa4aa7af-2624-4008-81f6-f1b73cd466b9.png" alt="QQ截图20200430161125.png"></p>
+<blockquote>
+<p>PS：其中的DCIM目录有好康的图片</p>
+</blockquote>
+<p>Thunder\Users\bob\Pictures\Camera Roll\sdcard\Android\data\com.android.backup\files\pending_blobs</p>
+<p>在上述目录中我们可以找到一个联系人储存文件，由于Windows不支持直接打开，根据教程下载软件：</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588234782632-393abfd3-804f-483e-8669-54060d4975dc.png" alt="QQ截图20200430161933.png"></p>
+<p><span style="color: #313B3F">可以在通讯录找到对应的</span><code>real name</code><span style="color: #313B3F">，因为这里只有这一个用户拥有邮箱信息，而且还是邮件中出现过的，</span>所以密钥就是<code>matachuan，</code>使用上文提到的emoji-aes解密网站进行解密：</p>
+<p><span style="color: #000000">①🙃💵🌿🎤🚪🌏🐎🥋🚫😆😍🍎🎃🚹🐘🕹🚫🙃😊🔪🚰🐍🍌🥋👣🚪☀⌨🍌🌿😀🌪🎅🥋👉🍎🚹😆🎈💧🐘😡😇😍👌⏩🖐💧✖🚫📮😀💧✅🥋🔪🍍💧😍🍎👌🎃🚫🎃 </span></p>
+<p><span style="color: #000000"></span></p>
+<p><span style="color: #000000">②</span><span style="color: #000000">🙃💵🌿🎤🚪🌏🐎🥋🚫😆🎃👉🐘🖐👉🐍☂🐅👌🍎🐍🍌☀☀⌨🎃ℹ🍎🚹👁🌿🌊📮👌👁💵🥋🎈☃🎃😍🏹✅☀🚫🍎ℹ☃🎃🙃🏎✉😀☂🚪🚫🤣🐘🙃😁👁😎🖐⏩✉🚹ℹ🐅🐅😁💵👉⌨🥋🔬⌨🚪📮ℹ🎈👣👉✉📂🎅👣😇😀🐅😂🍍🌉👉🎈🍵🐎⌨👉😇🚪🎃🌉😂😆👉🎈😁</span><span style="color: #000000"></span></p>
+<p><span style="color: #000000">在 2019&#x2F;11&#x2F;29 23:21, rjddd321 写道: </span></p>
+<p><span style="color: #000000">&gt; 🙃💵🌿🎤🚪🌏🐎🥋🚫😆✅🔪🚫👑😁🎅⏩📮😡🚨🚹🔄🎃😎🤣👁🌿🦓🙃😂✖🚹🍍🥋🔪😁🍌🛩🍴🌿🥋🎅🙃🗒 </span></p>
+<p><span style="color: #000000">&gt; </span></p>
+<p><span style="color: #000000">&gt; </span></p>
+<p><span style="color: #000000">&gt; Sent with ProtonMail Secure Email. </span></p>
+<p><span style="color: #000000">&gt; </span></p>
+<p><span style="color: #000000">&gt; ‐‐‐‐‐‐‐ Original Message ‐‐‐‐‐‐‐ </span></p>
+<p><span style="color: #000000">&gt; On 2019年11月29日FridayPM10点51分, rjdddd </span>wrote:</p>
+<blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>🙃💵🌿🎤🚪🌏🐎🥋🚫😆😍🍎🎃🚹🐘🕹🚫🙃😊🔪🚰🐍🍌🥋👣🚪☀⌨🍌🌿😀🌪🎅🥋👉🍎🚹😆🎈💧🐘😡😇😍👌⏩🖐💧✖🚫📮😀💧✅🥋🔪🍍💧😍🍎👌🎃🚫🎃</p>
+</blockquote>
+</blockquote>
+<p><span style="color: #000000"></span></p>
+<blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>——————————</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<p>祝工作顺利</p>
+</blockquote>
+</blockquote>
+<p>⑥🙃💵🌿🎤🚪🌏🐎🥋🚫😆🎃🔪🚪❓🦓🍎☀😀❓❓👉🐍🍵🌊🌊😆☂☂☂🌿🙃🍌🎈🦓🕹✉📮💵🌪🍴😊🚫🍍🚰🤣⏩🍎🍴😁😇🚪📂🚨😁🏎☃🤣😎🚰📂👣💧🐘🥋☃🌊🌪🏎🥋🐅👌👑🚫🐅😍☂🎃😍☀🌿🌉☃😊☂☃😀</p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588235329515-7f001816-0694-4664-81c9-4bd4acf22bd6.png" alt="QQ截图20200430162842.png"></p>
+<p><span style="color: #000000">⑦🙃💵🌿🎤🚪🌏🐎🥋🚫😆✅🚫😁🌏👑📂🥋👑🍵🐅🏎🚰🎈🌏👁🥋✅🍴🍵🐅🛩👣😍👣🎃😎✅🚫🎈🚪🌉🦓😁😊😀🥋🔬🎤😊🎈🌿⌨🍎🎅🚨🏹😍🚪🛩😊✉😀🔬👑🍌🐅🚫👣🙃🚰👑🌪🦓😍😇🍎🌉✅🚨🚨☂🚨👁🏎👁🛩🥋⌨🦓🚹🎤🌊🎅☀😂🌏🔪🥋📮☀✅☺💵🙃🍌🚪🔪🛩👣☀☺😊🍎🏎🔬🎈🚨🌿🚪🎤☃🍴🤣😂😡😇🚪🍎✉🐘☃🐅❓🐎👣🚰🙃📮🦓🔪👁🎈🎤🚹🏹🚨⏩🍵❓😀</span></p>
+<p><span style="color: #000000"></span></p>
+<p><span style="color: #000000">得到密钥：</span>GxD1r</p>
+<p>AES解密“U2FsdGVkX1+z9Q5Yznug4MiYfkWZNHWTOt1nIUllLgNXSKQxIiF8zmWz2cdmmPxm</p>
+<p>QkeQ&#x2F;uF3INEXBZlhruUFJg&#x3D;&#x3D;”得到：flag{3e5923d2-c31c-49cd-bfa3-e366a1a59c4d}</p>
+<blockquote>
+<p>解密网站：<a target="_blank" rel="noopener" href="https://www.sojson.com/encrypt_aes.html">https://www.sojson.com/encrypt_aes.html</a></p>
+</blockquote>
+<h2 id="官方writeup"><a href="#官方writeup" class="headerlink" title="官方writeup"></a>官方writeup</h2><ol>
+<li>首先找到用户应用数据目录下存在的Firefox和Thunderbird配置文件</li>
+<li>自己下载一个Firefox和Thunderbird，将这些配置文件覆盖自己的配置文件，可以使用-p指定或者修改 profile.ini ，将proflies里的文件保存到自己电脑里的相应位置（根据windows或者mac系统路劲有差异，但文件是通用的）这里有两个profiles的文件夹，都尝试一下，修改profile.ini，使默认的配置文件用我们刚才拷过来的那个。Firefox使用 hn0lxrho.default-release 之后，打开即可以看到之前用户的浏览行为了</li>
+<li>打开Firefox，可以看到之前用户的浏览记录了，找到emojiwiki的网页，此时用户正在浏览 🐉 这个emoji</li>
+<li>用同样的办法，打开Thunderbird，配置文件是 7ev2i8k4.default-release , 可以看到有一堆邮件，我们按照时间顺序从早到晚来还原</li>
+<li>将重点的聊天内容还原</li>
+</ol>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588236839140-01c5f1f5-4544-4789-bf85-c3491dafbd0e.png" alt="image.png"></p>
+<p><span style="color: black">按照对话提示，我们需要去找到一个真实姓名，在</span><span style="color: black"><code>奇怪的组织/Users/bob/Pictures/Camera Roll/sdcard/Android/data/com.android.backup</code></span><span style="color: black"> </span><span style="color: black">目录下可以发现一个通讯录的导出文件，找到邮箱号为</span><span style="color: black"><code>rjddd321@protonmail.com</code></span><span style="color: black">的通讯人，真实姓名是</span><span style="color: black"><code>matachuan</code></span><span style="color: black">，使用这个key在</span><span style="color: black">emoji-aes</span><span style="color: black">继续解密，发现后面对话内容如下</span></p>
+<p><img src="/assets/posts/2020-windows-3wm9d8/assets/1588236847426-b3135d87-a587-41b5-add5-f607f16da638.png" alt="image.png"></p>
+<ol start="6">
+<li>从邮件我们得知了两个信息，一个是存在一个后台网站，另一个是暗号已经换成了 GxD1r</li>
+<li>于是去dedecms的目录 奇怪的组织&#x2F;phpstudy_pro&#x2F;WWW&#x2F;dede&#x2F;a&#x2F;Blog&#x2F;2019&#x2F;1130 中寻找，发现有一个博文写着一段aes加密的结果</li>
+</ol>
+<p><span style="color: black">8.  </span><span style="color: black">U2FsdGVkX1+z9Q5Yznug4MiYfkWZNHWTOt1nIUllLgNXSKQxIiF8zmWz2cdmmPxm</span></p>
+<p><span style="color: black">9.  </span><span style="color: black">QkeQ&#x2F;uF3INEXBZlhruUFJg&#x3D;&#x3D;</span></p>
+<ol start="10">
+<li>使用新key GxD1r 来解密，得到flag： flag{3e5923d2-c31c-49cd-bfa3-e366a1a59c4d}</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93-%E5%A5%87%E6%80%AA%E7%9A%84%E7%BB%84%E7%BB%87%EF%BC%88Windows%E7%B3%BB%E7%BB%9F%E5%8F%96%E8%AF%81%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93-%E5%A5%87%E6%80%AA%E7%9A%84%E7%BB%84%E7%BB%87%EF%BC%88Windows%E7%B3%BB%E7%BB%9F%E5%8F%96%E8%AF%81%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-04/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E6%AF%94%E8%B5%9B/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93/2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93-%E5%AF%86%E7%A0%81%E6%9C%BA%E5%99%A8%EF%BC%88BadUSB-hex%EF%BC%89/" title="2020数字中国创新大赛虎符网络安全赛道-密码机器（BadUSB-hex）"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2020数字中国创新大赛虎符网络安全赛道-密码机器（BadUSB-hex）</div></div><div class="info-2"><div class="info-item-1">2020数字中国创新大赛虎符网络安全赛道-密码机器（BadUSB-hex） hex文件格式是可以烧写到单片机中，被单片机执行的一种文件格式，生成Hex文件的方式有很多种，可以通过不同的编译器将C程序或者汇编程序编译生成hex。  这道题有两种做法，首先我们先来看第一种做法： 第一种做法 请确保电脑上安装有010编辑器  将下载的文件解压后，得到SecretMachine.hex，使用010编辑器打开，将浏览页面向下滑动，可以得到一些python脚本：  若使用其他编辑器则不会显示出如下代码。   将其摘录出来就是： 1234567891011import base64from Crypto.Cipher import AESdef add_to_16(s):    while len(s) % 16 != 0:        s += &#x27;\0&#x27;    return str.encode(s)key = &#x27;aaaaa14mK3ybbbbb&#x27; aes = AES.new(str.encode(key), AES.MODE_ECB)encrypt...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E5%88%B7%E9%A2%98/CTF%E8%AE%BA%E5%89%91%E5%9C%BA/CTF%E8%AE%BA%E5%89%91%E5%9C%BA-baby_reverse/" title="CTF论剑场-baby_reverse"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">CTF论剑场-baby_reverse</div></div><div class="info-2"><div class="info-item-1">CTF论剑场-baby_reverse123456789101112131415161718#include &lt;stdio.h&gt;int main()&#123;  unsigned char a2[] =      &#123;          126, 116, 117, 127, 103, 99, 36, 99, 96, 101,          116, 109, 36, 125, 67, 37, 122, 105&#125;;  char a1[] = &quot;&quot;;  int v7 = 18;  for (int i = 0; i &lt; v7; i += 3)  &#123;    a1[i] = (v7 ^ a2[i]) - 6;    a1[i + 1] = (a2[i + 1LL] ^ v7) + 6;    a1[i + 2] = (a2[i + 2LL] ^ v7 )^ 6;  &#125;  printf(&quot;%s&quot;,a1);  return 0;&#125;  flag{w0wtqly0uW1n} </div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#2020%E6%95%B0%E5%AD%97%E4%B8%AD%E5%9B%BD%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E8%99%8E%E7%AC%A6%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8%E8%B5%9B%E9%81%93-%E5%A5%87%E6%80%AA%E7%9A%84%E7%BB%84%E7%BB%87%EF%BC%88Windows%E7%B3%BB%E7%BB%9F%E5%8F%96%E8%AF%81%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">2020数字中国创新大赛虎符网络安全赛道-奇怪的组织（Windows系统取证）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%99%E5%9C%A8%E5%BC%80%E5%A4%B4"><span class="toc-number">1.1.</span> <span class="toc-text">写在开头</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">1.2.</span> <span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E7%9A%84%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95"><span class="toc-number">1.3.</span> <span class="toc-text">浏览器的历史记录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%B5%E5%AD%90%E9%82%AE%E4%BB%B6%E7%9A%84%E7%BA%BF%E7%B4%A2"><span class="toc-number">1.4.</span> <span class="toc-text">电子邮件的线索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%8B%E6%9C%BA%E5%86%85%E5%AD%98%E5%BD%93%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%B4%A2"><span class="toc-number">1.5.</span> <span class="toc-text">手机内存当中的线索</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%98%E6%96%B9writeup"><span class="toc-number">1.6.</span> <span class="toc-text">官方writeup</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

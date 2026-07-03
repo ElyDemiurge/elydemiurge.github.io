@@ -1,0 +1,667 @@
+cyberangel@cyberangel:~/Desktop/模拟固件下的patch与hook/Netgear_R8300/_R8300-V1.0.2.130_1.0.99.chk.extracted/squashfs-root$ sudo chroot . ./qemu-arm-static ./usr/sbin/upnpd
+[sudo] password for cyberangel: 
+cyberangel@cyberangel:~/Desktop/模拟固件下的patch与hook/Netgear_R8300/_R8300-V1.0.2.130_1.0.99.chk.extracted/squashfs-root$ nvram_get_buf: upnpd_debug_level
+sem_lock: Triggering NVRAM initialization!
+nvram_init: Initializing NVRAM...
+sem_get: Key: 41410002
+sem_get: Key: 41420002
+nvram_set_default_builtin: Setting built-in default values!
+nvram_set: console_loglevel = "7"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: restore_defaults = "1"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: sku_name = ""
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: wla_wlanstate = ""
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_if = "br0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_ipaddr = "192.168.0.50"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_bipaddr = "192.168.0.255"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_netmask = "255.255.255.0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: time_zone = "EST5EDT"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: wan_hwaddr_def = "01:23:45:67:89:ab"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: wan_ifname = "eth0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_ifnames = "eth1 eth2 eth3 eth4"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: ethConver = "1"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_proto = "dhcp"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: wan_ipaddr = "0.0.0.0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: wan_netmask = "255.255.255.0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: wanif = "eth0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: time_zone_x = "0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: rip_multicast = "0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: bs_trustedip_enable = "0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnpd_debug_level = "9"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_ipaddr = "10.211.55.11"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: hwver = "R8500"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: friendly_name = "R8300"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnp_enable = "1"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnp_turn_on = "1"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnp_advert_period = "30"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnp_advert_ttl = "4"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnp_portmap_entry = "1"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnp_duration = "3600"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnp_DHCPServerConfigurable = "1"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: wps_is_upnp = "0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: upnp_sa_uuid = "00000000000000000000"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_hwaddr = "AA:BB:CC:DD:EE:FF"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: lan_hwaddr = "AA:BB:CC:DD:EE:FF"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set: hwrev = ""
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_set_default: Loading built-in default values = 1!
+nvram_set_default: Checking for symbol "router_defaults"...
+nvram_set_default: Checking for symbol "Nvrams"...
+nvram_set_default_image: Copying overrides from defaults folder!
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "9"
+nvram_get_buf: upnpd_debug_level
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "9"
+set_value_to_org_xml:1149()
+data2XML()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: hwrev
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = ""
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_get_buf: hwrev
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = ""
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: friendly_name
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8300"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: friendly_name
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8300"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: hwrev
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = ""
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_match: hwver (R8500) ?= "R8500"
+nvram_match: true
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: friendly_name
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8300"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: hwrev
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = ""
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_match: hwver (R8500) ?= "R8500"
+nvram_match: true
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+open: No such file or directory
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+upnp_uuid_generator:421()
+nvram_get_buf: lan_hwaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "AA:BB:CC:DD:EE:FF"
+upnp_uuid_generator:421()
+nvram_get_buf: lan_hwaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "AA:BB:CC:DD:EE:FF"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: friendly_name
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8300"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: hwrev
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = ""
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_match: hwver (R8500) ?= "R8500"
+nvram_match: true
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: friendly_name
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8300"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: hwrev
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = ""
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_match: hwver (R8500) ?= "R8500"
+nvram_match: true
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+open: No such file or directory
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+upnp_uuid_generator:421()
+nvram_get_buf: lan_hwaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "AA:BB:CC:DD:EE:FF"
+upnp_uuid_generator:421()
+nvram_get_buf: lan_hwaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "AA:BB:CC:DD:EE:FF"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: friendly_name
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8300"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: hwrev
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = ""
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_match: hwver (R8500) ?= "R8500"
+nvram_match: true
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: friendly_name
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8300"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: hwrev
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = ""
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_get_buf: hwver
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "R8500"
+nvram_match: hwver (R8500) ?= "R8500"
+nvram_match: true
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+open: No such file or directory
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+upnp_uuid_generator:421()
+nvram_get_buf: lan_hwaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "AA:BB:CC:DD:EE:FF"
+upnp_uuid_generator:421()
+nvram_get_buf: lan_hwaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "AA:BB:CC:DD:EE:FF"
+xmlValueConvert()
+nvram_invmatch: upnp_turn_on ~?= "1"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+xmlValueConvert()
+parse_root_device_description:619()
+findtok:519()
+parse_root_device_description:644(), findtok(URLBase)
+parse_root_device_description:681(), device_type0 = InternetGatewayDevice
+findtok:519()
+parse_root_device_description:752(), findtok(SCPDURL)
+parse_root_device_description:780(): find EventSub URL
+parse_root_device_description:795(): find </service>
+parse_root_device_description:806(): assign the rest value of the service structure
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+parse_root_device_description:836(): assign the rest value of the device structure
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+emb_num = 0, max_layer = 1, layer = 1parse_root_device_description:687(), device_type0 = WANDevice
+findtok:519()
+parse_root_device_description:752(), findtok(SCPDURL)
+parse_root_device_description:780(): find EventSub URL
+parse_root_device_description:795(): find </service>
+parse_root_device_description:806(): assign the rest value of the service structure
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+parse_root_device_description:836(): assign the rest value of the device structure
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+emb_num = 1, max_layer = 2, layer = 2parse_root_device_description:687(), device_type1 = WANConnectionDevice
+findtok:519()
+parse_root_device_description:752(), findtok(SCPDURL)
+parse_root_device_description:780(): find EventSub URL
+parse_root_device_description:795(): find </service>
+parse_root_device_description:806(): assign the rest value of the service structure
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+findtok:519()
+parse_root_device_description:752(), findtok(SCPDURL)
+parse_root_device_description:780(): find EventSub URL
+parse_root_device_description:795(): find </service>
+parse_root_device_description:806(): assign the rest value of the service structure
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+findtok:519()
+parse_root_device_description:752(), findtok(SCPDURL)
+parse_root_device_description:780(): find EventSub URL
+parse_root_device_description:795(): find </service>
+parse_root_device_description:806(): assign the rest value of the service structure
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+parse_root_device_description:836(): assign the rest value of the device structure
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+nvram_set: upnp_portmap_entry = "0"
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+emb_num = 2, max_layer = 3, layer = 3upnp_main:751()
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true
+upnp_main: 763()
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+nvram_match: lan_ipaddr (10.211.55.11) ?= "0.0.0.0"
+nvram_match: false
+create_received_scoket:158()
+upnp_sockeInit:964()
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+create_submit_scoket: 199()
+create_received_scoket:158()
+upnp_sockeInit:964()
+get_if_addr(946): Can't get IP from br0.
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+upnp_duration is 3600
+ssdp_discovery_advertisement(568):
+rootDeviceOK(68):
+ssdp_discovery_send(511):
+ssdp_root_device_discovery_send(244):
+igd_ssdp_root_device_discovery(84)
+ssdp_packet(98):
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+http_mu_send:1041()
+nvram_get_buf: upnp_advert_ttl
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "4"
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+Unsupported setsockopt level=0 optname=32
+UPNP: error to use LAN IP to be the interface of sending mulitcast datagram!
+ssdp_UUID_discovery_send(477):
+igd_ssdp_UUID_discovery(100)
+ssdp_packet(98):
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+http_mu_send:1041()
+nvram_get_buf: upnp_advert_ttl
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "4"
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+Unsupported setsockopt level=0 optname=32
+UPNP: error to use LAN IP to be the interface of sending mulitcast datagram!
+ssdp_schemas_discovery_send(495):
+igd_ssdp_schemas_discovery(125)
+ssdp_packet(98):
+nvram_get_buf: upnp_duration
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "3600"
+http_mu_send:1041()
+nvram_get_buf: upnp_advert_ttl
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "4"
+nvram_get_buf: lan_ipaddr
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "10.211.55.11"
+Unsupported setsockopt level=0 optname=32
+UPNP: error to use LAN IP to be the interface of sending mulitcast datagram!
+nvram_get_buf: upnp_advert_period
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "30"
+nvram_get_buf: upnp_turn_on
+sem_get: Key: 41420002
+sem_get: Key: 41420002
+nvram_get_buf: = "1"
+nvram_match: upnp_turn_on (1) ?= "1"
+nvram_match: true

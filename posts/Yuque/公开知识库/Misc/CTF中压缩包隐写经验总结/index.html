@@ -1,0 +1,357 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CTF中压缩包隐写经验总结 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CTF中压缩包隐写经验总结参考资料:https:&#x2F;&#x2F;www.cnblogs.com&#x2F;xishaonian&#x2F;p&#x2F;7713657.html https:&#x2F;&#x2F;blog.csdn.net&#x2F;kajweb&#x2F;article&#x2F;details&#x2F;76474476 1、zip伪加密简单的话来阐述 zip伪协议的意思是说本来不需要密码的zip文件然后通过修改标志位，然后就可以达到有密码的效果对吗？但是他实际是没有密码。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CTF中压缩包隐写经验总结">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Misc/CTF%E4%B8%AD%E5%8E%8B%E7%BC%A9%E5%8C%85%E9%9A%90%E5%86%99%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="CTF中压缩包隐写经验总结参考资料:https:&#x2F;&#x2F;www.cnblogs.com&#x2F;xishaonian&#x2F;p&#x2F;7713657.html https:&#x2F;&#x2F;blog.csdn.net&#x2F;kajweb&#x2F;article&#x2F;details&#x2F;76474476 1、zip伪加密简单的话来阐述 zip伪协议的意思是说本来不需要密码的zip文件然后通过修改标志位，然后就可以达到有密码的效果对吗？但是他实际是没有密码。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-02/800/450">
+<meta property="article:published_time" content="2019-11-13T12:08:05.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.524Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-02/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CTF中压缩包隐写经验总结",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Misc/CTF%E4%B8%AD%E5%8E%8B%E7%BC%A9%E5%8C%85%E9%9A%90%E5%86%99%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93/",
+  "image": "https://picsum.photos/seed/blog-cover-02/800/450",
+  "datePublished": "2019-11-13T12:08:05.000Z",
+  "dateModified": "2026-07-03T14:46:15.524Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Misc/CTF%E4%B8%AD%E5%8E%8B%E7%BC%A9%E5%8C%85%E9%9A%90%E5%86%99%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CTF中压缩包隐写经验总结',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-02/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">CTF中压缩包隐写经验总结</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CTF中压缩包隐写经验总结</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2019-11-13T12:08:05.000Z" title="发表于 2019-11-13 20:08:05">2019-11-13</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.524Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Misc/">Misc</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="CTF中压缩包隐写经验总结"><a href="#CTF中压缩包隐写经验总结" class="headerlink" title="CTF中压缩包隐写经验总结"></a>CTF中压缩包隐写经验总结</h1><p>参考资料:<a target="_blank" rel="noopener" href="https://www.cnblogs.com/xishaonian/p/7713657.html">https://www.cnblogs.com/xishaonian/p/7713657.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/kajweb/article/details/76474476">https://blog.csdn.net/kajweb/article/details/76474476</a></p>
+<h2 id="1、zip伪加密"><a href="#1、zip伪加密" class="headerlink" title="1、zip伪加密"></a>1、zip伪加密</h2><p>简单的话来阐述</p>
+<p>zip伪协议的意思是说本来不需要密码的zip文件然后通过修改标志位，然后就可以达到有密码的效果对吗？但是他实际是没有密码。</p>
+<p><strong>一个 ZIP 文件由三个部分组成：</strong></p>
+<p><strong>压缩源文件数据区</strong>+<strong>压缩源文件目录区</strong>+<strong>压缩源文件目录结束标志</strong></p>
+<p><strong>详情：</strong><a target="_blank" rel="noopener" href="http://blog.csdn.net/wclxyn/article/details/7288994"><strong>http://blog.csdn.net/wclxyn/article/details/7288994</strong></a></p>
+<p><strong>实例说明</strong><span style="color: #FFFFFF">(<a target="_blank" rel="noopener" href="http://ctf5.shiyanbar.com/stega/sim.jpg">http://ctf5.shiyanbar.com/stega/sim.jpg</a>)</span></p>
+<p>分割出来文件以后有个zip</p>
+<p>用Winhex工具打开查看其十六进制编码，图如下：</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578792989355-50a86d47-9709-4f4f-9552-c59d525600c7.png"></p>
+<p><strong>a.压缩源文件数据区：</strong></p>
+<p>50 4B 03 04：这是头文件标记（0x04034b50）</p>
+<p>14 00：解压文件所需 pkware 版本</p>
+<p>00 00：全局方式位标记（有无加密）</p>
+<p>08 00：压缩方式</p>
+<p>5A 7E：最后修改文件时间</p>
+<p>F7 46：最后修改文件日期</p>
+<p>16 B5 80 14：CRC-32校验（1480B516）</p>
+<p>19 00 00 00：压缩后尺寸（25）</p>
+<p>17 00 00 00：未压缩尺寸（23）</p>
+<p>07 00：文件名长度</p>
+<p>00 00：扩展记录长度</p>
+<p>6B65792E7478740BCECC750E71ABCE48CDC9C95728CECC2DC849AD284DAD0500</p>
+<p><strong>b.压缩源文件目录区:</strong></p>
+<p>50 4B 01 02：目录中文件文件头标记(0x02014b50)</p>
+<p>3F 00：压缩使用的 pkware 版本</p>
+<p>14 00：解压文件所需 pkware 版本</p>
+<p>00 00：全局方式位标记<span style="color: #F5222D">（有无加密，这个更改这里进行伪加密，改为09 00打开就会提示有密码了） </span></p>
+<p>08 00：压缩方式</p>
+<p>5A 7E：最后修改文件时间</p>
+<p>F7 46：最后修改文件日期</p>
+<p>16 B5 80 14：CRC-32校验（1480B516）</p>
+<p>19 00 00 00：压缩后尺寸（25）</p>
+<p>17 00 00 00：未压缩尺寸（23）</p>
+<p>07 00：文件名长度</p>
+<p>24 00：扩展字段长度</p>
+<p>00 00：文件注释长度</p>
+<p>00 00：磁盘开始号</p>
+<p>00 00：内部文件属性</p>
+<p>20 00 00 00：外部文件属性</p>
+<p>00 00 00 00：局部头部偏移量</p>
+<p>6B65792E7478740A00200000000000010018006558F04A1CC5D001BDEBDD3B1CC5D001BDEBDD3B1CC5D001</p>
+<p><strong>c.压缩源文件目录结束标志:</strong></p>
+<p>50 4B 05 06：目录结束标记</p>
+<p>00 00：当前磁盘编号</p>
+<p>00 00：目录区开始磁盘编号</p>
+<p>01 00：本磁盘上纪录总数</p>
+<p>01 00：目录区中纪录总数</p>
+<p>59 00 00 00：目录区尺寸大小</p>
+<p>3E 00 00 00：目录区对第一张磁盘的偏移量</p>
+<p>00 00 1A：ZIP 文件注释长度</p>
+<p>将09改为00，再打开txt即可</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578792989471-e56f5051-cd19-4852-bdba-80a4d04c717e.png"></p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578792989491-a8d1d3f3-91c4-4b3e-b85e-8921702c514a.png"></p>
+<p>zip伪加密在kali下执行binwalk -e命令即可分离出文件（当然，也可以尝试winrar的压缩包修复功能）</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578794287127-a0820fac-f1a6-4595-87d3-f1ab5e92408e.png"></p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578794297029-1a8da553-23c8-4b90-b25e-7ec0ff543719.png"></p>
+<p><strong><span style="color: #F5222D">我们还可以使用：zipcenop.jar</span></strong></p>
+<p><strong>使用检测伪加密的ZipCenOp.jar，解密后如果能成功打开zip包，则是伪加密，否则说明思路错误</strong></p>
+<p><strong>ZipCenOp.jar的下载我已经传到了本地，点击</strong><a target="_blank" rel="noopener" href="https://files.cnblogs.com/files/ECJTUACM-873284962/ZipCenOp.zip"><strong>下载</strong></a><strong>即可~</strong></p>
+<p>下面举个例子，如下是个被加密的文件，理由很简单，文件夹后面跟了一个*~</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793601403-5ce4ede2-09f8-4fe5-b5d5-214523250ae0.png"></p>
+<p>使用ZipCenOp.jar(需java环境)使用方法:</p>
+<p>java-jarZipCenOp.jar r xxx.zip</p>
+<p>我们对其使用如上命令进行解包，得下图所示：</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793601332-f724685a-bbca-41d0-9e73-6a8bf20067d9.png"></p>
+<p>我们再看下这个文件：</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793601360-2b5c77c5-36b0-44f3-a060-9b1ad634692e.png"></p>
+<p>发现文件夹后面跟的*消失了，说明这个文件就是伪加密文件~</p>
+<p>当然啦，我们也可以对Zip文件进行伪加密~</p>
+<p>java-jarZipCenOp.jar e xxx.zip</p>
+<h2 id="2、zip属性隐藏"><a href="#2、zip属性隐藏" class="headerlink" title="2、zip属性隐藏"></a>2、zip属性隐藏</h2><p>可能很多人没有去注意文件属性一栏，往往有时候，加密者会把密码放在属性里面，例如下图：</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793556908-6fb45986-15ba-4ebb-833f-766c9361d84a.png"></p>
+<p>我们可以看到，这个Zip压缩文件的密码就是<a target="_blank" rel="noopener" href="http://www.cnblogs.com了/">www.cnblogs.com了</a>~</p>
+<h2 id="3、暴力破解"><a href="#3、暴力破解" class="headerlink" title="3、暴力破解"></a>3、暴力破解</h2><p>顾名思义，就是逐个尝试选定集合中可以组成的所有密码，知道遇到正确密码~</p>
+<p>而字典攻击的效率比爆破稍高，因为字典中存储了常用的密码，因此就避免了爆破时把时间浪费在脸滚键盘类的密码上~</p>
+<p>而如果已知密码的某几位，如已知6位密码的第3位是a，那么可以构造 ??a??? 进行掩码攻击，掩码攻击的原理相当于构造了第3位为a的字典，因此掩码攻击的效率也比爆破高出不少~</p>
+<p>对这一类的zip问题，Windows下我使用的是ARCHPR~</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793716673-b6b0471d-4a72-4f11-9e3c-7b0ee183cae4.png"></p>
+<p>点击开始，进行爆破即可<del>下面是个演示，就花了4s的时间爆破出密码是MIT</del></p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793716705-83854608-6cec-4342-ac8a-c9a90d23f9de.png"></p>
+<p>而所谓的字典攻击其实就是在字典选择合适的情况下，用很短的时间就能找到密码~</p>
+<p>实例如下所示：</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793716766-5947f3d4-d358-47d7-b634-8deba30c301e.png"></p>
+<p>而掩码攻击就是通过已知密码的某几位进行构造，如下示例我们构造了??T进行爆破，仅花了81ms就破解了~</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793716741-70b16fea-1eac-4d15-8e1e-65a6d729d3c1.png"></p>
+<h2 id="4、明文攻击"><a href="#4、明文攻击" class="headerlink" title="4、明文攻击"></a>4、明文攻击</h2><p>明文攻击是一种较为高效的攻击手段，大致原理是当你不知道一个zip的密码，但是你有zip中的一个已知文件（文件大小要大于12Byte）或者已经通过其他手段知道zip加密文件中的某些内容时，因为同一个zip压缩包里的所有文件都是使用同一个加密密钥来加密的，所以可以用已知文件来找加密密钥，利用密钥来解锁其他加密文件~</p>
+<p>此时我们可以尝试用ARCHPR或者pkcrack进行明文攻击~</p>
+<p>我们可以看到readme.txt是加密压缩包里的readme.txt的明文，所以可以进行明文攻击~</p>
+<p>将readme.txt压缩成.zip文件，然后在软件中填入相应的路径即可开始进行明文攻击，这里我们用ARCHPR进行演示~</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793716677-98d8d754-cca0-4ab3-99af-c14b83b1badd.jpeg"></p>
+<p>可能有些朋友会说ARCHPR怎么行不通啊，一般是版本不对的问题~</p>
+<p>如果还是有问题怎么办呢？那就尝试用下pkcrack</p>
+<p>有些朋友在Windows下会出现如下错误：</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793716686-d5971cbb-dc9a-4694-b41e-e9ccfc968e5a.png"></p>
+<p>那是因为pkcrack只支持32位的，所以运行这个需要在XP系统下进行</p>
+<h2 id="5、CRC32碰撞"><a href="#5、CRC32碰撞" class="headerlink" title="5、CRC32碰撞"></a>5、CRC32碰撞</h2><p>CRC32:CRC本身是“冗余校验码”的意思，CRC32则表示会产生一个32bit（8位十六进制数）的校验值。</p>
+<p>在产生CRC32时，源数据块的每一位都参与了运算，因此即使数据块中只有一位发生改变也会得到不同的CRC32值，利用这个原理我们可以直接爆破出加密文件的内容~</p>
+<p>具体算法实现参考百度百科：<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/CRC32/7460858?fr=aladdin">https://baike.baidu.com/item/CRC32/7460858?fr=aladdin</a></p>
+<p>我们看个CRC32碰撞的例子：</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793716848-fb8d76d1-de64-43fe-8b83-54dfc00ea891.png"></p>
+<p>flag是4位数，且CRC32值为56EA988D</p>
+<p>我们可以写出如下脚本：</p>
+<p><span style="color: #008000">#</span><span style="color: #008000">coding&#x3D;utf&#x3D;8</span></p>
+<p><span style="color: #0000FF">import</span><span style="color: #000000"> binascii</span></p>
+<p>real&#x3D;0x56EA988D</p>
+<p><span style="color: #0000FF">for</span><span style="color: #0000FF"> y </span><span style="color: #0000FF">in</span><span style="color: #0000FF"> range</span><span style="color: #0000FF">(</span><span style="color: #0000FF">1000</span><span style="color: #0000FF">,</span><span style="color: #0000FF">9999</span><span style="color: #000000">):</span></p>
+<p><span style="color: #0000FF">if</span><span style="color: #0000FF"> real </span><span style="color: #0000FF">&#x3D;&#x3D;</span><span style="color: #0000FF"> </span><span style="color: #0000FF">(</span><span style="color: #0000FF">binascii</span><span style="color: #0000FF">.</span><span style="color: #0000FF">crc32</span><span style="color: #0000FF">(</span><span style="color: #0000FF">str</span><span style="color: #0000FF">(</span><span style="color: #0000FF">y</span><span style="color: #0000FF">))</span><span style="color: #0000FF"> </span><span style="color: #0000FF">&amp;</span><span style="color: #0000FF"> </span><span style="color: #0000FF">0xffffffff</span><span style="color: #000000">):</span></p>
+<p><span style="color: #0000FF">print</span><span style="color: #000000">(</span><span style="color: #000000">y</span><span style="color: #000000">)</span></p>
+<p><span style="color: #0000FF">print</span><span style="color: #0000FF">(</span><span style="color: #800000">‘</span><span style="color: #800000">End</span><span style="color: #800000">‘</span><span style="color: #800000">)</span></p>
+<p>在<span style="color: #F5222D">Python 2.x</span>的版本中，binascii.crc32 所计算出來的 CRC 值域为[-2^31, 2^31-1] 之间的有符号整数，为了要与一般CRC 结果作比对，需要将其转为无符号整数，所以加上&amp; 0xffffffff来进行转换。如果是<span style="color: #F5222D">Python 3.x</span>的版本，其计算结果为 [0, 2^32-1] 间的无符号整数，因此不需额外加上&amp; 0xffffffff 。</p>
+<p>脚本的运行结果如下，即为压缩文件的内容：</p>
+<p><img src="/assets/posts/ctf-1n9r3o5/assets/1578793716764-ca90b3e4-212d-4e61-a3e7-09d75d04f86c.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Misc/CTF%E4%B8%AD%E5%8E%8B%E7%BC%A9%E5%8C%85%E9%9A%90%E5%86%99%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Misc/CTF%E4%B8%AD%E5%8E%8B%E7%BC%A9%E5%8C%85%E9%9A%90%E5%86%99%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-02/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E6%99%AE%E9%80%9A%E7%9A%84%E4%BA%8C%E7%BB%B4%E7%A0%81%EF%BC%88%E5%85%AB%E8%BF%9B%E5%88%B6%E3%80%81ASCII%E8%A1%A8%EF%BC%89/" title="Bugku-普通的二维码（八进制、ASCII表）"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Bugku-普通的二维码（八进制、ASCII表）</div></div><div class="info-2"><div class="info-item-1">Bugku-普通的二维码（八进制、ASCII表）扫描二维码之后：  哈哈！就不告诉你flag就在这里！ emmm…. binwalk、foremost什么也没有，没有隐藏文件，拖到HxD中，在文件未发现：  拉到最后发现有一段数字比较可疑的 146154141147173110141166145137171060125137120171137163143162151160164137117164143137124157137124145156137101163143151151041175 发现没有超过8的数字 ，说明可能是八进制的，并且八进制对应的ASCII码正好为f，那么试着把这一串数字给分开 ： 146 154 141 147 173 110 141 166 145 137 171 060 125 137 120 171 137 163 143 162 151 160 164 137 117 164 143 137 124 157 137 124 145 156 137 101 163 143 151 151 041 175 ASCII码转字符串得到：  flag{Have...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/Misc%20-%20CTFWriteUp/%E5%88%B7%E9%A2%98/Bugku/Bugku-%E9%9A%90%E5%86%99-%E4%B8%80%E4%B8%AA%E6%99%AE%E9%80%9A%E7%9A%84%E5%8E%8B%E7%BC%A9%E5%8C%85%EF%BC%88rar%E5%8E%8B%E7%BC%A9png%E7%BB%93%E6%9E%84%E5%90%8E%E7%9A%84png%E7%BB%93%E6%9E%84%EF%BC%89/" title="Bugku-隐写-一个普通的压缩包（rar压缩png结构后的png结构）"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Bugku-隐写-一个普通的压缩包（rar压缩png结构后的png结构）</div></div><div class="info-2"><div class="info-item-1">Bugku-隐写-一个普通的压缩包（rar压缩png结构后的png结构）参见：..&#x2F;..&#x2F;攻防世界&#x2F;攻防世界-SimpleRAR（rar压缩png结构后的png结构）&#x2F;攻防世界-SimpleRAR（rar压缩png结构后的png结构）.md 下载zip.rar并打开得到flag.rar flag.rar里面有flag.txt: emmm…. binwalk查看、foremost分离也没有….  在网络上搜索：write up 查看flag.txt内容及属性，均无线索，可推测重点在flag.rar。拖到HxD查看，将A8 3C 7A改成A8 3C 74修复成功。？？？？？？？？？ 修改的地方：  修改完之后：  保存之后可以看到：  secret.png放入HxD中，发现：它是一个gif文件，那就把扩展名改为gif  将secret.gif拖入movgear中，由两张图片合成：  全部导出： 再用“Stegsolve.jar”分别打开： 点击下方箭头直到：  再将两张图片导出，然后用画图打开对两张图片拼接并完善：  扫描二维码即可得到flag...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CTF%E4%B8%AD%E5%8E%8B%E7%BC%A9%E5%8C%85%E9%9A%90%E5%86%99%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93"><span class="toc-number">1.</span> <span class="toc-text">CTF中压缩包隐写经验总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81zip%E4%BC%AA%E5%8A%A0%E5%AF%86"><span class="toc-number">1.1.</span> <span class="toc-text">1、zip伪加密</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81zip%E5%B1%9E%E6%80%A7%E9%9A%90%E8%97%8F"><span class="toc-number">1.2.</span> <span class="toc-text">2、zip属性隐藏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3"><span class="toc-number">1.3.</span> <span class="toc-text">3、暴力破解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81%E6%98%8E%E6%96%87%E6%94%BB%E5%87%BB"><span class="toc-number">1.4.</span> <span class="toc-text">4、明文攻击</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81CRC32%E7%A2%B0%E6%92%9E"><span class="toc-number">1.5.</span> <span class="toc-text">5、CRC32碰撞</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

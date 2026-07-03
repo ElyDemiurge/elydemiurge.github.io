@@ -1,0 +1,323 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>python逆向学习-pyc文件格式(python2) | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="python逆向学习-pyc文件格式(python2) 文章略改动于：https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;03d81eb9ac9b  附件:  链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1TT6siGqPrq52hAa6wemD_g提取码：j0ht  复制这段内容后打开百度网盘手机App，操作更方便哦 这篇文章只是纯粹分析python pyc文件格式，主要是关于pyc在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python逆向学习-pyc文件格式(python2)">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/python%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0-pyc%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F(python2)/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="python逆向学习-pyc文件格式(python2) 文章略改动于：https:&#x2F;&#x2F;www.jianshu.com&#x2F;p&#x2F;03d81eb9ac9b  附件:  链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1TT6siGqPrq52hAa6wemD_g提取码：j0ht  复制这段内容后打开百度网盘手机App，操作更方便哦 这篇文章只是纯粹分析python pyc文件格式，主要是关于pyc在">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-03/800/450">
+<meta property="article:published_time" content="2020-07-03T09:23:03.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:17.092Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-03/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "python逆向学习-pyc文件格式(python2)",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/python%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0-pyc%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F(python2)/",
+  "image": "https://picsum.photos/seed/blog-cover-03/800/450",
+  "datePublished": "2020-07-03T09:23:03.000Z",
+  "dateModified": "2026-07-03T14:46:17.092Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/python%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0-pyc%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F(python2)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'python逆向学习-pyc文件格式(python2)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-03/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">python逆向学习-pyc文件格式(python2)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">python逆向学习-pyc文件格式(python2)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-07-03T09:23:03.000Z" title="发表于 2020-07-03 17:23:03">2020-07-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:17.092Z" title="更新于 2026-07-03 22:46:17">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="python逆向学习-pyc文件格式-python2"><a href="#python逆向学习-pyc文件格式-python2" class="headerlink" title="python逆向学习-pyc文件格式(python2)"></a>python逆向学习-pyc文件格式(python2)</h1><blockquote>
+<p>文章略改动于：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/03d81eb9ac9b">https://www.jianshu.com/p/03d81eb9ac9b</a></p>
+</blockquote>
+<p>附件:</p>
+<blockquote>
+<p>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1TT6siGqPrq52hAa6wemD_g">https://pan.baidu.com/s/1TT6siGqPrq52hAa6wemD_g</a><br>提取码：j0ht</p>
+</blockquote>
+<p>复制这段内容后打开百度网盘手机App，操作更方便哦</p>
+<p>这篇文章只是纯粹分析python pyc文件格式，主要是关于pyc在文件中的存储方式进行了解析。**<span style="color: #F5222D">pyc是python字节码在文件中存储的方式，而在虚拟机运行时环境中对应PyCodeObject对象。</span>**关于PyFrameObject以及PyFunctionObject等运行时结构，后续希望学习透彻了能够一并分析。</p>
+<p>我用的是python2，基本信息如下：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~/桌面/CTF<span class="comment"># python2</span></span><br><span class="line">Python <span class="number">2.7</span>.<span class="number">16</span> (default, Apr  <span class="number">6</span> <span class="number">2019</span>, <span class="number">01</span>:<span class="number">42</span>:<span class="number">57</span>) </span><br><span class="line">[<span class="type">GCC</span> <span class="number">8.3</span><span class="type">.0</span>] on linux2</span><br><span class="line"><span class="built_in">Type</span> <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> or <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-示例文件"><a href="#1-示例文件" class="headerlink" title="1.示例文件"></a>1.示例文件</h3><p>源文件test.py（python2）</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">s = <span class="string">&quot;hello&quot;</span>                                                                                                                                                    </span><br><span class="line"><span class="keyword">def</span> <span class="title function_">func</span>():</span><br><span class="line">  a = <span class="number">3</span> </span><br><span class="line">  <span class="built_in">print</span> s</span><br><span class="line">func()</span><br></pre></td></tr></table></figure>
+
+<p>通过执行<code>python -m test.py</code> 可以生成编译好的pyc文件（虽然会报错，但文件仍然可以正常生成）</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~/桌面/CTF<span class="comment"># python -m test.py</span></span><br><span class="line">hello</span><br><span class="line">/usr/bin/python: No module named test.py</span><br></pre></td></tr></table></figure>
+
+<p>得到test.pyc后，执行hexdump -C test.pyc可以得到如下二进制字符流。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">00000000  03 f3 0d 0a 23 00 ff 5e  63 00 00 00 00 00 00 00  |....#..^c.......|</span><br><span class="line">00000010  00 01 00 00 00 40 00 00  00 73 1a 00 00 00 64 00  |.....@...s....d.|</span><br><span class="line">00000020  00 5a 00 00 64 01 00 84  00 00 5a 01 00 65 01 00  |.Z..d.....Z..e..|</span><br><span class="line">00000030  83 00 00 01 64 02 00 53  28 03 00 00 00 74 05 00  |....d..S(....t..|</span><br><span class="line">00000040  00 00 68 65 6c 6c 6f 63  00 00 00 00 01 00 00 00  |..helloc........|</span><br><span class="line">00000050  01 00 00 00 43 00 00 00  73 0f 00 00 00 64 01 00  |....C...s....d..|</span><br><span class="line">00000060  7d 00 00 74 00 00 47 48  64 00 00 53 28 02 00 00  |&#125;..t..GHd..S(...|</span><br><span class="line">00000070  00 4e 69 03 00 00 00 28  01 00 00 00 74 01 00 00  |.Ni....(....t...|</span><br><span class="line">00000080  00 73 28 01 00 00 00 74  01 00 00 00 61 28 00 00  |.s(....t....a(..|</span><br><span class="line">00000090  00 00 28 00 00 00 00 73  07 00 00 00 74 65 73 74  |..(....s....test|</span><br><span class="line">000000a0  2e 70 79 74 04 00 00 00  66 75 6e 63 02 00 00 00  |.pyt....func....|</span><br><span class="line">000000b0  73 04 00 00 00 00 01 06  01 4e 28 02 00 00 00 52  |s........N(....R|</span><br><span class="line">000000c0  01 00 00 00 52 03 00 00  00 28 00 00 00 00 28 00  |....R....(....(.|</span><br><span class="line">000000d0  00 00 00 28 00 00 00 00  73 07 00 00 00 74 65 73  |...(....s....tes|</span><br><span class="line">000000e0  74 2e 70 79 74 08 00 00  00 3c 6d 6f 64 75 6c 65  |t.pyt....&lt;module|</span><br><span class="line">000000f0  3e 01 00 00 00 73 04 00  00 00 06 01 09 03        |&gt;....s........|</span><br><span class="line">000000fe</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-PyCodeObject结构"><a href="#2-PyCodeObject结构" class="headerlink" title="2.PyCodeObject结构"></a>2.PyCodeObject结构</h3><p>PyCodeObject格式如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[compile.h]</span><br><span class="line"><span class="comment">/* Bytecode object */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    <span class="type">int</span> co_argcount;        <span class="comment">/* #arguments, except *args */</span></span><br><span class="line">    <span class="type">int</span> co_nlocals;     <span class="comment">/* #local variables */</span></span><br><span class="line">    <span class="type">int</span> co_stacksize;       <span class="comment">/* #entries needed for evaluation stack */</span></span><br><span class="line">    <span class="type">int</span> co_flags;       <span class="comment">/* CO_..., see below */</span></span><br><span class="line">    PyObject *co_code;      <span class="comment">/* instruction opcodes */</span></span><br><span class="line">    PyObject *co_consts;    <span class="comment">/* list (constants used) */</span></span><br><span class="line">    PyObject *co_names;     <span class="comment">/* list of strings (names used) */</span></span><br><span class="line">    PyObject *co_varnames;  <span class="comment">/* tuple of strings (local variable names) */</span></span><br><span class="line">    PyObject *co_freevars;  <span class="comment">/* tuple of strings (free variable names) */</span></span><br><span class="line">    PyObject *co_cellvars;      <span class="comment">/* tuple of strings (cell variable names) */</span></span><br><span class="line">    <span class="comment">/* The rest doesn&#x27;t count for hash/cmp */</span></span><br><span class="line">    PyObject *co_filename;  <span class="comment">/* string (where it was loaded from) */</span></span><br><span class="line">    PyObject *co_name;      <span class="comment">/* string (name, for reference) */</span></span><br><span class="line">    <span class="type">int</span> co_firstlineno;     <span class="comment">/* first source line number */</span></span><br><span class="line">    PyObject *co_lnotab;    <span class="comment">/* string (encoding addr&lt;-&gt;lineno mapping) */</span></span><br><span class="line">&#125; PyCodeObject;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-Pyc格式解析"><a href="#3-Pyc格式解析" class="headerlink" title="3.Pyc格式解析"></a>3.Pyc格式解析</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">00000000  03 f3 0d 0a 23 00 ff 5e  63 00 00 00 00 00 00 00  |....#..^c.......|</span><br><span class="line">00000010  00 01 00 00 00 40 00 00  00 73 1a 00 00 00 64 00  |.....@...s....d.|</span><br><span class="line">00000020  00 5a 00 00 64 01 00 84  00 00 5a 01 00 65 01 00  |.Z..d.....Z..e..|</span><br><span class="line">00000030  83 00 00 01 64 02 00 53  28 03 00 00 00 74 05 00  |....d..S(....t..|</span><br><span class="line">00000040  00 00 68 65 6c 6c 6f 63  00 00 00 00 01 00 00 00  |..helloc........|</span><br><span class="line">00000050  01 00 00 00 43 00 00 00  73 0f 00 00 00 64 01 00  |....C...s....d..|</span><br><span class="line">00000060  7d 00 00 74 00 00 47 48  64 00 00 53 28 02 00 00  |&#125;..t..GHd..S(...|</span><br><span class="line">00000070  00 4e 69 03 00 00 00 28  01 00 00 00 74 01 00 00  |.Ni....(....t...|</span><br><span class="line">00000080  00 73 28 01 00 00 00 74  01 00 00 00 61 28 00 00  |.s(....t....a(..|</span><br><span class="line">00000090  00 00 28 00 00 00 00 73  07 00 00 00 74 65 73 74  |..(....s....test|</span><br><span class="line">000000a0  2e 70 79 74 04 00 00 00  66 75 6e 63 02 00 00 00  |.pyt....func....|</span><br><span class="line">000000b0  73 04 00 00 00 00 01 06  01 4e 28 02 00 00 00 52  |s........N(....R|</span><br><span class="line">000000c0  01 00 00 00 52 03 00 00  00 28 00 00 00 00 28 00  |....R....(....(.|</span><br><span class="line">000000d0  00 00 00 28 00 00 00 00  73 07 00 00 00 74 65 73  |...(....s....tes|</span><br><span class="line">000000e0  74 2e 70 79 74 08 00 00  00 3c 6d 6f 64 75 6c 65  |t.pyt....&lt;module|</span><br><span class="line">000000f0  3e 01 00 00 00 73 04 00  00 00 06 01 09 03        |&gt;....s........|</span><br><span class="line">000000fe</span><br></pre></td></tr></table></figure>
+
+<p>hex开头4个字节是magic number（<span style="color: #F5222D">pyc的文件头</span>）：03 f3 0d 0a ，接下来4个字节是时间，这里是23 00 ff 5e，注意到是小端模式，所以实际是0x5eff0032，可以发现是我开始**<span style="color: #F5222D">编译的时间</span><strong>。然后就是PyCodeObject对象了。首先是对象标识<span style="color: #F5222D">TYPE_CODE</span>，也就是0x63.然后4个字节是全局code block的位置参数个数</strong><span style="color: #F5222D">co_argument</span><strong>，这里是00 00 00 00.再接着4个字节(00 00 00 00)是全局code block中的局部变量个数</strong><span style="color: #F5222D">co_nlocals</span><strong>，这里是0.接着4个字节是code block需要的栈空间</strong><span style="color: #F5222D">co_stacksize</span><strong>，这里值为1.然后4个字节是</strong><span style="color: #F5222D">co_flags</span>**，这里是0x40.</p>
+<p>接下来从0x73开始就是code block的字节码序列co_code。注意到它是PyStringObject形式存在，因此，开始写PyStringObject，注意到首先写1个字节的类型标识TYPE_STRING， 即s，对应0x73。然后**<span style="color: #F5222D">4个字节标识长度为1a</span>**，也就是26个字节。从0x64开始就是co_code内容了。通过dis命令来看一下内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">root@kali:~/桌面/CTF# python</span><br><span class="line">Python 2.7.16 (default, Apr  6 2019, 01:42:57) </span><br><span class="line">[GCC 8.3.0] on linux2</span><br><span class="line">Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</span><br><span class="line">&gt;&gt;&gt; source = open(&quot;test.py&quot;).read()</span><br><span class="line">&gt;&gt;&gt; co = compile(source, &#x27;test.py&#x27;, &#x27;exec&#x27;)</span><br><span class="line">&gt;&gt;&gt; co.co_consts</span><br><span class="line">(&#x27;hello&#x27;, &lt;code object func at 0x7fc87511e130, file &quot;test.py&quot;, line 2&gt;, None)</span><br><span class="line">&gt;&gt;&gt; co.co_names</span><br><span class="line">(&#x27;s&#x27;, &#x27;func&#x27;)</span><br><span class="line">&gt;&gt;&gt; import dis</span><br><span class="line">&gt;&gt;&gt; dis.dis(co)</span><br><span class="line">  1           0 LOAD_CONST               0 (&#x27;hello&#x27;)</span><br><span class="line">              3 STORE_NAME               0 (s)</span><br><span class="line"></span><br><span class="line">  2           6 LOAD_CONST               1 (&lt;code object func at 0x7fc87511e130, file &quot;test.py&quot;, line 2&gt;)</span><br><span class="line">              9 MAKE_FUNCTION            0</span><br><span class="line">             12 STORE_NAME               1 (func)</span><br><span class="line"></span><br><span class="line">  5          15 LOAD_NAME                1 (func)</span><br><span class="line">             18 CALL_FUNCTION            0</span><br><span class="line">             21 POP_TOP             </span><br><span class="line">             22 LOAD_CONST               2 (None)</span><br><span class="line">             25 RETURN_VALUE        </span><br><span class="line">&gt;&gt;&gt; len(co.co_code)</span><br><span class="line">26</span><br><span class="line">&gt;&gt;&gt; hex(26)</span><br><span class="line">&#x27;0x1a&#x27;</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>果然是正好26个字节，其中内容分别对应这些指令，其中第一列是在源码中的行数，第二列是该指令在co_code中的偏移，第三列是opcode，分为有操作数和无操作数两种，是一个字节的整数。第四列是操作数，占两个字节。</p>
+<p>那么这些指令对应的就是我们看到的pyc文件中的内容了，具体意义参见开头所引用的文章。<strong>LOAD_CONST指令为0x64</strong>，然后两个字节操作数是0。接下来是<strong>STORE_NAME指令0x5a</strong>，操作数是0。其他以此类推.</p>
+<p>接下来从0x28开始是<strong>co.co_consts</strong>内容，我们知道这是一个PyTupleObject对象，保存着code block的常量，如在前面看到的那样，我们知道它有3个元素，分别是字符串hello，code object对象func以及None。那么PyTupleObject跟PyListObject类似，首先是记录类型标示TYPE_TUPLE，即’(‘,也就是0x28了。接下来4个字节是长度，这里是0x3表示有3个元素。然后是元素内容，第一个是’hello’,它是PyStringObject对象，因此，先写入标记TYPE_INTERNED,即’t’，也就是上面的0x74了，然后呢，是写入4个字节的长度，共5个字节，所以这是0x5，接着就是hello这5个字节。</p>
+<p>第二个是code object，好吧，这个就相当于跟之前的流程再来一遍了。</p>
+<p>0x63跟之前的一样是TYPE_CODE的标示’c’，然后就是code object的各个字段了。还是来一遍，分别如下</p>
+<table>
+<thead>
+<tr>
+<th>First Header</th>
+<th>Second Header</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>co_argcount</td>
+<td>0</td>
+</tr>
+<tr>
+<td>co_nlocals</td>
+<td>1</td>
+</tr>
+<tr>
+<td>co_stacksize</td>
+<td>1</td>
+</tr>
+<tr>
+<td>co_flags</td>
+<td>67</td>
+</tr>
+<tr>
+<td>co_code</td>
+<td>标示0x73，即TYPE_STRING。长度0x0f，即15个字节长度。然后从0x64开始就是co_code内容。</td>
+</tr>
+</tbody></table>
+<p>下面分析下func的co_code，首先看下dis的结果:</p>
+<blockquote>
+<p>由于本人不知道如何看子函数func的dis,现列出原作者文章中的dis</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">In [63]: func.co_nlocals</span><br><span class="line">Out[63]: 1</span><br><span class="line">In [64]: func.co_consts</span><br><span class="line">Out[64]: (None, 3)</span><br><span class="line">In [65]: func.co_names</span><br><span class="line">Out[65]: (&#x27;s&#x27;,)</span><br><span class="line">In [66]: func.co_varnames</span><br><span class="line">Out[66]: (&#x27;a&#x27;,)</span><br><span class="line">In [62]: dis.dis(func)</span><br><span class="line">  4           0 LOAD_CONST               1 (3)  #将func.co_consts[1]即3压栈</span><br><span class="line">              3 STORE_FAST               0 (a)  #存储3在变量a中</span><br><span class="line">  5           6 LOAD_GLOBAL              0 (s) #压入全局变量s</span><br><span class="line">              9 PRINT_ITEM               ##打印s</span><br><span class="line">             10 PRINT_NEWLINE            ##打印换行</span><br><span class="line">             11 LOAD_CONST               0 (None) #None压栈</span><br><span class="line">             14 RETURN_VALUE             #函数返回None</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">00000060  7d 00 00 74 00 00 47 48  64 00 00 53 28 02 00 00  |&#125;..t..GHd..S(...|</span><br><span class="line">00000070  00 4e 69 03 00 00 00 28  01 00 00 00 74 01 00 00  |.Ni....(....t...|</span><br><span class="line">00000080  00 73 28 01 00 00 00 74  01 00 00 00 61 28 00 00  |.s(....t....a(..|</span><br><span class="line">00000090  00 00 28 00 00 00 00 73  07 00 00 00 74 65 73 74  |..(....s....test|</span><br><span class="line">000000a0  2e 70 79 74 04 00 00 00  66 75 6e 63 02 00 00 00  |.pyt....func....|</span><br><span class="line">000000b0  73 04 00 00 00 00 01 06  01 4e 28 02 00 00 00 52  |s........N(....R|</span><br><span class="line">000000c0  01 00 00 00 52 03 00 00  00 28 00 00 00 00 28 00  |....R....(....(.|</span><br><span class="line">000000d0  00 00 00 28 00 00 00 00  73 07 00 00 00 74 65 73  |...(....s....tes|</span><br><span class="line">000000e0  74 2e 70 79 74 08 00 00  00 3c 6d 6f 64 75 6c 65  |t.pyt....&lt;module|</span><br><span class="line">000000f0  3e 01 00 00 00 73 04 00  00 00 06 01 09 03        |&gt;....s........|</span><br><span class="line">000000fe</span><br></pre></td></tr></table></figure>
+
+<p>接下来就是func的co_consts字段了，同样是PyTupleObject对象，先是类型标示0x28，然后4个字节为长度2.接着第一个元素是None(N)，即0x4e，然后是第二个元素3，类型标示是TYPE_INT(i)，即0x69.后面4个字节是整数3.</p>
+<p>再接着就是co_names，同样是PyTupleObject对象，显示标示0x28，然后4个字节为长度1，然后字符s是TYPE_INTERNED类型，于是接着是标示’t’，即0x74，然后是字符内容s(0x73)。</p>
+<p>接下来是co_varnames，同样是PyTupleObject，类型是0x28，然后4个字节为长度1，然后是字符a。再后面是闭包相关的东西co_freevars，为空的PyTupleObject，类型0x28后面4个字节长度为0。然后是code block内部嵌套函数引用的局部变量名集合co_cellvars，同样是空的PyTupleObject对象。</p>
+<p>接着0x73开始就是co_filename了，这是PyStringObject对象，先是对象标示s，然后是长度0x07.后面是对应的文件的完整路径”test.py”。</p>
+<p>接着是co_name，即函数名或者类名，这里就是func了，首先也是对象标示’t’(0x74)，后面跟着长度0x4，然后是’func’这四个字节。</p>
+<p>然后是co_firstlineno，这里直接写的整数0x2.</p>
+<p>然后是字节码指令与源文件行号对应关系co_lnotab，以PyStringObject对象存储。先是标示’s’(0x73)，然后是长度4个字节，然后是内容0x00010601.</p>
+<p>好吧，至此，func这个code object分析完成。我们回到全局的code object。</p>
+<p>全局code object从co_consts[2]开始,这是None，如前面一样，标示为0x4e。接着就是co_names，co_varnames等，分析跟前面func的类似，不再赘述。注意的是这里的co_names对应的’s’和’func’类型不再是TYPE_INTERNED，而是TYPE_STRINGREF(‘R’),值是0x52.还有就是co_lnotab是0x06010903</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/python%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0-pyc%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F(python2)/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/python%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0-pyc%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F(python2)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-03/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/Reverse%20&amp;%20PWN%20-%20CTFWriteUp/Reverse/%E6%AF%94%E8%B5%9B/2020DASCTF%E5%85%AD%E6%9C%88%E8%B5%9B/2020DASCTF-pyCharm%EF%BC%88pyc%E5%8F%8D%E6%B7%B7%E6%B7%86%EF%BC%89/" title="2020DASCTF-pyCharm（pyc反混淆）"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2020DASCTF-pyCharm（pyc反混淆）</div></div><div class="info-2"><div class="info-item-1">2020DASCTF-pyCharm（pyc反混淆）请移步至： python逆向学习-pyc文件的反混淆(python2) </div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/Python%E9%80%86%E5%90%91/python%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0-pyc%E6%96%87%E4%BB%B6%E7%9A%84%E5%8F%8D%E6%B7%B7%E6%B7%86(python2)/" title="python逆向学习-pyc文件的反混淆(python2)"><img class="cover" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">python逆向学习-pyc文件的反混淆(python2)</div></div><div class="info-2"><div class="info-item-1">python逆向学习-pyc文件的反混淆(python2) 参考资料：https://www.52pojie.cn/thread-912103-1-1.htmlhttp://www.chumen77.xyz/2020/06/27/DASCTF%E5%AE%89%E6%81%92%E6%9C%88%E8%B5%9B(6th)/#pyCharm-pyc%E6%96%87%E4%BB%B6%E6%81%A2%E5%A4%8D  以2020DASCTF-pyCharm作为例题来讲解： 2020DASCTF-pyCharm（pyc反混淆） 之前遇到过pyc文件的反编译，直接上脚本或网站进行解密就行了。但是pyc文件一旦加入了混淆，任何工具或网站是没有办法反编译出来py文件的，因此我们需要去掉pyc文件本身的混淆，以达到反编译的效果。 pyc文件的格式如下： 1234567891011121314151617181920[compile.h]/* Bytecode object */typedef struct &#123;    PyObject_HEAD    int co_argcou...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#python%E9%80%86%E5%90%91%E5%AD%A6%E4%B9%A0-pyc%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F-python2"><span class="toc-number">1.</span> <span class="toc-text">python逆向学习-pyc文件格式(python2)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%A4%BA%E4%BE%8B%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.</span> <span class="toc-text">1.示例文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-PyCodeObject%E7%BB%93%E6%9E%84"><span class="toc-number">1.2.</span> <span class="toc-text">2.PyCodeObject结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Pyc%E6%A0%BC%E5%BC%8F%E8%A7%A3%E6%9E%90"><span class="toc-number">1.3.</span> <span class="toc-text">3.Pyc格式解析</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Cyberangel 的博客">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cyberangel&#39;s Blog">
+<meta property="og:url" content="https://elydemiurge.github.io/page/7/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="Cyberangel 的博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://elydemiurge.github.io/img/butterfly-icon.png">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://elydemiurge.github.io/img/butterfly-icon.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/page/7/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Cyberangel\'s Blog',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Cyberangel's Blog</h1><div id="site-subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E6%9D%82%E8%AE%B0/PWN%E6%9D%82%E8%AE%B0%EF%BC%881-2%EF%BC%89-%E3%80%8Agcc%E4%B8%AD%E5%85%B3%E4%BA%8EC%E8%AF%AD%E8%A8%80char%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%BF%99%E4%BB%B6%E4%BA%8B%E3%80%8B/" title="PWN杂记（1-2）-《gcc中关于C语言char类型的这件事》"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN杂记（1-2）-《gcc中关于C语言char类型的这件事》"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E6%9D%82%E8%AE%B0/PWN%E6%9D%82%E8%AE%B0%EF%BC%881-2%EF%BC%89-%E3%80%8Agcc%E4%B8%AD%E5%85%B3%E4%BA%8EC%E8%AF%AD%E8%A8%80char%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%BF%99%E4%BB%B6%E4%BA%8B%E3%80%8B/" title="PWN杂记（1-2）-《gcc中关于C语言char类型的这件事》">PWN杂记（1-2）-《gcc中关于C语言char类型的这件事》</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-27T02:08:30.000Z" title="发表于 2021-01-27 10:08:30">2021-01-27</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN杂记（1-2）-《gcc中关于C语言char类型的这件事》 附件下载：链接: https://pan.baidu.com/s/1UtQYcgZS_vQkIPUV5T5C5w  密码: e49d–来自百度网盘超级会员V3的分享  研究对象研究的gcc版本为：gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.12) 不同版本的gcc编译出来的程序可能不同。 **本文旨在了解char数组和char 的区别* 前言很早之前就想研究一下C中char类型的变量了，因为char、char[]、char *等实在容易搞混，所以就想从内存的角度来研究一下。  注意：char（char []）只能容纳字符，并不能容纳字符串。  代码编译 下面的代码是容易搞混的，我们使用gcc编译一下。  12345678910111213141516#include&lt;stdio.h&gt;#include&lt;string.h&gt;int main()&#123;	char a[10]=&#123;&#x27;a&#x27;,&#x27;...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-7-1%EF%BC%89-fastbin%E7%9A%84malloc_consolidate%EF%BC%88smallbin%E3%80%81unsortedbin%EF%BC%89%E4%B8%8EFASTBIN_CONSOLIDATION_THRESHOLD/" title="PWN进阶（1-7-1）-fastbin的malloc_consolidate（smallbin、unsortedbin）与FASTBIN_CONSOLIDATION_THRESHOLD"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN进阶（1-7-1）-fastbin的malloc_consolidate（smallbin、unsortedbin）与FASTBIN_CONSOLIDATION_THRESHOLD"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-7-1%EF%BC%89-fastbin%E7%9A%84malloc_consolidate%EF%BC%88smallbin%E3%80%81unsortedbin%EF%BC%89%E4%B8%8EFASTBIN_CONSOLIDATION_THRESHOLD/" title="PWN进阶（1-7-1）-fastbin的malloc_consolidate（smallbin、unsortedbin）与FASTBIN_CONSOLIDATION_THRESHOLD">PWN进阶（1-7-1）-fastbin的malloc_consolidate（smallbin、unsortedbin）与FASTBIN_CONSOLIDATION_THRESHOLD</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-25T03:18:35.000Z" title="发表于 2021-01-25 11:18:35">2021-01-25</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN进阶（1-7-1）-fastbin的malloc_consolidate（smallbin、unsortedbin）与FASTBIN_CONSOLIDATION_THRESHOLD 参考资料：https://bbs.pediy.com/thread-257742.htmhttps://ctf-wiki.org/pwn/linux/glibc-heap/heap_structure&#x2F;#small-bin #smallbin注释https://ctf-wiki.org/pwn/linux/glibc-heap/house_of_force&#x2F; #top_chunk注释https://blog.csdn.net/qq_41453285&#x2F;article&#x2F;details&#x2F;97627411研究对象为glibc 2.23源码（无tcachebin）。附件：链接: https://pan.baidu.com/s/15k8gxjH_cw8YZ9HtvG_aXg  密码: q5bf–来自百度网盘超级会员V3的分享  前言由于smallbin会牵扯...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-5-2%EF%BC%89-Bypass%20Tcache%20key%E6%9C%BA%E5%88%B6%EF%BC%88%E4%BE%8B%E9%A2%98%EF%BC%89&amp;&amp;%20%E8%B8%A9%E7%9A%84%E5%9D%91/" title="PWN进阶（1-5-2）-Bypass Tcache key机制（例题）&amp;&amp; 踩的坑"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN进阶（1-5-2）-Bypass Tcache key机制（例题）&amp;&amp; 踩的坑"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-5-2%EF%BC%89-Bypass%20Tcache%20key%E6%9C%BA%E5%88%B6%EF%BC%88%E4%BE%8B%E9%A2%98%EF%BC%89&amp;&amp;%20%E8%B8%A9%E7%9A%84%E5%9D%91/" title="PWN进阶（1-5-2）-Bypass Tcache key机制（例题）&amp;&amp; 踩的坑">PWN进阶（1-5-2）-Bypass Tcache key机制（例题）&amp;&amp; 踩的坑</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-23T07:47:49.000Z" title="发表于 2021-01-23 15:47:49">2021-01-23</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN进阶（1-5-2）-Bypass Tcache key机制（例题）&amp;&amp; 踩的坑 例题来源：i春秋2020新春战役PWN之document附件下载：链接:https://pan.baidu.com/s/1CSpxIU6fFnc3JKzdxR4xFg密码: lhja–来自百度网盘超级会员V3的分享  说明如果你的pwn环境的glibc版本太低的话，直接使用附件中的libc和ld就行。  pwn文件会自动加载同级目录下的libc和ld文件，修改方法： PWN进阶（1-4）-修改ELF动态链接到指定的libc库（动态链接库）（待重写） 静态分析 保护全开，IDA分析一下： add  最多创建7个chunk malloc大小有限制 一个document申请两个chunk 输入的information正好不能溢出  show 普普通通的打印功能，什么都没有发现。 edit  修改sex是绕过tcache double free的关键 input函数中无法堆溢出 只能修改一次信息  remove  一个UAF漏洞 只能free掉information，不free mall...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-5-1%EF%BC%89-Bypass%20Tcache%20key%E6%9C%BA%E5%88%B6%EF%BC%88%E5%9F%BA%E7%A1%80%EF%BC%89/" title="PWN进阶（1-5-1）-Bypass Tcache key机制（基础）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN进阶（1-5-1）-Bypass Tcache key机制（基础）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-5-1%EF%BC%89-Bypass%20Tcache%20key%E6%9C%BA%E5%88%B6%EF%BC%88%E5%9F%BA%E7%A1%80%EF%BC%89/" title="PWN进阶（1-5-1）-Bypass Tcache key机制（基础）">PWN进阶（1-5-1）-Bypass Tcache key机制（基础）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-20T07:28:42.000Z" title="发表于 2021-01-20 15:28:42">2021-01-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN进阶（1-5-1）-Bypass Tcache key机制（基础） 参考资料：https://www.anquanke.com/post/id/219292https://xz.aliyun.com/t/7292https://www.anquanke.com/post/id/194960#glibc-2.29新增的保护机制学习总结附件：链接:https://pan.baidu.com/s/1AnmF44GJlOGYMcFd8466tw密码: h30i–来自百度网盘超级会员V3的分享  前言万万没想到，Tcache的key机制竟然会出现在libc 2.27上，这个是在做2021的*CTF遇到的，之前没有遇到过，也没有碰过，就顺手记录一下：  本来以为Tcache的Key机制只会在libc-2.29及以上版本出现，但是从星盟的WP中可以得知，由于ubuntu的2.27-3ubuntu1.3的更新，导致在libc-2.27版本上出现了Key机制。 key的出现原因在之前的旧版本，填满tcachebin非常简单粗暴，如果程序不清空指针，可以由头到尾free同一个chunk，直接把...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN-Trick/PWN-Trick%EF%BC%882-3%EF%BC%89-%E5%9C%A8%E6%89%80%E6%9C%89one_gadget%E6%97%A0%E6%B3%95getshell%E5%90%8E%E5%88%A9%E7%94%A8__libc_realloc%E8%B0%83%E6%95%B4%E6%A0%88%E4%BD%BF%E5%BE%97one_gadget%E6%BB%A1%E8%B6%B3%E6%9D%A1%E4%BB%B6/" title="PWN-Trick（2-3）-在所有one_gadget无法getshell后利用__libc_realloc调整栈使得one_gadget满足条件"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN-Trick（2-3）-在所有one_gadget无法getshell后利用__libc_realloc调整栈使得one_gadget满足条件"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN-Trick/PWN-Trick%EF%BC%882-3%EF%BC%89-%E5%9C%A8%E6%89%80%E6%9C%89one_gadget%E6%97%A0%E6%B3%95getshell%E5%90%8E%E5%88%A9%E7%94%A8__libc_realloc%E8%B0%83%E6%95%B4%E6%A0%88%E4%BD%BF%E5%BE%97one_gadget%E6%BB%A1%E8%B6%B3%E6%9D%A1%E4%BB%B6/" title="PWN-Trick（2-3）-在所有one_gadget无法getshell后利用__libc_realloc调整栈使得one_gadget满足条件">PWN-Trick（2-3）-在所有one_gadget无法getshell后利用__libc_realloc调整栈使得one_gadget满足条件</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-18T01:26:22.000Z" title="发表于 2021-01-18 09:26:22">2021-01-18</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN-Trick（2-3）-在所有one_gadget无法getshell后利用__libc_realloc调整栈使得one_gadget满足条件 附件：链接: https://pan.baidu.com/s/18KTzZZkdk964ifODugiwow  密码: 5ttw–来自百度网盘超级会员V3的分享  上面一个小节末尾说要解决这道题还有一些困难需要我们去解决。 之前我们已经控制了chunk的fd指针，接下来一般的思路就是控制fd指向__malloc_hook，向__malloc_hook写入one_gadget从而getshell。但是这道题不一样，就算你本地可以拿到shell（我本地打不通），但是远程一定是不通的，所以需要使用__libc_realloc来调整栈，脚本先贴上来，慢慢分析： 1234567write(5, 0x60, p64(realloc_hook_addr-0x1b)+&#x27;b&#x27;*0x58)create(0x60) #5 = 2create(0x60) #6 fake_chunk__libc_realloc_addr=libc_bas...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN-Trick/PWN-Trick%EF%BC%882-2%EF%BC%89-chunk%20Extend_Overlapping+malloc%20to%20unsortedbin%E5%88%87%E5%89%B2+malloc==%E5%86%85%E5%AD%98%E9%87%8D%E5%8F%A0/" title="PWN-Trick（2-2）-chunk Extend_Overlapping+malloc to unsortedbin切割+malloc==内存重叠"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN-Trick（2-2）-chunk Extend_Overlapping+malloc to unsortedbin切割+malloc==内存重叠"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN-Trick/PWN-Trick%EF%BC%882-2%EF%BC%89-chunk%20Extend_Overlapping+malloc%20to%20unsortedbin%E5%88%87%E5%89%B2+malloc==%E5%86%85%E5%AD%98%E9%87%8D%E5%8F%A0/" title="PWN-Trick（2-2）-chunk Extend_Overlapping+malloc to unsortedbin切割+malloc==内存重叠">PWN-Trick（2-2）-chunk Extend_Overlapping+malloc to unsortedbin切割+malloc==内存重叠</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-17T10:41:08.000Z" title="发表于 2021-01-17 18:41:08">2021-01-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN-Trick（2-2）-chunk Extend&#x2F;Overlapping+malloc to unsortedbin切割+malloc&#x3D;&#x3D;内存重叠关键句（文章提要）利用chunk Extend&#x2F;Overlapping修改size将chunk加入unsortedbin，malloc造成unsortedbin切割，再次malloc即可导致两个指针指向同一片区域，从而使得释放任意一个之后内存区域仍然可读写。 对上一小节进行补充从上一小节我们知道，index2的内存实际上是没有被释放的，因此可读写；程序读写规则如下：  我们将程序断在上一篇文章的末尾处，开始gdb调试： 1234567891011121314151617pwndbg&gt; x/30gx 0x5555557560000x555555756000:	0x0000000000000000	0x00005555557560080x555555756010:	0x0000000000000000	0x00000000000000000x555555756020 &lt;stdout&...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-3%EF%BC%89-shellcode%E5%8F%98%E5%BD%A2%E7%9A%84%E8%89%BA%E6%9C%AF%EF%BC%88x86%E5%92%8Cx64%E7%9A%84%E8%BD%AC%E6%8D%A2%E6%9C%BA%E5%88%B6%EF%BC%9Aretfq%EF%BC%89/" title="PWN进阶（1-3）-shellcode变形的艺术（x86和x64的转换机制：retfq）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN进阶（1-3）-shellcode变形的艺术（x86和x64的转换机制：retfq）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-3%EF%BC%89-shellcode%E5%8F%98%E5%BD%A2%E7%9A%84%E8%89%BA%E6%9C%AF%EF%BC%88x86%E5%92%8Cx64%E7%9A%84%E8%BD%AC%E6%8D%A2%E6%9C%BA%E5%88%B6%EF%BC%9Aretfq%EF%BC%89/" title="PWN进阶（1-3）-shellcode变形的艺术（x86和x64的转换机制：retfq）">PWN进阶（1-3）-shellcode变形的艺术（x86和x64的转换机制：retfq）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-14T01:39:35.000Z" title="发表于 2021-01-14 09:39:35">2021-01-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN进阶（1-3）-shellcode变形的艺术（x86和x64的转换机制：retfq） 题目大多数来源自：https://github.com/ustclug/hackergame2019-writeups/tree/master/official/Shell_%E9%AA%87%E5%AE%A2参考资料：https://xz.aliyun.com/t/6645https://xz.aliyun.com/t/5662https://www.cnblogs.com/countfatcode/archive/2004/01/13/11756258.html附件：链接: https://pan.baidu.com/s/18gd5tJyI5CJlVHHRvxlmAw  密码: 0t0r–来自百度网盘超级会员V3的分享  前言假如说pwn题做多的话，提到shellcode你一定不会陌生，它是获得shell权限的一把钥匙。但是有的题目中会对我们输入的shellcode进行限制，比如说不可见字符之类的，如果碰到这种题目，我们应该怎么办？ 我们按照调用shellcode的题目进行分类，总结出...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN-Trick/PWN-Trick%EF%BC%881%EF%BC%89-ret2one_gadget%EF%BC%88stack%EF%BC%89/" title="PWN-Trick（1）-ret2one_gadget（stack）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN-Trick（1）-ret2one_gadget（stack）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN-Trick/PWN-Trick%EF%BC%881%EF%BC%89-ret2one_gadget%EF%BC%88stack%EF%BC%89/" title="PWN-Trick（1）-ret2one_gadget（stack）">PWN-Trick（1）-ret2one_gadget（stack）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-11T05:08:20.000Z" title="发表于 2021-01-11 13:08:20">2021-01-11</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN-Trick（1）-ret2one_gadget（stack） 附件：链接: https://pan.baidu.com/s/1mtOYoHSZi__oJBlZ7npMfA  密码: muo3–来自百度网盘超级会员V3的分享  偶然间看到这样一篇文章： https://www.cnblogs.com/Rookle/p/12884448.html 文章中说的是通过栈溢出来ret2one_gadget，这个方法好像不太常见，因为要使用one_gadget就要泄露libc的基地址，之前的栈上的题都是泄露libc基地址之后直接使用system(“&#x2F;bin&#x2F;sh”)，基本上没有用过one_gadget，并且这道题目保护全开，遂记录一番。 文章中的题目没有找到，好像是星盟的内部赛，于是我就根据IDA的main反编译结果自己写了一个，源码如下：  编译之后要保护全开，编译参数就不写了  12345678910111213141516171819#include&lt;stdio.h&gt;#include&lt;unistd.h&gt;#include&lt;stdl...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E6%9D%82%E8%AE%B0/PWN-%E6%9D%82%E8%AE%B0%EF%BC%881-1%EF%BC%89-%E5%AE%89%E8%A3%85one_gadget%E3%80%81seccomp-tools%E4%BB%A5%E5%8F%8A%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/" title="PWN-杂记（1-1）-安装one_gadget、seccomp-tools以及遇到的问题（转载）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN-杂记（1-1）-安装one_gadget、seccomp-tools以及遇到的问题（转载）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E6%9D%82%E8%AE%B0/PWN-%E6%9D%82%E8%AE%B0%EF%BC%881-1%EF%BC%89-%E5%AE%89%E8%A3%85one_gadget%E3%80%81seccomp-tools%E4%BB%A5%E5%8F%8A%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%88%E8%BD%AC%E8%BD%BD%EF%BC%89/" title="PWN-杂记（1-1）-安装one_gadget、seccomp-tools以及遇到的问题（转载）">PWN-杂记（1-1）-安装one_gadget、seccomp-tools以及遇到的问题（转载）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-09T06:48:53.000Z" title="发表于 2021-01-09 14:48:53">2021-01-09</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN-杂记（1-1）-安装one_gadget、seccomp-tools以及遇到的问题（转载） 转载自：https://www.yuque.com/chenguangzhongdeyimoxiao/xx6p74/pn5v60  这篇文章可以解决在Ubuntu 16.04 one_gadget安装完成之后运行时报错的问题，十分感谢这篇文章，感谢： @Shura_phoenix 师傅：https://www.yuque.com/chenguangzhongdeyimoxiao 最近做到了很多seccomp沙盒的题目，seccomp-tools对我们做题很有帮助，于是准备安装。 ubuntu安装命令12sudo apt install gcc ruby-devsudo gem install seccomp-tools  照理来说是直接会成功的，而我却出现了很奇怪的问题，而且在网上找了很久也没有跟我类似的问题，最终自己还是解决了，记录一下过程~ ERROR首先报错如下，找了很久，大概错误我估计是因为ruby版本的关系 可以先查看以下ruby版本 1ruby --version   ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-1%EF%BC%89-%E5%88%9D%E6%8E%A2%EF%BC%88Linux%20Kernel%EF%BC%89sandbox%E4%B8%AD%E7%9A%84prctl-seccomp%E6%9C%BA%E5%88%B6%EF%BC%88orw%EF%BC%89/" title="PWN进阶（1-1）-初探（Linux Kernel）sandbox中的prctl-seccomp机制（orw）"><img class="post-bg" src="https://picsum.photos/seed/blog-cover-04/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PWN进阶（1-1）-初探（Linux Kernel）sandbox中的prctl-seccomp机制（orw）"></a></div><div class="recent-post-info"><a class="article-title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-1%EF%BC%89-%E5%88%9D%E6%8E%A2%EF%BC%88Linux%20Kernel%EF%BC%89sandbox%E4%B8%AD%E7%9A%84prctl-seccomp%E6%9C%BA%E5%88%B6%EF%BC%88orw%EF%BC%89/" title="PWN进阶（1-1）-初探（Linux Kernel）sandbox中的prctl-seccomp机制（orw）">PWN进阶（1-1）-初探（Linux Kernel）sandbox中的prctl-seccomp机制（orw）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2021-01-09T03:09:02.000Z" title="发表于 2021-01-09 11:09:02">2021-01-09</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right article-meta-link"></i><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="content">PWN进阶（1-1）-初探（Linux Kernel）sandbox中的prctl-seccomp机制（orw） 题目来源：https://pwnable.tw/challenge/#2（orw）参考资料：https://www.anquanke.com/post/id/186447https://man7.org/linux/man-pages/man2/prctl.2.htmlhttps://blog.betamao.me/2019/01/23/Linux%E6%B2%99%E7%AE%B1%E4%B9%8Bseccomp/附件：链接: https://pan.baidu.com/s/1ppU1-qZEBHQtNcrTwzXx-A  密码: hvqc–来自百度网盘超级会员V3的分享  prctl-seccomp简介seccomp 是 secure computing 的缩写，其是从Linux kernel 2.6.23版本引入的一种简洁的 sandbox 机制，可以当作沙箱使用。在编写C语言程序过程中，可以通过引入prctl函数来实现内核级的安全机制；程序编译运行后，相当于进...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/6/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/#content-inner">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/#content-inner">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/#content-inner">47</a><a class="extend next" rel="next" href="/page/8/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            <a class="card-more-btn" href="/categories/" title="查看更多">
+      <i class="fas fa-angle-right"></i></a>
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/"><span class="card-category-list-name">Misc - CTFWriteUp</span><span class="card-category-list-count">127</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%E5%88%B7%E9%A2%98/"><span class="card-category-list-name">刷题</span><span class="card-category-list-count">77</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%E6%AF%94%E8%B5%9B/"><span class="card-category-list-name">比赛</span><span class="card-category-list-count">49</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Misc-CTFWriteUp/%EF%BC%88%E5%AD%A6%E6%A0%A1CTF%E6%96%B0%E7%94%9F%E8%B5%9B%EF%BC%89%EF%BC%88%E7%BB%9D%E5%AF%86%E5%AF%86%E6%96%87%EF%BC%89%E8%BF%99%E4%BB%96%E5%96%B5%E7%9A%84%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%EF%BC%88ASCII%E8%A7%84%E5%BE%8B%EF%BC%89/"><span class="card-category-list-name">（学校CTF新生赛）（绝密密文）这他喵的到底是什么？（ASCII规律）</span><span class="card-category-list-count">1</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/"><span class="card-category-list-name">Reverse & PWN - CTFWriteUp</span><span class="card-category-list-count">116</span></a><ul class="card-category-list child"><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/PWN/"><span class="card-category-list-name">PWN</span><span class="card-category-list-count">8</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/Reverse-PWN-CTFWriteUp/Reverse/"><span class="card-category-list-name">Reverse</span><span class="card-category-list-count">108</span></a></li></ul></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/"><span class="card-category-list-name">公开知识库</span><span class="card-category-list-count">224</span></a></li>
+          </ul></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      <a class="card-more-btn" href="/archives/"
+            title="查看更多">
+            <i class="fas fa-angle-right"></i>
+          </a>
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/12/">
+            <span class="card-archive-list-date">
+              十二月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/11/">
+            <span class="card-archive-list-date">
+              十一月 2022
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/10/">
+            <span class="card-archive-list-date">
+              十月 2022
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/08/">
+            <span class="card-archive-list-date">
+              八月 2022
+            </span>
+            <span class="card-archive-list-count">2</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/07/">
+            <span class="card-archive-list-date">
+              七月 2022
+            </span>
+            <span class="card-archive-list-count">6</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2022/01/">
+            <span class="card-archive-list-date">
+              一月 2022
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2021/12/">
+            <span class="card-archive-list-date">
+              十二月 2021
+            </span>
+            <span class="card-archive-list-count">1</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2021/11/">
+            <span class="card-archive-list-date">
+              十一月 2021
+            </span>
+            <span class="card-archive-list-count">3</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">467</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">850.9k</div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-07-03T14:46:23.043Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"><script>window.typedJSFn = {
+  init: str => {
+    window.typed = new Typed('#subtitle', Object.assign({
+      strings: str,
+      startDelay: 300,
+      typeSpeed: 150,
+      loop: true,
+      backSpeed: 50,
+    }, null))
+  },
+  run: subtitleType => {
+    if (true) {
+      if (typeof Typed === 'function') {
+        subtitleType()
+      } else {
+        btf.getScript('https://cdn.jsdelivr.net/npm/typed.js@3.0.0/dist/typed.umd.min.js').then(subtitleType)
+      }
+    } else {
+      subtitleType()
+    }
+  },
+  processSubtitle: (content, extraContents = []) => {
+    if (true) {
+      const sub = ["Cyberangel 的博客"].slice()
+
+      if (extraContents.length > 0) {
+        sub.unshift(...extraContents)
+      }
+
+      if (typeof content === 'string') {
+        sub.unshift(content)
+      } else if (Array.isArray(content)) {
+        sub.unshift(...content)
+      }
+
+      sub.length > 0 && typedJSFn.init(sub)
+    } else {
+      document.getElementById('subtitle').textContent = typeof content === 'string' ? content :
+        (Array.isArray(content) && content.length > 0 ? content[0] : '')
+    }
+  }
+}
+btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+</script><script>function subtitleType () {
+  typedJSFn.processSubtitle(["Cyberangel 的博客"])
+}
+typedJSFn.run(subtitleType)</script></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

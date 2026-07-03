@@ -1,0 +1,411 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN进阶（1-6）-初探调用one_gadget的约束条件(execve) | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN进阶（1-6）-初探调用one_gadget的约束条件(execve) 感谢@Taqini师傅参考文章：http:&#x2F;&#x2F;taqini.space&#x2F;2020&#x2F;04&#x2F;29&#x2F;about-execvehttp:&#x2F;&#x2F;www.pwn4fun.com&#x2F;pwn&#x2F;onegadget-xuanxue-getshell.html附件：链接: https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1GCVAZ-W39RJk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN进阶（1-6）-初探调用one_gadget的约束条件(execve)">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-6%EF%BC%89-%E5%88%9D%E6%8E%A2%E8%B0%83%E7%94%A8one_gadget%E7%9A%84%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6(execve)/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN进阶（1-6）-初探调用one_gadget的约束条件(execve) 感谢@Taqini师傅参考文章：http:&#x2F;&#x2F;taqini.space&#x2F;2020&#x2F;04&#x2F;29&#x2F;about-execvehttp:&#x2F;&#x2F;www.pwn4fun.com&#x2F;pwn&#x2F;onegadget-xuanxue-getshell.html附件：链接: https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1GCVAZ-W39RJk">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-05/800/450">
+<meta property="article:published_time" content="2021-01-03T15:56:49.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:16.414Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-05/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN进阶（1-6）-初探调用one_gadget的约束条件(execve)",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-6%EF%BC%89-%E5%88%9D%E6%8E%A2%E8%B0%83%E7%94%A8one_gadget%E7%9A%84%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6(execve)/",
+  "image": "https://picsum.photos/seed/blog-cover-05/800/450",
+  "datePublished": "2021-01-03T15:56:49.000Z",
+  "dateModified": "2026-07-03T14:46:16.414Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-6%EF%BC%89-%E5%88%9D%E6%8E%A2%E8%B0%83%E7%94%A8one_gadget%E7%9A%84%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6(execve)/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN进阶（1-6）-初探调用one_gadget的约束条件(execve)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-05/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN进阶（1-6）-初探调用one_gadget的约束条件(execve)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN进阶（1-6）-初探调用one_gadget的约束条件(execve)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-01-03T15:56:49.000Z" title="发表于 2021-01-03 23:56:49">2021-01-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:16.414Z" title="更新于 2026-07-03 22:46:16">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN进阶（1-6）-初探调用one-gadget的约束条件-execve"><a href="#PWN进阶（1-6）-初探调用one-gadget的约束条件-execve" class="headerlink" title="PWN进阶（1-6）-初探调用one_gadget的约束条件(execve)"></a>PWN进阶（1-6）-初探调用one_gadget的约束条件(execve)</h1><blockquote>
+<p><strong><span style="color: #13C2C2">感谢@Taqini师傅</span></strong><br>参考文章：<br><a target="_blank" rel="noopener" href="http://taqini.space/2020/04/29/about-execve">http://taqini.space/2020/04/29/about-execve</a><br><a target="_blank" rel="noopener" href="http://www.pwn4fun.com/pwn/onegadget-xuanxue-getshell.html">http://www.pwn4fun.com/pwn/onegadget-xuanxue-getshell.html</a><br>附件：<br>链接: <a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1GCVAZ-W39RJk4eUw7LdFUQ">https://pan.baidu.com/s/1GCVAZ-W39RJk4eUw7LdFUQ</a>  密码: 3der<br>–来自百度网盘超级会员V3的分享</p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>gadget可以译为小片段的意思，但在pwn中gadget的作用是利用ELF或libc.so中的汇编代码来调整栈帧或寄存器的值，从而达到ROP攻击：getshell、执行自定义参数函数（read、write等）。而one_gadget也是由一些小片段组成的，但是组成的是execve(“&#x2F;bin&#x2F;sh”,argv,envp)，利用此函数可以达到getshell的目的；所以将凭借一己之力getshell的gadget称为one_gadget。</p>
+<h2 id="execve-函数原型"><a href="#execve-函数原型" class="headerlink" title="execve-函数原型"></a>execve-函数原型</h2><p>one_gadget本质上调用的是execve(“&#x2F;bin&#x2F;sh”,argv,envp)，先来看一下它的函数原型：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">execve</span> <span class="params">(<span class="type">const</span> <span class="type">char</span> *filename, <span class="type">char</span> *<span class="type">const</span> argv [], <span class="type">char</span> *<span class="type">const</span> envp[])</span>;</span><br></pre></td></tr></table></figure>
+
+<p>execve函数中有3个参数，简单看一下参数的类型：</p>
+<ul>
+<li>const char *filename</li>
+</ul>
+<p>第一个参数是const char *类型的，这意味着在内存中filename必须是一个合法的指针（字符串常量）。</p>
+<ul>
+<li>char *const argv []和char *const envp[]</li>
+</ul>
+<p>这两个参数都是char *const类型的数组，同样也要求必须是一个合法的指针（字符串数组常量）。</p>
+<blockquote>
+<p>关于char类型，可以看：<br><a href="../../PWN%E6%9D%82%E8%AE%B0/PWN%E6%9D%82%E8%AE%B0%EF%BC%881-2%EF%BC%89-%E3%80%8Agcc%E4%B8%AD%E5%85%B3%E4%BA%8EC%E8%AF%AD%E8%A8%80char%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%BF%99%E4%BB%B6%E4%BA%8B%E3%80%8B/PWN%E6%9D%82%E8%AE%B0%EF%BC%881-2%EF%BC%89-%E3%80%8Agcc%E4%B8%AD%E5%85%B3%E4%BA%8EC%E8%AF%AD%E8%A8%80char%E7%B1%BB%E5%9E%8B%E7%9A%84%E8%BF%99%E4%BB%B6%E4%BA%8B%E3%80%8B.md">..&#x2F;..&#x2F;PWN杂记&#x2F;PWN杂记（1-2）-《gcc中关于C语言char类型的这件事》&#x2F;PWN杂记（1-2）-《gcc中关于C语言char类型的这件事》.md</a></p>
+</blockquote>
+<h2 id="execve-man手册"><a href="#execve-man手册" class="headerlink" title="execve-man手册"></a>execve-man手册</h2><p>为了深入研究execve函数，有必要研究一下它的man手册：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man2/execve.2.html">https://man7.org/linux/man-pages/man2/execve.2.html</a><br>或在Linux的终端上执行：man execve<br><strong><span style="color: #F5222D">这里只摘了与本文有关系的段落，不涉及Linux底层调用。</span></strong></p>
+</blockquote>
+<p>execve() executes the program referred to by pathname. This causes the program that is currently being run by the calling process to be replaced with a new program, with newly initialized stack, heap, and (initialized and uninitialized) data segments.</p>
+<blockquote>
+<p>execve执行pathname所指向的程序，这将导致新程序会代替当前所运行的程序（包含新初始化的堆栈和初始化的和未初始化的数据段）</p>
+</blockquote>
+<p>pathname must be either a binary executable, or a script starting with a line of the form:</p>
+<p>#!interpreter [optional-arg]</p>
+<blockquote>
+<p>pathname**<span style="color: #F5222D">必须</span>**指向一个可执行文件或以“#!interpreter [optional-arg]”开头的脚本文件</p>
+</blockquote>
+<p>argv is an array of pointers to strings passed to the new program as its command-line arguments.  By convention, the first of these strings (i.e., argv[0]) should contain the filename associated with the file being executed.  The argv array must be terminated by a NULL pointer.  (Thus, in the new program, argv[argc] will be NULL.)</p>
+<blockquote>
+<p>参数argv是一个指向字符串的指针数组，它作为命令行的参数传递给新程序。<strong><span style="color: #F5222D">按照惯例</span></strong>，这些字符串的第一个参数（即argv[0]）应该包含与正在执行的文件相关联的文件名。argv数组必须以空指针结束。（因此在新程序中，argv[argc]为空）。</p>
+</blockquote>
+<p>envp is an array of pointers to strings, conventionally of the form key&#x3D;value, which are passed as the environment of the new program.  The envp array must be terminated by a NULL pointer.</p>
+<blockquote>
+<p>envp是指向字符串的指针数组，**<span style="color: #F5222D">通常</span>**是key&#x3D;value的形式，它将作为环境传递给新程序。envp必须以空指针结束</p>
+</blockquote>
+<p>execve() does not return on success, and the text, initialized data, uninitialized data (bss), and stack of the calling process are overwritten according to the contents of the newly loaded program.</p>
+<blockquote>
+<p>成功调用execve()不会返回任何值，代码段、初始化的数据段、未初始化的bss段，和调用程序的栈将根据新加载的程序的内容覆盖。</p>
+</blockquote>
+<p>Interpreter scripts</p>
+<p>An interpreter script is a text file that has execute permission enabled and whose first line is of the form:#!interpreter [optional-arg]</p>
+<blockquote>
+<p>解释器脚本<br>解释器脚本是一个文本文件，（要让它成功的被执行）必须赋予其可执行权限，并且文件的第一行的格式为#!interpreter [optional-arg]</p>
+</blockquote>
+<p>The interpreter must be a valid pathname for an executable file.If the pathname argument of execve() specifies an interpreter script, then interpreter will be invoked with the following arguments:interpreter [optional-arg] pathname arg…where pathname is the absolute pathname of the file specified as the first argument of execve(), and arg…  is the series of words pointed to by the argv argument of execve(), starting at argv[1].  Note that there is no way to get the argv[0] that was passed to the execve() call.</p>
+<blockquote>
+<p>解释器必须是包含有效路径名（pathname）可执行文件。如果execve()的pathname参数指定了解释器脚本，那么将使用以下参数调用解释器:interpreter [optional-arg] pathname arg…（解释器 [可选参数] 路径名 参数）<br>其中pathname是作为execve()的第一个参数指定的文件**<span style="color: #F5222D">绝对</span>**路径名，从argv[1]开始，arg…是由execve()的argv参数指向的一系列words组成。注意，无法获取到传递给execve()的argv[0]。</p>
+</blockquote>
+<p>For portable use, optional-arg should either be absent, or be specified as a single word (i.e., it should not contain white space); see NOTES below.Since Linux 2.6.28, the kernel permits the interpreter of a script to itself be a script.  This permission is recursive, up to a limit of four recursions, so that the interpreter may be a script which is interpreted by a script, and so on.</p>
+<blockquote>
+<p>为了方便使用，optional-arg应该指定为空或单个单词(不包含空格);详情请参阅下面的注意事项。从Linux 2.6.28开始，内核允许脚本的解释器本身就是脚本。这个权限是递归的，最多只能有四次递归，因此解释器可以是由脚本解释的脚本，以此类推。</p>
+</blockquote>
+<p>Limits on size of arguments and environment</p>
+<p>Most UNIX implementations impose some limit on the total size ofthe command-line argument (argv) and environment (envp) strings that may be passed to a new program.</p>
+<blockquote>
+<p>大多数UNIX对传递给新程序的命令行参数(argv)和环境字符串(envp)的总大小施加了一些限制。（限制太复杂，不在此介绍）。</p>
+</blockquote>
+<p>RETURN VALUE</p>
+<p>On success, execve() does not return, on error -1 is returned,and errno is set appropriately.</p>
+<blockquote>
+<p>如果调用成功，execve()不会返回，<span style="color: #F5222D">否则返回-1，并且为errno赋值。</span><br>errno详见：<br><a target="_blank" rel="noopener" href="https://manpages.debian.org/unstable/manpages-zh/execve.2.zh_CN.html">https://manpages.debian.org/unstable/manpages-zh/execve.2.zh_CN.html</a> #中文<br><a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man2/execve.2.html">https://man7.org/linux/man-pages/man2/execve.2.html</a> #英文</p>
+</blockquote>
+<h2 id="execve-分析"><a href="#execve-分析" class="headerlink" title="execve-分析"></a>execve-分析</h2><p>man文档中描述filename用到的是must，must代表必须，这意味着pathname必须符合要求才可以让execve正常执行：</p>
+<blockquote>
+<p>pathname**<span style="color: #F5222D">must</span>**be either a binary executable, or a script starting…</p>
+</blockquote>
+<p>而对于另外两个参数argv和envp则描述的是：by convention和conventionally</p>
+<blockquote>
+<p><span style="color: #F5222D">By convention</span>, the first of these strings<br>envp is an array of pointers to strings, <strong><span style="color: #F5222D">conventionally</span></strong> of the form key&#x3D;value…</p>
+</blockquote>
+<p>这两个词都有按照惯例的意思，反过来说也可以不按照惯例，进一步将，execve对这两个参数的限制并没有那么严格。在man文档所说的是“按照惯例argv[0]是被执行程序的程序名”，但也可以不是；“按照惯例环境变量应该是key&#x3D;value的格式”，但也可以不是。写个代码来测试一下：</p>
+<blockquote>
+<p>man文档中已经说明这两个参数必须以空指针结尾<br>让argv[0]中的指针指向0xdeadbeef，让envp[0]中的指针指向0xdeadbeef，最终执行：<br>execve(“&#x2F;bin&#x2F;sh”,”deadbeef”,”deadbeef”)</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">	<span class="type">const</span> <span class="type">char</span> *filename=<span class="string">&quot;/bin/sh&quot;</span>;</span><br><span class="line">	<span class="type">char</span> *<span class="type">const</span> argv []=&#123;<span class="string">&quot;0xdeadbeef&quot;</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line">	<span class="type">char</span> *<span class="type">const</span> envp[]=&#123;<span class="string">&quot;0xdeadbeef&quot;</span>,<span class="number">0</span>&#125;;</span><br><span class="line">	execve(filename,argv,envp);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>gcc -g test.c -o test</p>
+</blockquote>
+<p>编译之后，执行效果如下：</p>
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611900788739-e36f85ee-93db-488a-9e18-9e8b35cc99f6.png" alt="截屏2021-01-29 14.13.04.png"></p>
+<p>gdb调试，下断点直接来到execve处，查看内存：</p>
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611901206333-cf4a16bb-4ec6-4d25-9e64-a6cb17683aea.png" alt="截屏2021-01-29 14.18.05.png"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; x/<span class="number">8</span>gx <span class="number">0x7fffffffdd70</span></span><br><span class="line"><span class="number">0x7fffffffdd70</span>:	<span class="number">0x000000000040069c</span>	<span class="number">0x0000000000000000</span> <span class="meta">#argv参数</span></span><br><span class="line">				#指向“deadbeef”      #以<span class="literal">NULL</span>结尾</span><br><span class="line"><span class="number">0x7fffffffdd80</span>:	<span class="number">0x000000000040069c</span>	<span class="number">0x0000000000000000</span> <span class="meta">#envp参数</span></span><br><span class="line">				#指向“deadbeef”      #以<span class="literal">NULL</span>结尾</span><br><span class="line"><span class="number">0x7fffffffdd90</span>:	<span class="number">0x00007fffffffde80</span>	<span class="number">0x7dbad91c7800cd00</span></span><br><span class="line"><span class="number">0x7fffffffdda0</span>:	<span class="number">0x0000000000400610</span>	<span class="number">0x00007ffff7a2d840</span></span><br><span class="line">pwndbg&gt; x/<span class="number">4</span>gx <span class="number">0x40069c</span></span><br><span class="line"><span class="number">0x40069c</span>:	<span class="number">0x6562646165647830</span>	<span class="number">0x3b031b0100006665</span> <span class="meta">#deadbeef字符串</span></span><br><span class="line">    		<span class="meta"># e b d a e d x 0                 f e </span></span><br><span class="line"><span class="number">0x4006ac</span>:	<span class="number">0x0000000500000034</span>	<span class="number">0x00000080fffffda8</span></span><br><span class="line">pwndbg&gt; x/<span class="number">4</span>gx <span class="number">0x400694</span></span><br><span class="line"><span class="number">0x400694</span>:	<span class="number">0x0068732f6e69622f</span>	<span class="number">0x6562646165647830</span></span><br><span class="line">    		#“/bin/sh”</span><br><span class="line"><span class="number">0x4006a4</span>:	<span class="number">0x3b031b0100006665</span>	<span class="number">0x0000000500000034</span></span><br><span class="line">pwndbg&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>在此处，NULL和0的效果是相同的</p>
+</blockquote>
+<p>从内存中可以看到0x7fffffffdd70处存放的是指针，这也暗含了其类型char *const argv[]，envp也是这样。</p>
+<p><strong>总结：不按照惯例去设置argv（参数）和envp（环境变量）也是可以的。</strong></p>
+<h2 id="execve-一个小总结"><a href="#execve-一个小总结" class="headerlink" title="execve-一个小总结"></a>execve-一个小总结</h2><blockquote>
+<p>int execve (const char *filename, char *const argv [], char *const envp[]);</p>
+</blockquote>
+<ul>
+<li>execve()功能：执行pathname指定的程序（创建新进程）</li>
+<li>pathname：二进制程序或可执行脚本的路径名，其数据类型是const char *pathname（ 字符串常量 ）</li>
+<li>argv：传给新程序的参数列表，数据类型是char *const argv[]（字符串数组常量）</li>
+<li>envp 是新程序的环境变量列表，通常是key&#x3D;value的形式，数据类型：char *const envp[] 字符串数组常量</li>
+<li>argv 和 envp 数组的末尾必须是一个空指针（NULL pointer）</li>
+</ul>
+<h2 id="PWN-one-gadget-分析"><a href="#PWN-one-gadget-分析" class="headerlink" title="PWN-one_gadget-分析"></a>PWN-one_gadget-分析</h2><p>pwn中的one_gadget虽然强大，但在利用时仍然逃不了限制：</p>
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611903776593-bf42b21d-bf67-43de-807d-0c1ee7856cd0.png" alt="截屏2021-01-29 15.01.51.png"></p>
+<p>为了方便对照前面的内容，我们以第二个one_gadget来举例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">0x4527a</span> execve(<span class="string">&quot;/bin/sh&quot;</span>, rsp+<span class="number">0x30</span>, environ)</span><br><span class="line">constraints:</span><br><span class="line">  [rsp+<span class="number">0x30</span>] == <span class="literal">NULL</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>0x4527a表示在libc文件中的偏移</strong></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">pwndbg&gt; vmmap</span><br><span class="line">LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA</span><br><span class="line">          <span class="number">0x400000</span>           <span class="number">0x401000</span> r-xp     <span class="number">1000</span> <span class="number">0</span>      /home/ubuntu/Desktop/one_gadget_test/test</span><br><span class="line">          <span class="number">0x600000</span>           <span class="number">0x601000</span> r--p     <span class="number">1000</span> <span class="number">0</span>      /home/ubuntu/Desktop/one_gadget_test/test</span><br><span class="line">          <span class="number">0x601000</span>           <span class="number">0x602000</span> rw-p     <span class="number">1000</span> <span class="number">1000</span>   /home/ubuntu/Desktop/one_gadget_test/test</span><br><span class="line">    <span class="number">0x7ffff7a0d000</span>     <span class="number">0x7ffff7bcd000</span> r-xp   <span class="number">1</span>c0000 <span class="number">0</span>      /lib/x86_64-linux-gnu/libc<span class="number">-2.23</span>.so</span><br><span class="line">    <span class="number">0x7ffff7bcd000</span>     <span class="number">0x7ffff7dcd000</span> ---p   <span class="number">200000</span> <span class="number">1</span>c0000 /lib/x86_64-linux-gnu/libc<span class="number">-2.23</span>.so</span><br><span class="line">    <span class="number">0x7ffff7dcd000</span>     <span class="number">0x7ffff7dd1000</span> r--p     <span class="number">4000</span> <span class="number">1</span>c0000 /lib/x86_64-linux-gnu/libc<span class="number">-2.23</span>.so</span><br><span class="line">    <span class="number">0x7ffff7dd1000</span>     <span class="number">0x7ffff7dd3000</span> rw-p     <span class="number">2000</span> <span class="number">1</span>c4000 /lib/x86_64-linux-gnu/libc<span class="number">-2.23</span>.so</span><br><span class="line">    <span class="number">0x7ffff7dd3000</span>     <span class="number">0x7ffff7dd7000</span> rw-p     <span class="number">4000</span> <span class="number">0</span>      </span><br><span class="line">    <span class="number">0x7ffff7dd7000</span>     <span class="number">0x7ffff7dfd000</span> r-xp    <span class="number">26000</span> <span class="number">0</span>      /lib/x86_64-linux-gnu/ld<span class="number">-2.23</span>.so</span><br><span class="line">    <span class="number">0x7ffff7fd8000</span>     <span class="number">0x7ffff7fdb000</span> rw-p     <span class="number">3000</span> <span class="number">0</span>      </span><br><span class="line">    <span class="number">0x7ffff7ff7000</span>     <span class="number">0x7ffff7ffa000</span> r--p     <span class="number">3000</span> <span class="number">0</span>      [vvar]</span><br><span class="line">    <span class="number">0x7ffff7ffa000</span>     <span class="number">0x7ffff7ffc000</span> r-xp     <span class="number">2000</span> <span class="number">0</span>      [vdso]</span><br><span class="line">    <span class="number">0x7ffff7ffc000</span>     <span class="number">0x7ffff7ffd000</span> r--p     <span class="number">1000</span> <span class="number">25000</span>  /lib/x86_64-linux-gnu/ld<span class="number">-2.23</span>.so</span><br><span class="line">    <span class="number">0x7ffff7ffd000</span>     <span class="number">0x7ffff7ffe000</span> rw-p     <span class="number">1000</span> <span class="number">26000</span>  /lib/x86_64-linux-gnu/ld<span class="number">-2.23</span>.so</span><br><span class="line">    <span class="number">0x7ffff7ffe000</span>     <span class="number">0x7ffff7fff000</span> rw-p     <span class="number">1000</span> <span class="number">0</span>      </span><br><span class="line">    <span class="number">0x7ffffffde000</span>     <span class="number">0x7ffffffff000</span> rw-p    <span class="number">21000</span> <span class="number">0</span>      [<span class="built_in">stack</span>]</span><br><span class="line"><span class="number">0xffffffffff600000</span> <span class="number">0xffffffffff601000</span> r-xp     <span class="number">1000</span> <span class="number">0</span>      [vsyscall]</span><br><span class="line">pwndbg&gt; x/<span class="number">10</span>i <span class="number">0x7ffff7a0d000</span>+<span class="number">0x4527a</span></span><br><span class="line">   <span class="number">0x7ffff7a5227a</span> &lt;do_system+<span class="number">1098</span>&gt;:	mov    rax,QWORD PTR [rip+<span class="number">0x37ec37</span>]        # <span class="number">0x7ffff7dd0eb8</span></span><br><span class="line">   <span class="number">0x7ffff7a52281</span> &lt;do_system+<span class="number">1105</span>&gt;:	lea    rdi,[rip+<span class="number">0x147b8f</span>]        # <span class="number">0x7ffff7b99e17</span></span><br><span class="line">   <span class="number">0x7ffff7a52288</span> &lt;do_system+<span class="number">1112</span>&gt;:	lea    rsi,[rsp+<span class="number">0x30</span>]</span><br><span class="line">   <span class="number">0x7ffff7a5228d</span> &lt;do_system+<span class="number">1117</span>&gt;:	mov    DWORD PTR [rip+<span class="number">0x381209</span>],<span class="number">0x0</span>        # <span class="number">0x7ffff7dd34a0</span> &lt;lock&gt;</span><br><span class="line">   <span class="number">0x7ffff7a52297</span> &lt;do_system+<span class="number">1127</span>&gt;:	mov    DWORD PTR [rip+<span class="number">0x381203</span>],<span class="number">0x0</span>        # <span class="number">0x7ffff7dd34a4</span> &lt;sa_refcntr&gt;</span><br><span class="line">   <span class="number">0x7ffff7a522a1</span> &lt;do_system+<span class="number">1137</span>&gt;:	mov    rdx,QWORD PTR [rax]</span><br><span class="line">   <span class="number">0x7ffff7a522a4</span> &lt;do_system+<span class="number">1140</span>&gt;:	call   <span class="number">0x7ffff7ad97f0</span> &lt;execve&gt;</span><br><span class="line">   <span class="number">0x7ffff7a522a9</span> &lt;do_system+<span class="number">1145</span>&gt;:	mov    edi,<span class="number">0x7f</span></span><br><span class="line">   <span class="number">0x7ffff7a522ae</span> &lt;do_system+<span class="number">1150</span>&gt;:	call   <span class="number">0x7ffff7ad9790</span> &lt;__GI__exit&gt;</span><br><span class="line">   <span class="number">0x7ffff7a522b3</span>:	nop    DWORD PTR [rax]</span><br><span class="line">pwndbg&gt;</span><br></pre></td></tr></table></figure>
+
+<p>当然，也可以使用IDA来看：</p>
+<p>execve(“&#x2F;bin&#x2F;sh”, rsp+0x30, environ)</p>
+<p>这个execve的首个参数为”&#x2F;bin&#x2F;sh”（rdi）；第三个参数为environ（环境变量），这也是固定的，那么影响getshell的因素就只有第二个参数了即argv（rsi）了。</p>
+<p>one_gadget工具静态分析得到的限制条件中说到的[rsp+0x30]&#x3D;&#x3D;NULL只是一种情况，即argv数组为空，但是按照execve文档中的定义，只要argv是指针数组且末尾为NULL即可，因此在实际的one gadget利用中，要具体情况具体分析，在one gadget执行时，找到限制条件对应的内存的布局，凡是满足指针数组格式的都应该被考虑在内。</p>
+<p>就这个one_gadget而言，限制条件是[rsp+0x30] &#x3D;&#x3D; NULL，但是根据文章前面所说：rsp+0x30对应的内存区域满足如下结构就可以（是个合法指针）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rsp+<span class="number">0x30</span> - ptr0 -&gt; argv[<span class="number">0</span>]</span><br><span class="line">rsp+<span class="number">0x38</span> - ptr1 -&gt; argv[<span class="number">1</span>]</span><br><span class="line">rsp+<span class="number">0x40</span> - ptr2 -&gt; argv[<span class="number">2</span>]</span><br><span class="line">......</span><br><span class="line">rsp+<span class="number">0</span>x?? - <span class="literal">NULL</span> -&gt; ^</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>可以对照一下前面的内存</strong></p>
+</blockquote>
+<p>这里虽然只显示了4个one gadget，但实际上libc中并不是只有这4个one gadget。</p>
+<p>one_gadget命令默认显示的是限制条件比较宽泛的one gadget，通过-l参数指定搜索级别，显示更多的one gadget。</p>
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611909282952-a3b6665e-20bd-4ff0-9fb5-dbf09862f5f0.png" alt="截屏2021-01-29 16.34.35.png"><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611909328570-362c034f-aaca-40c1-9cb4-e95b5ed7878f.png" alt="截屏2021-01-29 16.35.21.png"></p>
+<h2 id="一些测试"><a href="#一些测试" class="headerlink" title="一些测试"></a>一些测试</h2><h3 id="0、envp合法性和指针的合法性"><a href="#0、envp合法性和指针的合法性" class="headerlink" title="0、envp合法性和指针的合法性"></a>0、envp合法性和指针的合法性</h3><p>为了证明以上内容正确，我们做个测试</p>
+<blockquote>
+<p>下面代码均以gcc -g test?.c -o test? 编译执行。</p>
+</blockquote>
+<p>先来测试envp合法性问题：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span>* sh = <span class="string">&quot;/bin/sh&quot;</span>;</span><br><span class="line">    <span class="type">char</span>* envp[] = &#123;<span class="string">&#x27;aaaaa&#x27;</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line">    <span class="type">char</span>* argv[] = &#123;<span class="string">&quot;aaaaaaaa&quot;</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line"></span><br><span class="line">    execve(sh,argv,envp);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611908636463-8f889468-f06a-44d0-959d-279f7ac16829.png" alt="截屏2021-01-29 16.23.49.png"></p>
+<p>envp不合法，无法getshell。</p>
+<blockquote>
+<p><em><em><span style="color: #F5222D">请注意：</span>char</em> envp[] &#x3D; {0,NULL};中的envp[0]是一个合法的指针</em>*<br>char* envp[] &#x3D; {“0”,NULL};也是合法的<br>char* envp[] &#x3D; {123456789,NULL};不合法<br>char* envp[] &#x3D; {“123456789”,NULL};合法<br><em><em><span style="color: #F5222D">因此指针的合法性不是看指针指向地址是否合法，而是看envp[]中的内容是否属于（const） </span><span style="color: #F5222D">char</em> envp，</span></em>*</p>
+</blockquote>
+<h3 id="1、char-argv-“aaaaaaaa”-NULL"><a href="#1、char-argv-“aaaaaaaa”-NULL" class="headerlink" title="1、char* argv[] &#x3D; {“aaaaaaaa”,NULL};"></a>1、char* argv[] &#x3D; {“aaaaaaaa”,NULL};</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span>* sh = <span class="string">&quot;/bin/sh&quot;</span>;</span><br><span class="line">    <span class="type">char</span>* envp[] = &#123;<span class="number">0</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line">    <span class="type">char</span>* argv[] = &#123;<span class="string">&quot;aaaaaaaa&quot;</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line"></span><br><span class="line">    execve(sh,argv,envp);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611906535852-e7f93061-6f1f-4f94-a661-76ea11323d28.png" alt="截屏2021-01-29 15.48.46.png"></p>
+<p>可以getshell</p>
+<h3 id="2、char-argv-NULL-’aabbbbb’-’aaaaaaaa’"><a href="#2、char-argv-NULL-’aabbbbb’-’aaaaaaaa’" class="headerlink" title="2、char* argv[] &#x3D; {NULL,’aabbbbb’,’aaaaaaaa’};"></a>2、char* argv[] &#x3D; {NULL,’aabbbbb’,’aaaaaaaa’};</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span>* sh = <span class="string">&quot;/bin/sh&quot;</span>;</span><br><span class="line">    <span class="type">char</span>* envp[] = &#123;<span class="number">0</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line">    <span class="type">char</span>* argv[] = &#123;<span class="literal">NULL</span>,<span class="string">&#x27;aabbbbb&#x27;</span>,<span class="string">&#x27;aaaaaaaa&#x27;</span>&#125;;</span><br><span class="line"></span><br><span class="line">    execve(sh,argv,envp);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611907542207-d846e246-bb18-4db3-b560-67f1d030729a.png" alt="截屏2021-01-29 16.05.31.png"></p>
+<p>因为数组碰到NULL就结束，所以仍然满足条件。</p>
+<h3 id="3、char-argv-‘aabbbbb’-’aaaaaaaa’-NULL"><a href="#3、char-argv-‘aabbbbb’-’aaaaaaaa’-NULL" class="headerlink" title="3、char* argv[] &#x3D; {‘aabbbbb’,’aaaaaaaa’,NULL};"></a>3、char* argv[] &#x3D; {‘aabbbbb’,’aaaaaaaa’,NULL};</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span>* sh = <span class="string">&quot;/bin/sh&quot;</span>;</span><br><span class="line">    <span class="type">char</span>* envp[] = &#123;<span class="number">0</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line">    <span class="type">char</span>* argv[] = &#123;<span class="string">&#x27;aabbbbb&#x27;</span>,<span class="string">&#x27;aaaaaaaa&#x27;</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line"></span><br><span class="line">    execve(sh,argv,envp);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611908099127-5dac8240-0b00-41c9-baaf-58378301cc38.png" alt="截屏2021-01-29 16.14.53.png"></p>
+<p>argv[0]和argv[1]不是个合法指针（单引号），无法getshell</p>
+<h3 id="4、char-argv-“aaaaaaaa”-’aaaaa’-NULL"><a href="#4、char-argv-“aaaaaaaa”-’aaaaa’-NULL" class="headerlink" title="4、char* argv[] &#x3D; {“aaaaaaaa”,’aaaaa’,NULL};"></a>4、char* argv[] &#x3D; {“aaaaaaaa”,’aaaaa’,NULL};</h3><p>假设第一个合法，第二个不合法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span>* sh = <span class="string">&quot;/bin/sh&quot;</span>;</span><br><span class="line">    <span class="type">char</span>* envp[] = &#123;<span class="number">0</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line">    <span class="type">char</span>* argv[] = &#123;<span class="string">&quot;aaaaaaaa&quot;</span>,<span class="string">&#x27;aaaaa&#x27;</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line"></span><br><span class="line">    execve(sh,argv,envp);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/assets/posts/pwn-1-6-one-gadget-execve-oda8gu/assets/1611908287037-d55e2272-20a6-4b68-b0c2-2d4af7e5450e.png" alt="截屏2021-01-29 16.18.00.png"></p>
+<p>无法getshell。</p>
+<h3 id="5、char-argv-“aaaaaaaa”-”bbb”-NULL"><a href="#5、char-argv-“aaaaaaaa”-”bbb”-NULL" class="headerlink" title="5、char* argv[] &#x3D; {“aaaaaaaa”,”bbb”,NULL};"></a>5、char* argv[] &#x3D; {“aaaaaaaa”,”bbb”,NULL};</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span>* sh = <span class="string">&quot;/bin/sh&quot;</span>;</span><br><span class="line">    <span class="type">char</span>* envp[] = &#123;<span class="number">0</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line">    <span class="type">char</span>* argv[] = &#123;<span class="string">&quot;aaaaaaaa&quot;</span>,<span class="string">&quot;bbb&quot;</span>,<span class="literal">NULL</span>&#125;;</span><br><span class="line"></span><br><span class="line">    execve(sh,argv,envp);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>argv中的指针均合法，可以getshell。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>只要argv和envp最终是合法的指针数组，那么one_gadget就能成功。</p>
+<blockquote>
+<p>Taqini师傅：<br>对程序进行分析是要动静结合的，而one_gadget命令归根结底只是个静态分析工具，他提供的信息可能并不全面。在实际分析程序的过程中，你可能会发现有些不满足限制条件的one gadget居然也能成功getshell。这并不是玄学，请不要为此困惑，只不过是one_gadget命令还不够强大罢了2333<br>总而言之，静态分析出的限制条件只是提供了一个参考，并不意味着，不满足条件就攻击不成。</p>
+</blockquote>
+<p>对one_gadget这个工具原理感兴趣的可以看：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2720">https://xz.aliyun.com/t/2720</a></p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-6%EF%BC%89-%E5%88%9D%E6%8E%A2%E8%B0%83%E7%94%A8one_gadget%E7%9A%84%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6(execve)/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-6%EF%BC%89-%E5%88%9D%E6%8E%A2%E8%B0%83%E7%94%A8one_gadget%E7%9A%84%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6(execve)/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-05/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN-Trick/PWN-Trick%EF%BC%882-1%EF%BC%89-%E5%88%A9%E7%94%A8unsortedbin%20Bypass%20PIE/" title="PWN-Trick（2-1）-利用unsortedbin Bypass PIE"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN-Trick（2-1）-利用unsortedbin Bypass PIE</div></div><div class="info-2"><div class="info-item-1">PWN-Trick（2-1）-利用unsortedbin Bypass PIE 题目来源：BUUCTF-roarctf_2019_easy_pwn  关键词 off-by-one chunk Extend&#x2F;Overlapping use unsortedbin to leak libc_base heap overflow calloc 分配内存  文件保护 64位程序，保护全开 IDA静态分析漏洞函数  当write是输入的size比创建堆块时输入的size大于10时，即可触发off by one 思路 利用off by one修改next_chunk_size造成chunk Extend&#x2F;Overlapping，释放next_chunk到unsortedbin，再申请合适大小的chunk从而泄露出libc base，  思路验证（gdb调试） 调试前请先关闭系统的ALSR  写出基本的exp123456789101112131415161718192021222324252627282930313233343536373839#coding=utf-8fr...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E8%BF%9B%E9%98%B6/PWN%E8%BF%9B%E9%98%B6%EF%BC%881-2%EF%BC%89-%E5%88%9D%E6%8E%A2pwntools%E4%B8%AD%E7%9A%84DynELF/" title="PWN进阶（1-2）-初探pwntools中的DynELF"><img class="cover" src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN进阶（1-2）-初探pwntools中的DynELF</div></div><div class="info-2"><div class="info-item-1">PWN进阶（1-2）-初探pwntools中的DynELF 参考资料：https://bbs.ichunqiu.com/forum.php?mod=viewthread&amp;tid=42933&amp;highlight=pwn附件：链接: https://pan.baidu.com/s/1rLzeSuP099BfFveM5qOicA  密码: ocuw–来自百度网盘超级会员V3的分享  DynELF引入在讲述DynELF之前，我们先来看一道题，这道题是PlaidCTF2013的ropasaurusrex，题目文件会在附件中提供下载。 文件保护情况如下：  文件题目比较老了，32位程序，只开启了NX保护，放入IDA中查看一下：  进入sub_80483F4：  可以看出，这是一个很简单的栈溢出，同时ELF文件中并没有发现system和“&#x2F;bin&#x2F;sh”，一道ret2libc3无疑了，在本机上进行攻击，exp如下： 123456789101112131415161718192021222324from pwn import *context.log_leve...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E8%BF%9B%E9%98%B6%EF%BC%881-6%EF%BC%89-%E5%88%9D%E6%8E%A2%E8%B0%83%E7%94%A8one-gadget%E7%9A%84%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6-execve"><span class="toc-number">1.</span> <span class="toc-text">PWN进阶（1-6）-初探调用one_gadget的约束条件(execve)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#execve-%E5%87%BD%E6%95%B0%E5%8E%9F%E5%9E%8B"><span class="toc-number">1.2.</span> <span class="toc-text">execve-函数原型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#execve-man%E6%89%8B%E5%86%8C"><span class="toc-number">1.3.</span> <span class="toc-text">execve-man手册</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#execve-%E5%88%86%E6%9E%90"><span class="toc-number">1.4.</span> <span class="toc-text">execve-分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#execve-%E4%B8%80%E4%B8%AA%E5%B0%8F%E6%80%BB%E7%BB%93"><span class="toc-number">1.5.</span> <span class="toc-text">execve-一个小总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PWN-one-gadget-%E5%88%86%E6%9E%90"><span class="toc-number">1.6.</span> <span class="toc-text">PWN-one_gadget-分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E6%B5%8B%E8%AF%95"><span class="toc-number">1.7.</span> <span class="toc-text">一些测试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0%E3%80%81envp%E5%90%88%E6%B3%95%E6%80%A7%E5%92%8C%E6%8C%87%E9%92%88%E7%9A%84%E5%90%88%E6%B3%95%E6%80%A7"><span class="toc-number">1.7.1.</span> <span class="toc-text">0、envp合法性和指针的合法性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81char-argv-%E2%80%9Caaaaaaaa%E2%80%9D-NULL"><span class="toc-number">1.7.2.</span> <span class="toc-text">1、char* argv[] &#x3D; {“aaaaaaaa”,NULL};</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81char-argv-NULL-%E2%80%99aabbbbb%E2%80%99-%E2%80%99aaaaaaaa%E2%80%99"><span class="toc-number">1.7.3.</span> <span class="toc-text">2、char* argv[] &#x3D; {NULL,’aabbbbb’,’aaaaaaaa’};</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81char-argv-%E2%80%98aabbbbb%E2%80%99-%E2%80%99aaaaaaaa%E2%80%99-NULL"><span class="toc-number">1.7.4.</span> <span class="toc-text">3、char* argv[] &#x3D; {‘aabbbbb’,’aaaaaaaa’,NULL};</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81char-argv-%E2%80%9Caaaaaaaa%E2%80%9D-%E2%80%99aaaaa%E2%80%99-NULL"><span class="toc-number">1.7.5.</span> <span class="toc-text">4、char* argv[] &#x3D; {“aaaaaaaa”,’aaaaa’,NULL};</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5%E3%80%81char-argv-%E2%80%9Caaaaaaaa%E2%80%9D-%E2%80%9Dbbb%E2%80%9D-NULL"><span class="toc-number">1.7.6.</span> <span class="toc-text">5、char* argv[] &#x3D; {“aaaaaaaa”,”bbb”,NULL};</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.8.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（1-1-3）-Linux ELF文件保护机制 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（1-1-3）-Linux ELF文件保护机制 https:&#x2F;&#x2F;blog.csdn.net&#x2F;weixin_44932880&#x2F;article&#x2F;details&#x2F;104092620https:&#x2F;&#x2F;blog.csdn.net&#x2F;RChaos&#x2F;article&#x2F;details&#x2F;104344276https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（1-1-3）-Linux ELF文件保护机制">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-1-3%EF%BC%89-Linux%20ELF%E6%96%87%E4%BB%B6%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（1-1-3）-Linux ELF文件保护机制 https:&#x2F;&#x2F;blog.csdn.net&#x2F;weixin_44932880&#x2F;article&#x2F;details&#x2F;104092620https:&#x2F;&#x2F;blog.csdn.net&#x2F;RChaos&#x2F;article&#x2F;details&#x2F;104344276https:&#x2F;&#x2F;blog.csdn.net&#x2F;qq_41202237&#x2F;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-06/800/450">
+<meta property="article:published_time" content="2020-08-02T03:30:17.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.615Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-06/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（1-1-3）-Linux ELF文件保护机制",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-1-3%EF%BC%89-Linux%20ELF%E6%96%87%E4%BB%B6%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/",
+  "image": "https://picsum.photos/seed/blog-cover-06/800/450",
+  "datePublished": "2020-08-02T03:30:17.000Z",
+  "dateModified": "2026-07-03T14:46:15.615Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-1-3%EF%BC%89-Linux%20ELF%E6%96%87%E4%BB%B6%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（1-1-3）-Linux ELF文件保护机制',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-06/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（1-1-3）-Linux ELF文件保护机制</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（1-1-3）-Linux ELF文件保护机制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-02T03:30:17.000Z" title="发表于 2020-08-02 11:30:17">2020-08-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.615Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（1-1-3）-Linux-ELF文件保护机制"><a href="#PWN入门（1-1-3）-Linux-ELF文件保护机制" class="headerlink" title="PWN入门（1-1-3）-Linux ELF文件保护机制"></a>PWN入门（1-1-3）-Linux ELF文件保护机制</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_44932880/article/details/104092620">https://blog.csdn.net/weixin_44932880&#x2F;article&#x2F;details&#x2F;104092620</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/RChaos/article/details/104344276">https://blog.csdn.net/RChaos/article/details/104344276</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41202237/article/details/105913071">https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;105913071</a></p>
+</blockquote>
+<p>Linux ELF文件的保护主要有四种：Canary、NX、PIE、RELRO</p>
+<h2 id="一：Canary"><a href="#一：Canary" class="headerlink" title="一：Canary"></a>一：Canary</h2><p>Canary是金丝雀的意思。技术上表示最先的测试的意思。这个来自以前挖煤的时候，矿工都会先把金丝雀放进矿洞，或者挖煤的时候一直带着金丝雀。金丝雀对甲烷和一氧化碳浓度比较敏感，会先报警。所以大家都用Canary来搞最先的测试。<strong><span style="color: #F5222D">S</span>****<span style="color: #F5222D">tack Canary表示栈的报警保护</span></strong>。</p>
+<p>在函数返回值之前添加的一串随机数（不超过机器字长）（也叫做cookie），末位为&#x2F;x00（提供了覆盖最后一字节输出泄露Canary的可能），如果出现缓冲区溢出攻击，覆盖内容覆盖到Canary处，就会改变原本该处的数值**<span style="color: #F5222D">，当程序执行到此处时，会检查Canary值是否跟开始的值一样，如果不一样，程序会崩溃，从而达到保护返回地址的目的。</span>**</p>
+<p><strong><span style="color: #F5222D"></span></strong><img src="/assets/posts/pwn-1-1-3-linux-elf-qasvpa/assets/1597912626758-4ec5f40a-8913-487e-ab22-8504e524da42.png"></p>
+<blockquote>
+<p>总的来说，Canary参数表示着对栈的保护，防止栈溢出的一种保护，即在栈靠近栈底某个位置设置初值，防止栈溢出的一种保护</p>
+</blockquote>
+<p>GCC用法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gcc -o test test.c <span class="comment">// 默认情况下，不开启Canary保护</span></span><br><span class="line">gcc -fno-<span class="built_in">stack</span>-protector -o test test.c <span class="comment">//禁用栈保护</span></span><br><span class="line">gcc -fstack-protector -o test test.c <span class="comment">//启用堆栈保护，不过只为局部变量中含有 char 数组的函数插入保护代码</span></span><br><span class="line">gcc -fstack-protector-all -o test test.c <span class="comment">//启用堆栈保护，为所有函数插入保护代码</span></span><br><span class="line">-fno-<span class="built_in">stack</span>-protector /-fstack-protector / -fstack-protector-all (关闭 / 开启 / 全开启)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li><strong><span style="color: #DF2A3F">2023年10月06日更新：canary在不同编译器或不同系统下的实现可能有所不同，上面图片仅是展示了canary和ebp的相对位置，即canary相对于ebp而言在低地址，并不是说canary与ebp相邻；比如ubuntu gcc编译出来程序的canary位置在</span></strong> <span style="color: #DF2A3F"><code>ebp - 0xc</code></span> <strong><span style="color: #DF2A3F">（32位程序，canary与ebp不相邻）或</span></strong> <span style="color: #DF2A3F"><code>rbp - 0x8</code></span> <strong><span style="color: #DF2A3F">（64位程序，canary与rbp相邻）。详见文章</span></strong> <span style="color: #DF2A3F"><code>https://www.yuque.com/cyberangel/rg9gdm/cx5zci</code></span> <strong><span style="color: #DF2A3F">的对该问题的发现与描述。</span></strong><br><img src="/assets/posts/pwn-1-1-3-linux-elf-qasvpa/assets/1696594075012-7ab03177-4eba-478a-8892-9cb0d96b8539.png" alt="image.png"></li>
+</ul>
+</blockquote>
+<h2 id="二：NX"><a href="#二：NX" class="headerlink" title="二：NX"></a>二：NX</h2><p>NX即No-eXecute（不可执行）的意思，NX（DEP）的基本原理是将数据所在内存页标识为不可执行，当程序溢出成功转入shellcode时，程序会尝试在数据页面上执行指令，此时CPU就会抛出异常，而不是去执行恶意指令。</p>
+<p>正常在栈溢出时通过跳转指令跳转至shellcode，但是NX开启后CPU会对数据区域进行检查，当发现正常程序不执行，并跳转至其他地址后会抛出异常，接下来不会继续执行shellcode，而是去转入异常处理，处理后会禁止shellcode继续执行</p>
+<p>GCC 用法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gcc -o test test.c <span class="comment">// 默认情况下，开启NX保护</span></span><br><span class="line">gcc -z execstack -o test test.c <span class="comment">// 禁用NX保护</span></span><br><span class="line">gcc -z noexecstack -o test test.c <span class="comment">// 开启NX保护</span></span><br><span class="line">-z execstack / -z <span class="title function_">noexecstack</span> <span class="params">(关闭 / 开启)</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="三：PIE（ASLR）"><a href="#三：PIE（ASLR）" class="headerlink" title="三：PIE（ASLR）"></a>三：PIE（ASLR）</h2><p>一般情况下NX（Windows平台上称为DEP）和地址空间分布随机化（PIE&#x2F;ASLR）（address space layout randomization）会同时工作。内存地址随机化机制有三种情况：</p>
+<blockquote>
+<p>0 - 表示关闭进程地址空间随机化。<br>1 - 表示将mmap的基地址，栈基地址和.so地址随机化<br>2 - 表示在1的基础上增加heap的地址随机化</p>
+</blockquote>
+<p><strong><span style="color: #F5222D">该保护能使每次运行的程序的地址都不同，</span><span style="color: #F5222D">防止根据固定地址来写exp执行攻击。</span></strong></p>
+<blockquote>
+<p>可以防止Ret2libc方式针对DEP的攻击。ASLR和DEP配合使用，能有效阻止攻击者在堆栈上运行恶意代码</p>
+</blockquote>
+<p><strong>liunx下关闭PIE的命令如下：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> -s <span class="built_in">echo</span> 0 &gt; /proc/sys/kernel/randomize_va_space</span><br></pre></td></tr></table></figure>
+
+<p>GCC用法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">gcc -o test test.c <span class="comment">// 默认情况下，不开启PIE</span></span><br><span class="line">gcc -fpie -pie -o test test.c <span class="comment">// 开启PIE，此时强度为1</span></span><br><span class="line">gcc -fPIE -pie -o test test.c <span class="comment">// 开启PIE，此时为最高强度2</span></span><br><span class="line">gcc -fpic -o test test.c <span class="comment">// 开启PIC，此时强度为1，不会开启PIE</span></span><br><span class="line">gcc -fPIC -o test test.c <span class="comment">// 开启PIC，此时为最高强度2，不会开启PIE</span></span><br><span class="line">-no-pie / -pie (关闭 / 开启)</span><br></pre></td></tr></table></figure>
+
+<h2 id="四：RELRO"><a href="#四：RELRO" class="headerlink" title="四：RELRO"></a>四：RELRO</h2><p>Relocation Read-Only (RELRO) 可以使程序某些部分成为只读的。它分为两种：Partial RELRO 和 Full RELRO，即：部分RELRO 和 完全RELRO。</p>
+<p><strong>部分RELRO</strong>是 GCC 的默认设置，几乎所有的二进制文件都至少使用部分RELRO。这样仅仅只能防止全局变量上的缓冲区溢出从而覆盖 GOT。</p>
+<p><strong>完全RELRO</strong>使整个 GOT 只读，从而无法被覆盖，但这样会大大增加程序的启动时间，因为程序在启动之前需要解析所有的符号。</p>
+<blockquote>
+<p>在Linux系统安全领域数据可以写的存储区就会是攻击的目标，尤其是存储函数指针的区域。所以在安全防护的角度应尽量减少可写的存储区域<br>RELRO会设置符号重定向表格为只读或者程序启动时就解析并绑定所有动态符号，从而减少对GOT表的攻击。如果RELRO为Partial RELRO，就说明对GOT表具有写权限</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>主要用来保护重定位表段对应数据区域，默认可写<br>Partial RELRO：.got不可写，got.plt可写<br>Full RELRO：.got和got.plt不可写<br>got.plt可以简称为got表</p>
+</blockquote>
+<p>GCC用法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gcc -o test test.c <span class="comment">// 默认情况下，是Partial RELRO</span></span><br><span class="line">gcc -z norelro -o test test.c <span class="comment">// 关闭，即No RELRO</span></span><br><span class="line">gcc -z lazy -o test test.c <span class="comment">// 部分开启，即Partial RELRO</span></span><br><span class="line">gcc -z now -o test test.c <span class="comment">// 全部开启</span></span><br><span class="line">-z norelro / -z lazy / -z <span class="title function_">now</span> <span class="params">(关闭 / 部分开启 / 完全开启)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>GOT表和PLT表将在下一节进行介绍</p>
+</blockquote>
+<h2 id="五、FORTIFY"><a href="#五、FORTIFY" class="headerlink" title="五、FORTIFY"></a>五、FORTIFY</h2><p>fortify是轻微的检查，用于检查是否存在缓冲区溢出的错误。适用于程序采用大量的字符串或者内存操作函数，如:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; <span class="built_in">memcpy</span>():</span><br><span class="line">	描述：<span class="type">void</span> *<span class="title function_">memcpy</span><span class="params">(<span class="type">void</span> *str1, <span class="type">const</span> <span class="type">void</span> *str2, <span class="type">size_t</span> n)</span></span><br><span class="line">    	 从存储区str2复制n个字符到存储区str1</span><br><span class="line">  参数：str1 -- 指向用于存储复制内容的目标数组，类型强制转换为 <span class="type">void</span>* 指针</span><br><span class="line">    	 str2 -- 指向要复制的数据源，类型强制转换为 <span class="type">void</span>* 指针</span><br><span class="line">    	 n -- 要被复制的字节数</span><br><span class="line">  返回值：该函数返回一个指向目标存储区 str1 的指针</span><br><span class="line">---------------------------------------------------------------------------------------</span><br><span class="line">&gt;&gt;&gt; <span class="title function_">memset</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="type">void</span> *<span class="title function_">memset</span><span class="params">(<span class="type">void</span> *str, <span class="type">int</span> c, <span class="type">size_t</span> n)</span></span><br><span class="line">    	 复制字符 c（一个无符号字符）到参数 str 所指向的字符串的前 n 个字符</span><br><span class="line">  参数：str -- 指向要填充的内存块</span><br><span class="line">    	 c -- 要被设置的值。该值以 <span class="type">int</span> 形式传递，但是函数在填充内存块时是使用该值的无符号字符形式</span><br><span class="line">    	 n -- 要被设置为该值的字节数</span><br><span class="line">  返回值：该值返回一个指向存储区 str 的指针</span><br><span class="line">---------------------------------------------------------------------------------------</span><br><span class="line">&gt;&gt;&gt; <span class="title function_">strcpy</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="type">char</span> *<span class="title function_">strcpy</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span></span><br><span class="line">    	 把 src 所指向的字符串复制到 dest，容易出现溢出</span><br><span class="line">  参数：dest -- 指向用于存储复制内容的目标数组</span><br><span class="line">    	 src -- 要复制的字符串</span><br><span class="line">  返回值：该函数返回一个指向最终的目标字符串 dest 的指针</span><br><span class="line">--------------------------------------------------------------------------------------&gt;&gt;&gt; <span class="title function_">stpcpy</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="keyword">extern</span> <span class="type">char</span> *<span class="title function_">stpcpy</span><span class="params">(<span class="type">char</span> *dest,<span class="type">char</span> *src)</span></span><br><span class="line">    	 把src所指由<span class="literal">NULL</span>借宿的字符串复制到dest所指的数组中</span><br><span class="line">  说明：src和dest所指内存区域不可以重叠且dest必须有足够的空间来容纳src的字符串返回指向dest结尾处字符（<span class="literal">NULL</span>）的指针	 </span><br><span class="line">  返回值：</span><br><span class="line">---------------------------------------------------------------------------------------    &gt;&gt;&gt; <span class="title function_">strncpy</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="type">char</span> *<span class="title function_">strncpy</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src, <span class="type">size_t</span> n)</span></span><br><span class="line">    	 把 src 所指向的字符串复制到 dest，最多复制 n 个字符。当 src 的长度小于 n 时，dest 的剩余部分将用空字节填充</span><br><span class="line">  参数：dest -- 指向用于存储复制内容的目标数组</span><br><span class="line">    	 src -- 要复制的字符串</span><br><span class="line">    	 n -- 要从源中复制的字符数</span><br><span class="line">  返回值：该函数返回最终复制的字符串</span><br><span class="line">---------------------------------------------------------------------------------------&gt;&gt;&gt; <span class="title function_">strcat</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="type">char</span> *<span class="title function_">strcat</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span></span><br><span class="line">    	 把 src 所指向的字符串追加到 dest 所指向的字符串的结尾</span><br><span class="line">  参数：dest -- 指向目标数组，该数组包含了一个 C 字符串，且足够容纳追加后的字符串</span><br><span class="line">    	 src -- 指向要追加的字符串，该字符串不会覆盖目标字符串</span><br><span class="line">  返回值：</span><br><span class="line">---------------------------------------------------------------------------------------&gt;&gt;&gt; <span class="title function_">strncat</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="type">char</span> *<span class="title function_">strncat</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src, <span class="type">size_t</span> n)</span></span><br><span class="line">    	 把 src 所指向的字符串追加到 dest 所指向的字符串的结尾，直到 n 字符长度为止</span><br><span class="line">  参数：dest -- 指向目标数组，该数组包含了一个 C 字符串，且足够容纳追加后的字符串，包括额外的空字符</span><br><span class="line">    	 src -- 要追加的字符串</span><br><span class="line">    	 n -- 要追加的最大字符数</span><br><span class="line">  返回值：该函数返回一个指向最终的目标字符串 dest 的指针</span><br><span class="line">---------------------------------------------------------------------------------------&gt;&gt;&gt; <span class="title function_">sprintf</span><span class="params">()</span>:PHP</span><br><span class="line">  描述：<span class="title function_">sprintf</span><span class="params">(format,arg1,arg2,arg++)</span></span><br><span class="line">    	 arg1、arg2、++ 参数将被插入到主字符串中的百分号（%）符号处。该函数是逐步执行的。在第一个 % 符号处，插入 arg1，在第二个 % 符号处，插入 arg2，依此类推</span><br><span class="line">  参数：format -- 必需。规定字符串以及如何格式化其中的变量</span><br><span class="line">    	 arg1 -- 必需。规定插到 format 字符串中第一个 % 符号处的参</span><br><span class="line">    	 arg2 -- 可选。规定插到 format 字符串中第二个 % 符号处的参数</span><br><span class="line">    	 arg++ -- 可选。规定插到 format 字符串中第三、四等等 % 符号处的参数</span><br><span class="line">  返回值：返回已格式化的字符串</span><br><span class="line">---------------------------------------------------------------------------------------&gt;&gt;&gt; <span class="title function_">snprintf</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="type">int</span> <span class="title function_">snprintf</span> <span class="params">( <span class="type">char</span> * str, <span class="type">size_t</span> size, <span class="type">const</span> <span class="type">char</span> * format, ... )</span></span><br><span class="line">    	 设将可变参数<span class="params">(...)</span>按照 format 格式化成字符串，并将字符串复制到 str 中，size 为要写入的字符的最大数目，超过 size 会被截断</span><br><span class="line">  参数：str -- 目标字符串</span><br><span class="line">    	 size -- 拷贝字节数<span class="params">(Bytes)</span>如果格式化后的字符串长度大于 size</span><br><span class="line">    	 format -- 格式化成字符串</span><br><span class="line">  返回值：如果格式化后的字符串长度小于等于 size，则会把字符串全部复制到 str 中，并给其后添加一个字符串结束符 \0。 如果格式化后的字符串长度大于 size，超过 size 的部分会被截断，只将其中的 <span class="params">(size<span class="number">-1</span>)</span> 个字符复制到 str 中，并给其后添加一个字符串结束符 \0，返回值为欲写入的字符串长度</span><br><span class="line">---------------------------------------------------------------------------------------&gt;&gt;&gt; <span class="title function_">vsprintf</span><span class="params">()</span>:PHP</span><br><span class="line">  描述：<span class="title function_">vsprintf</span><span class="params">(format,argarray)</span> </span><br><span class="line">    	 与 <span class="title function_">sprintf</span><span class="params">()</span> 不同，<span class="title function_">vsprintf</span><span class="params">()</span> 中的参数位于数组中。数组元素将被插入到主字符串中的百分号（%）符号处。该函数是逐步执行的</span><br><span class="line">  参数：format -- 必需。规定字符串以及如何格式化其中的变量</span><br><span class="line">    	 argarray -- 必需。带有参数的一个数组，这些参数会被插到 format 字符串中的 % 符号处</span><br><span class="line">  返回值：以格式化字符串的形式返回数组值</span><br><span class="line">---------------------------------------------------------------------------------------&gt;&gt;&gt; <span class="title function_">vsnprintf</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="type">int</span> <span class="title function_">vsnprintf</span> <span class="params">(<span class="type">char</span> * s, <span class="type">size_t</span> n, <span class="type">const</span> <span class="type">char</span> * format, va_list arg )</span></span><br><span class="line">    	 将格式化数据从可变参数列表写入大小缓冲区</span><br><span class="line">如果在<span class="built_in">printf</span>上使用格式，则使用相同的文本组成字符串，但使用由arg标识的变量参数列表中的元素而不是附加的函数参数，并将结果内容作为C字符串存储在s指向的缓冲区中 （以n为最大缓冲区容量来填充）。如果结果字符串的长度超过了n-1个字符，则剩余的字符将被丢弃并且不被存储，而是被计算为函数返回的值。在内部，函数从arg标识的列表中检索参数，就好像va_arg被使用了一样，因此arg的状态很可能被调用所改变。在任何情况下，arg都应该在调用之前的某个时刻由va_start初始化，并且在调用之后的某个时刻，预计会由va_end释放</span><br><span class="line">  参数：s -- 指向存储结果C字符串的缓冲区的指针，缓冲区应至少有n个字符的大小</span><br><span class="line">    	 n -- 在缓冲区中使用的最大字节数，生成的字符串的长度至多为n-1，为额外的终止空字符留下空，<span class="type">size_t</span>是一个无符号整数类型</span><br><span class="line">    	 format -- 包含格式字符串的C字符串，其格式字符串与<span class="built_in">printf</span>中的格式相同</span><br><span class="line">     	 arg -- 标识使用va_start初始化的变量参数列表的值</span><br><span class="line">  返回值：如果n足够大，则会写入的字符数，不包括终止空字符。如果发生编码错误，则返回负数。注意，只有当这个返回值是非负值且小于n时，字符串才被完全写入</span><br><span class="line">---------------------------------------------------------------------------------------&gt;&gt;&gt; <span class="title function_">gets</span><span class="params">()</span>:</span><br><span class="line">  描述：<span class="type">char</span> *<span class="title function_">gets</span><span class="params">(<span class="type">char</span> *str)</span></span><br><span class="line">    	 从标准输入 <span class="built_in">stdin</span> 读取一行，并把它存储在 str 所指向的字符串中。当读取到换行符时，或者到达文件末尾时，它会停止，具体视情况而定</span><br><span class="line">  参数：str -- 这是指向一个字符数组的指针，该数组存储了 C 字符串</span><br><span class="line">  返回值：如果成功，该函数返回 str。如果发生错误或者到达文件末尾时还未读取任何字符，则返回 <span class="literal">NULL</span></span><br></pre></td></tr></table></figure>
+
+<p>GCC用法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gcc -D_FORTIFY_SOURCE=<span class="number">1</span>  仅仅只在编译时进行检查（尤其是<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span>这种文件头）</span></span><br><span class="line">gcc -D_FORTIFY_SOURCE=<span class="number">2</span>  程序执行时也会进行检查（如果检查到缓冲区溢出，就会终止程序）</span><br></pre></td></tr></table></figure>
+
+<p>在-D_FORTIFY_SOURCE&#x3D;2时，通过对数组大小来判断替换strcpy、memcpy、memset等函数名，从而达到防止缓冲区溢出的作用</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-1-3%EF%BC%89-Linux%20ELF%E6%96%87%E4%BB%B6%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-1-3%EF%BC%89-Linux%20ELF%E6%96%87%E4%BB%B6%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-06/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-1-4%EF%BC%89-Linux%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E4%B8%AD%E7%9A%84PLT%E8%A1%A8%E5%92%8CGOT%E8%A1%A8/" title="PWN入门（1-1-4）-Linux动态链接中的PLT表和GOT表"><img class="cover" src="https://picsum.photos/seed/blog-cover-03/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（1-1-4）-Linux动态链接中的PLT表和GOT表</div></div><div class="info-2"><div class="info-item-1">PWN入门（1-1-4）-Linux动态链接中的PLT表和GOT表 文章来自于：https://blog.csdn.net/linyt/article/details/51635768文章为16年的文章，可能有些过时，但是对PLT和GOT表的讲解十分清楚  在介绍PLT和GOT出场之前，先以一个简单的例子引入两个主角，各位请看以下代码： 12345678#include &lt;stdio.h&gt;void print_banner()&#123;    printf(&quot;Welcome to World of PLT and GOT\n&quot;);&#125;int main(void)&#123;    print_banner();    return 0;&#125;   编译:gcc -Wall -g -o test.o -c test.c -m32链接:gcc -o test test.o -m32   注意：现代Linux系统都是x86_64系统了，后面需要对中间文件test.o以及可执行文件test反编译，分析汇编指令，因此在这里使用-m32选项生成...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-1-2%EF%BC%89-bss%E6%AE%B5%E3%80%81data%E6%AE%B5%E3%80%81text%E6%AE%B5%E3%80%81%E5%A0%86(heap)%E5%92%8C%E6%A0%88(stack)/" title="PWN入门（1-1-2）-bss段、data段、text段、堆(heap)和栈(stack)"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（1-1-2）-bss段、data段、text段、堆(heap)和栈(stack)</div></div><div class="info-2"><div class="info-item-1">PWN入门（1-1-2）-bss段、data段、text段、堆(heap)和栈(stack) 文章改动于：https://www.cnblogs.com/yanghong-hnu/p/4705755.html  bss段：**bss段（bss segment）**通常是指用来存放程序中未初始化的全局变量的一块内存区域。 bss是英文Block Started by Symbol的简称。 bss段属于静态内存分配。 data段：数据段（data segment）通常是指用来存放程序中已初始化的全局变量的一块内存区域。 数据段属于静态内存分配。 text段：代码段（code segment&#x2F;text segment）通常是指用来存放程序执行代码的一块内存区域。 这部分区域的大小在程序运行前就已经确定，并且内存区域通常属于只读(某些架构也允许代码段为可写，即允许修改程序)。 在代码段中，也有可能包含一些只读的常数变量，例如字符串常量等。 堆（heap）：堆是用于存放进程运行中被动态分配的内存段，它的大小并不固定，可动态扩张或缩减。 当进程调用malloc等函数分配内存时，新分...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%881-1-3%EF%BC%89-Linux-ELF%E6%96%87%E4%BB%B6%E4%BF%9D%E6%8A%A4%E6%9C%BA%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（1-1-3）-Linux ELF文件保护机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%EF%BC%9ACanary"><span class="toc-number">1.1.</span> <span class="toc-text">一：Canary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%EF%BC%9ANX"><span class="toc-number">1.2.</span> <span class="toc-text">二：NX</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%EF%BC%9APIE%EF%BC%88ASLR%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">三：PIE（ASLR）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%EF%BC%9ARELRO"><span class="toc-number">1.4.</span> <span class="toc-text">四：RELRO</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81FORTIFY"><span class="toc-number">1.5.</span> <span class="toc-text">五、FORTIFY</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

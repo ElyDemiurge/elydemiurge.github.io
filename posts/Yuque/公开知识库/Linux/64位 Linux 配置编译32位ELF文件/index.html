@@ -1,0 +1,267 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>64位 Linux 配置编译32位ELF文件 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="64位 Linux 配置编译32位ELF文件 确认主机为64位架构的内核，应该输出为amd64，执行：  1dpkg --print-architecture  2.      确认打开了多架构支持功能，应该输出为i386，执行： 1$ dpkg --print-foreign-architectures  如果没有，则需要手动打开，依次执行： 123$ sudo dpkg --add-archi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="64位 Linux 配置编译32位ELF文件">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/64%E4%BD%8D%20Linux%20%E9%85%8D%E7%BD%AE%E7%BC%96%E8%AF%9132%E4%BD%8DELF%E6%96%87%E4%BB%B6/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="64位 Linux 配置编译32位ELF文件 确认主机为64位架构的内核，应该输出为amd64，执行：  1dpkg --print-architecture  2.      确认打开了多架构支持功能，应该输出为i386，执行： 1$ dpkg --print-foreign-architectures  如果没有，则需要手动打开，依次执行： 123$ sudo dpkg --add-archi">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-03/800/450">
+<meta property="article:published_time" content="2020-08-15T06:05:31.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.519Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-03/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "64位 Linux 配置编译32位ELF文件",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/64%E4%BD%8D%20Linux%20%E9%85%8D%E7%BD%AE%E7%BC%96%E8%AF%9132%E4%BD%8DELF%E6%96%87%E4%BB%B6/",
+  "image": "https://picsum.photos/seed/blog-cover-03/800/450",
+  "datePublished": "2020-08-15T06:05:31.000Z",
+  "dateModified": "2026-07-03T14:46:15.519Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/64%E4%BD%8D%20Linux%20%E9%85%8D%E7%BD%AE%E7%BC%96%E8%AF%9132%E4%BD%8DELF%E6%96%87%E4%BB%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '64位 Linux 配置编译32位ELF文件',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-03/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">64位 Linux 配置编译32位ELF文件</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">64位 Linux 配置编译32位ELF文件</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-15T06:05:31.000Z" title="发表于 2020-08-15 14:05:31">2020-08-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.519Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/">Linux</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>10分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="64位-Linux-配置编译32位ELF文件"><a href="#64位-Linux-配置编译32位ELF文件" class="headerlink" title="64位 Linux 配置编译32位ELF文件"></a>64位 Linux 配置编译32位ELF文件</h1><ol>
+<li>确认主机为64位架构的内核，应该输出为amd64，执行：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dpkg --print-architecture</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">2.      确认打开了多架构支持功能，应该输出为i386，执行：</span></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ dpkg --print-foreign-architectures</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">如果没有，则需要手动打开，依次执行：</span></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">sudo</span> dpkg --add-architecture i386</span><br><span class="line">$ <span class="built_in">sudo</span> apt-get update</span><br><span class="line">$ <span class="built_in">sudo</span> apt-get dist-upgrade</span><br></pre></td></tr></table></figure>
+
+<p><span style="color: #333333">3. 安装gcc multilab，执行：</span></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt-get install gcc-multilib g++-multilib</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop$ <span class="built_in">sudo</span> apt-get install gcc-multilib g++-multilib  </span><br><span class="line">[<span class="built_in">sudo</span>] password <span class="keyword">for</span> ubuntu: </span><br><span class="line">Reading package lists... Done</span><br><span class="line">Building dependency tree       </span><br><span class="line">Reading state information... Done</span><br><span class="line">The following additional packages will be installed:</span><br><span class="line">  g++-9-multilib gcc-9-multilib lib32asan5 lib32atomic1 lib32gcc-9-dev</span><br><span class="line">  lib32gomp1 lib32itm1 lib32quadmath0 lib32stdc++-9-dev lib32ubsan1</span><br><span class="line">  libc6-dev-i386 libc6-dev-x32 libc6-x32 libx32asan5 libx32atomic1</span><br><span class="line">  libx32gcc-9-dev libx32gcc-s1 libx32gcc1 libx32gomp1 libx32itm1</span><br><span class="line">  libx32quadmath0 libx32stdc++-9-dev libx32stdc++6 libx32ubsan1</span><br><span class="line">Suggested packages:</span><br><span class="line">  lib32stdc++6-9-dbg libx32stdc++6-9-dbg</span><br><span class="line">The following NEW packages will be installed:</span><br><span class="line">  g++-9-multilib g++-multilib gcc-9-multilib gcc-multilib lib32asan5</span><br><span class="line">  lib32atomic1 lib32gcc-9-dev lib32gomp1 lib32itm1 lib32quadmath0</span><br><span class="line">  lib32stdc++-9-dev lib32ubsan1 libc6-dev-i386 libc6-dev-x32 libc6-x32</span><br><span class="line">  libx32asan5 libx32atomic1 libx32gcc-9-dev libx32gcc-s1 libx32gcc1</span><br><span class="line">  libx32gomp1 libx32itm1 libx32quadmath0 libx32stdc++-9-dev libx32stdc++6</span><br><span class="line">  libx32ubsan1</span><br><span class="line">0 upgraded, 26 newly installed, 0 to remove and 226 not upgraded.</span><br><span class="line">Need to get 14.6 MB of archives.</span><br><span class="line">After this operation, 85.0 MB of additional disk space will be used.</span><br><span class="line">Do you want to <span class="built_in">continue</span>? [Y/n] Y</span><br><span class="line">Get:1 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libc6-dev-i386 amd64 2.31-0ubuntu9 [1,902 kB]</span><br><span class="line">Get:1 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libc6-dev-i386 amd64 2.31-0ubuntu9 [1,902 kB]</span><br><span class="line">Get:2 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libc6-x32 amd64 2.31-0ubuntu9 [2,777 kB]</span><br><span class="line">Get:3 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libc6-dev-x32 amd64 2.31-0ubuntu9 [1,978 kB]</span><br><span class="line">Get:4 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32gcc-s1 amd64 10-20200411-0ubuntu1 [41.4 kB]</span><br><span class="line">Get:5 http://us.archive.ubuntu.com/ubuntu focal/main amd64 lib32gomp1 amd64 10-20200411-0ubuntu1 [109 kB]</span><br><span class="line">Get:6 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32gomp1 amd64 10-20200411-0ubuntu1 [102 kB]</span><br><span class="line">Get:7 http://us.archive.ubuntu.com/ubuntu focal/main amd64 lib32itm1 amd64 10-20200411-0ubuntu1 [28.3 kB]</span><br><span class="line">Get:8 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32itm1 amd64 10-20200411-0ubuntu1 [26.7 kB]</span><br><span class="line">Get:9 http://us.archive.ubuntu.com/ubuntu focal/main amd64 lib32atomic1 amd64 10-20200411-0ubuntu1 [8,864 B]</span><br><span class="line">Get:10 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32atomic1 amd64 10-20200411-0ubuntu1 [9,288 B]</span><br><span class="line">Get:11 http://us.archive.ubuntu.com/ubuntu focal/main amd64 lib32asan5 amd64 9.3.0-10ubuntu2 [411 kB]</span><br><span class="line">Get:12 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32asan5 amd64 9.3.0-10ubuntu2 [387 kB]</span><br><span class="line">Get:13 http://us.archive.ubuntu.com/ubuntu focal/main amd64 lib32ubsan1 amd64 10-20200411-0ubuntu1 [153 kB]</span><br><span class="line">Get:14 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32gcc1 amd64 1:10-20200411-0ubuntu1 [996 B]</span><br><span class="line">Get:15 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32stdc++6 amd64 10-20200411-0ubuntu1 [486 kB]</span><br><span class="line">Get:16 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32ubsan1 amd64 10-20200411-0ubuntu1 [137 kB]</span><br><span class="line">Get:17 http://us.archive.ubuntu.com/ubuntu focal/main amd64 lib32quadmath0 amd64 10-20200411-0ubuntu1 [231 kB]</span><br><span class="line">Get:18 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32quadmath0 amd64 10-20200411-0ubuntu1 [149 kB]</span><br><span class="line">Get:19 http://us.archive.ubuntu.com/ubuntu focal/main amd64 lib32gcc-9-dev amd64 9.3.0-10ubuntu2 [2,225 kB]</span><br><span class="line">Get:20 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32gcc-9-dev amd64 9.3.0-10ubuntu2 [2,008 kB]</span><br><span class="line">Get:21 http://us.archive.ubuntu.com/ubuntu focal/main amd64 gcc-9-multilib amd64 9.3.0-10ubuntu2 [1,056 B]</span><br><span class="line">Get:22 http://us.archive.ubuntu.com/ubuntu focal/main amd64 lib32stdc++-9-dev amd64 9.3.0-10ubuntu2 [762 kB]</span><br><span class="line">Get:23 http://us.archive.ubuntu.com/ubuntu focal/main amd64 libx32stdc++-9-dev amd64 9.3.0-10ubuntu2 [710 kB]</span><br><span class="line">Get:24 http://us.archive.ubuntu.com/ubuntu focal/main amd64 g++-9-multilib amd64 9.3.0-10ubuntu2 [1,080 B]</span><br><span class="line">Get:25 http://us.archive.ubuntu.com/ubuntu focal/main amd64 gcc-multilib amd64 4:9.3.0-1ubuntu2 [1,516 B]</span><br><span class="line">Get:26 http://us.archive.ubuntu.com/ubuntu focal/main amd64 g++-multilib amd64 4:9.3.0-1ubuntu2 [1,044 B]</span><br><span class="line">Fetched 14.2 MB <span class="keyword">in</span> 3min 44s (63.4 kB/s)                                        </span><br><span class="line">Selecting previously unselected package libc6-dev-i386.</span><br><span class="line">(Reading database ... 187882 files and directories currently installed.)</span><br><span class="line">Preparing to unpack .../00-libc6-dev-i386_2.31-0ubuntu9_amd64.deb ...</span><br><span class="line">Unpacking libc6-dev-i386 (2.31-0ubuntu9) ...</span><br><span class="line">Selecting previously unselected package libc6-x32.</span><br><span class="line">Preparing to unpack .../01-libc6-x32_2.31-0ubuntu9_amd64.deb ...</span><br><span class="line">Unpacking libc6-x32 (2.31-0ubuntu9) ...</span><br><span class="line">Selecting previously unselected package libc6-dev-x32.</span><br><span class="line">Preparing to unpack .../02-libc6-dev-x32_2.31-0ubuntu9_amd64.deb ...</span><br><span class="line">Unpacking libc6-dev-x32 (2.31-0ubuntu9) ...</span><br><span class="line">Selecting previously unselected package libx32gcc-s1.</span><br><span class="line">Preparing to unpack .../03-libx32gcc-s1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking libx32gcc-s1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package lib32gomp1.</span><br><span class="line">Preparing to unpack .../04-lib32gomp1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking lib32gomp1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package libx32gomp1.</span><br><span class="line">Preparing to unpack .../05-libx32gomp1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking libx32gomp1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package lib32itm1.</span><br><span class="line">Preparing to unpack .../06-lib32itm1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking lib32itm1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package libx32itm1.</span><br><span class="line">Preparing to unpack .../07-libx32itm1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking libx32itm1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package lib32atomic1.</span><br><span class="line">Preparing to unpack .../08-lib32atomic1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking lib32atomic1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package libx32atomic1.</span><br><span class="line">Preparing to unpack .../09-libx32atomic1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking libx32atomic1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package lib32asan5.</span><br><span class="line">Preparing to unpack .../10-lib32asan5_9.3.0-10ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking lib32asan5 (9.3.0-10ubuntu2) ...</span><br><span class="line">Selecting previously unselected package libx32asan5.</span><br><span class="line">Preparing to unpack .../11-libx32asan5_9.3.0-10ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking libx32asan5 (9.3.0-10ubuntu2) ...</span><br><span class="line">Selecting previously unselected package lib32ubsan1.</span><br><span class="line">Preparing to unpack .../12-lib32ubsan1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking lib32ubsan1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package libx32gcc1.</span><br><span class="line">Preparing to unpack .../13-libx32gcc1_1%3a10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking libx32gcc1 (1:10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package libx32stdc++6.</span><br><span class="line">Preparing to unpack .../14-libx32stdc++6_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking libx32stdc++6 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package libx32ubsan1.</span><br><span class="line">Preparing to unpack .../15-libx32ubsan1_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking libx32ubsan1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package lib32quadmath0.</span><br><span class="line">Preparing to unpack .../16-lib32quadmath0_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking lib32quadmath0 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package libx32quadmath0.</span><br><span class="line">Preparing to unpack .../17-libx32quadmath0_10-20200411-0ubuntu1_amd64.deb ...</span><br><span class="line">Unpacking libx32quadmath0 (10-20200411-0ubuntu1) ...</span><br><span class="line">Selecting previously unselected package lib32gcc-9-dev.</span><br><span class="line">Preparing to unpack .../18-lib32gcc-9-dev_9.3.0-10ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking lib32gcc-9-dev (9.3.0-10ubuntu2) ...</span><br><span class="line">Selecting previously unselected package libx32gcc-9-dev.</span><br><span class="line">Preparing to unpack .../19-libx32gcc-9-dev_9.3.0-10ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking libx32gcc-9-dev (9.3.0-10ubuntu2) ...</span><br><span class="line">Selecting previously unselected package gcc-9-multilib.</span><br><span class="line">Preparing to unpack .../20-gcc-9-multilib_9.3.0-10ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking gcc-9-multilib (9.3.0-10ubuntu2) ...</span><br><span class="line">Selecting previously unselected package lib32stdc++-9-dev.</span><br><span class="line">Preparing to unpack .../21-lib32stdc++-9-dev_9.3.0-10ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking lib32stdc++-9-dev (9.3.0-10ubuntu2) ...</span><br><span class="line">Selecting previously unselected package libx32stdc++-9-dev.</span><br><span class="line">Preparing to unpack .../22-libx32stdc++-9-dev_9.3.0-10ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking libx32stdc++-9-dev (9.3.0-10ubuntu2) ...</span><br><span class="line">Selecting previously unselected package g++-9-multilib.</span><br><span class="line">Preparing to unpack .../23-g++-9-multilib_9.3.0-10ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking g++-9-multilib (9.3.0-10ubuntu2) ...</span><br><span class="line">Selecting previously unselected package gcc-multilib.</span><br><span class="line">Preparing to unpack .../24-gcc-multilib_4%3a9.3.0-1ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking gcc-multilib (4:9.3.0-1ubuntu2) ...</span><br><span class="line">Selecting previously unselected package g++-multilib.</span><br><span class="line">Preparing to unpack .../25-g++-multilib_4%3a9.3.0-1ubuntu2_amd64.deb ...</span><br><span class="line">Unpacking g++-multilib (4:9.3.0-1ubuntu2) ...</span><br><span class="line">Setting up libc6-dev-i386 (2.31-0ubuntu9) ...</span><br><span class="line">Setting up lib32itm1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up lib32ubsan1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libc6-x32 (2.31-0ubuntu9) ...</span><br><span class="line">Setting up libc6-dev-x32 (2.31-0ubuntu9) ...</span><br><span class="line">Setting up lib32gomp1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libx32gomp1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up lib32quadmath0 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libx32quadmath0 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up lib32asan5 (9.3.0-10ubuntu2) ...</span><br><span class="line">Setting up lib32atomic1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libx32atomic1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libx32gcc-s1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libx32itm1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libx32asan5 (9.3.0-10ubuntu2) ...</span><br><span class="line">Setting up libx32gcc1 (1:10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libx32stdc++6 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up libx32ubsan1 (10-20200411-0ubuntu1) ...</span><br><span class="line">Setting up lib32gcc-9-dev (9.3.0-10ubuntu2) ...</span><br><span class="line">Setting up libx32gcc-9-dev (9.3.0-10ubuntu2) ...</span><br><span class="line">Setting up lib32stdc++-9-dev (9.3.0-10ubuntu2) ...</span><br><span class="line">Setting up libx32stdc++-9-dev (9.3.0-10ubuntu2) ...</span><br><span class="line">Setting up gcc-9-multilib (9.3.0-10ubuntu2) ...</span><br><span class="line">Setting up gcc-multilib (4:9.3.0-1ubuntu2) ...</span><br><span class="line">Setting up g++-9-multilib (9.3.0-10ubuntu2) ...</span><br><span class="line">Setting up g++-multilib (4:9.3.0-1ubuntu2) ...</span><br><span class="line">Processing triggers <span class="keyword">for</span> libc-bin (2.31-0ubuntu9) ...</span><br><span class="line">ubuntu@ubuntu:~/Desktop$</span><br></pre></td></tr></table></figure>
+
+<p>执行完之后，测试一下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc test.c -m32</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注：上面的命令执行完之后会生成.out可执行文件，且文件保护全开</p>
+</blockquote>
+<p>可执行文件保护请参考：</p>
+<p>[..&#x2F;..&#x2F;PWN&#x2F;CTF-PWN系列&#x2F;PWN入门&#x2F;PWN入门（1-1-3）-Linux ELF文件保护机制&#x2F;PWN入门（1-1-3）-Linux ELF文件保护机制.md](..&#x2F;..&#x2F;PWN&#x2F;CTF-PWN系列&#x2F;PWN入门&#x2F;PWN入门（1-1-3）-Linux ELF文件保护机制&#x2F;PWN入门（1-1-3）-Linux ELF文件保护机制.md)</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/64%E4%BD%8D%20Linux%20%E9%85%8D%E7%BD%AE%E7%BC%96%E8%AF%9132%E4%BD%8DELF%E6%96%87%E4%BB%B6/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Linux/64%E4%BD%8D%20Linux%20%E9%85%8D%E7%BD%AE%E7%BC%96%E8%AF%9132%E4%BD%8DELF%E6%96%87%E4%BB%B6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-03/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-5%EF%BC%89-%E4%BD%BF%E7%94%A8%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E7%BB%95%E8%BF%87Canary%E4%BF%9D%E6%8A%A4%EF%BC%8832%E4%BD%8DELF%EF%BC%89/" title="PWN入门（2-1-5）-使用格式化字符串漏洞绕过Canary保护（32位ELF）"><img class="cover" src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（2-1-5）-使用格式化字符串漏洞绕过Canary保护（32位ELF）</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-1-5）-使用格式化字符串漏洞绕过Canary保护（32位ELF） 题目来源自：https://bamboofox.cs.nctu.edu.tw/courses/3/challenges/61参考资料：http://www.xiyblogs.cn/2020/02/24/%E7%9C%8B%E6%88%91%E4%B8%80%E6%AD%A5%E4%B8%80%E6%AD%A5%E7%BB%95canary%EF%BC%8C%E6%8B%BFshell/附件下载：链接：https://pan.baidu.com/s/1hVMiXkKJQoiEbYMpPJfsAg提取码：4egx  将文件下载下来之后，检查一下文件的保护机制：  可以知道，这是一个32位的文件，开启了NX和Canary保护。  Canary简介：Canary是一种用来防护栈溢出的保护机制。其原理是在一个函数的入口处，先从fs&#x2F;gs寄存器中取出一个4字节(eax)或者8字节(rax)的值存到栈上（最低位都是\x00），当函数结束时会检查这个栈上的值是否和存进去的值一致，若一致则正常退出，如果是...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-2%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%9F%BA%E7%A1%80%EF%BC%88x86%EF%BC%89/" title="PWN入门（2-1-2）-格式化字符串漏洞基础（x86）"><img class="cover" src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（2-1-2）-格式化字符串漏洞基础（x86）</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-1-2）-格式化字符串漏洞基础（x86） 文接上篇  0x02 格式化字符串漏洞原理格式化串漏洞和普通的栈溢出有相似之处，但又有所不同，它们都是利用了程序员的疏忽大意来改变程序运行的正常流程。 接下来我们就来看一下格式化字符串的漏洞原理。 首先，什么是格式化字符串呢，print()、fprint()等*print()系列的函数可以按照一定的格式将数据进行输出，举个最简单的例子: 1printf(&quot;My Name is:  %s&quot; , &quot;bingtangguan&quot;)  执行该函数后将返回字符串:My Name is:bingtangguan 该printf函数的第一个参数就是格式化字符串，它来告诉程序将数据以什么格式输出。上面的例子相信只要学过C语言、上过大学考过计算机二级的都耳熟能详，如果这个都不知道，接下来我真不知道该怎么写了。但是我还是觉得有必要把printf()函数好好写一下。 printf()函数的一般形式为:printf(“format”， 输出表列)，我们对format比较关心，看一下它的结构吧:%[标志][输出...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#64%E4%BD%8D-Linux-%E9%85%8D%E7%BD%AE%E7%BC%96%E8%AF%9132%E4%BD%8DELF%E6%96%87%E4%BB%B6"><span class="toc-number">1.</span> <span class="toc-text">64位 Linux 配置编译32位ELF文件</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

